@@ -24,17 +24,31 @@ using CommandLine;
 
 namespace FFXIV_TexTools_CLI
 {
-
-
-    public class Options
+// Verbs does not support nesting :( 
+    [Verb("import modpack", HelpText = "Import modpack / texture / model")]
+    public class importoptions
     {
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
-        public string Directory { get; set; }
-        [Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
-        public string ModPackDirectory { get; set; }
-        [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
-        public string ttmp { get; set; }
     }
+    [Verb("export", HelpText = "Export modpack / texture / model")]
+    public class exportoptions
+    { //normal options here
+    }
+    [Verb("reset", HelpText = "Reset game to clean state")]
+    public class resetoptions
+    { //normal options here
+    }
+    //public class Options
+    //{
+    //    [Option('o', "operation", Required = true, HelpText = "Path to .ttmp(2) file")]
+    //    public string Operation { get; set; }
+    //    [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
+    //    public string Directory { get; set; }
+    //    [Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
+    //    public string ModPackDirectory { get; set; }
+    //    [Option('t', "ttmp", Required = false, HelpText = "Path to .ttmp(2) file")]
+    //    public string TTMP { get; set; }
+
+    //}
 
     public class MainClass
     {
@@ -80,7 +94,7 @@ namespace FFXIV_TexTools_CLI
                 PrintMessage("Incorrect directory", 2);
                 return;
             }
-            Console.Write(ffxivVersion);
+            PrintMessage(ffxivVersion.ToString());
 
 
         }
@@ -89,7 +103,13 @@ namespace FFXIV_TexTools_CLI
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
-            var options = new Options();
+# var options = new Options();
+            Parser.Default.ParseArguments<importoptions, exportoptions, resetoptions>(args)
+                .WithParsed<importoptions>(opts => ...)
+                .WithParsed<exportoptions>(opts => ...)
+                .WithParsed<resetoptions>(opts => ...)
+                .WithNotParsed(errs => ...)
+}
             Parser.Default.ParseArguments<Options>(args)
                        .WithParsed<Options>(o =>
                        {
