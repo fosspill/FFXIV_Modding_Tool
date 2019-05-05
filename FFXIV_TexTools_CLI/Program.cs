@@ -24,6 +24,8 @@ using CommandLine;
 
 namespace FFXIV_TexTools_CLI
 {
+
+
     public class Options
     {
         [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
@@ -37,6 +39,28 @@ namespace FFXIV_TexTools_CLI
     public class MainClass
     {
         public DirectoryInfo _gameDirectory;
+        public DirectoryInfo _gameModDirectory;
+
+        public void PrintMessage(string message, int importance = 0)
+        {
+            switch (importance)
+            {
+                case 1:
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    break;
+                case 2:
+                    Console.Write("ERROR: ");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                default:
+                    Console.ForegroundColor = ConsoleColor.White;
+                    break;
+            }
+            Console.Write(message);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("\n");
+
+        }
 
         private void CheckGameVersion()
         {
@@ -50,7 +74,7 @@ namespace FFXIV_TexTools_CLI
             }
             else
             {
-                Console.Write("dat not game plz giv");
+                PrintMessage("Incorrect directory", 2);
                 return;
             }
             Console.Write(ffxivVersion);
@@ -73,5 +97,5 @@ namespace FFXIV_TexTools_CLI
         }
 
 
-}
+    }
 }
