@@ -22,18 +22,18 @@ List is sorted by priority
 - [ ] ModPack creation
  
 
-### Development
+## Development
 
 Want to help out? Awesome!
 
 Make issues or pull requests, or just chat with us.
 
-### Installation
+## Installation
 
 How to install / run / use will be here once ready
 
 
-#### Building for source
+## Building for source
 How to build will be written here
 
 
