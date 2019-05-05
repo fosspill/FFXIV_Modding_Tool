@@ -41,6 +41,9 @@ namespace FFXIV_TexTools_CLI
         public DirectoryInfo _gameDirectory;
         public DirectoryInfo _gameModDirectory;
 
+        /* Print slightly nicer messages. Can add logging here as well if needed.
+         1 = Success message, 2 = Error message 
+        */
         public void PrintMessage(string message, int importance = 0)
         {
             switch (importance)
