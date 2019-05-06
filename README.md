@@ -3,6 +3,8 @@
 
 **FFXIV_TexTools_CLI** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI*
 
+**This project is NOT affiliated with FFXIV_TexTools_UI**
+
 Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*
 
 # Current Status: ![Not ready for use](https://placehold.it/15/f03c15/000000?text=+) `NOT READY FOR USE`
