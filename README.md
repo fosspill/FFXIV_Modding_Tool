@@ -27,9 +27,26 @@ Want to help out? Awesome!
 
 Make issues or pull requests, or just chat with us.
 
-## Installation
+## Installation / Execution
 
-How to install / run / use will be here once ready
+### Universal
+
+1) Make sure mono is installed on your system. Windows users should not have to worry about this.
+
+### Linux
+
+2) Download the released binary
+3) Run the binary with ```mono FFXIV_TexTools_CLI.exe```
+
+### Windows
+
+2) Download the released binary
+3) Run the binary as usual
+
+### MacOS
+
+2) Download the released binary
+3) Run the binary with ```mono FFXIV_TexTools_CLI.exe```
 
 
 ## Building for source
