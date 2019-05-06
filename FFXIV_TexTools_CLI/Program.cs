@@ -17,15 +17,20 @@
 using System;
 using System.IO;
 using xivModdingFramework.General.Enums;
-using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods;
+using xivModdingFramework.Mods.DataContainers;
+using xivModdingFramework.Mods.Enums;
+using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
+using xivModdingFramework.Textures.Enums;
+using xivModdingFramework.Helpers;
+using xivModdingFramework.Items.Interfaces;
 using CommandLine;
 
 namespace FFXIV_TexTools_CLI
 {
 // Verbs does not support nesting :( 
-    [Verb("import modpack", HelpText = "Import modpack / texture / model")]
+    [Verb("modpackimport", HelpText = "Import a modpack")]
     public class importoptions
     {
         [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
@@ -43,18 +48,44 @@ namespace FFXIV_TexTools_CLI
     public class resetoptions
     { //normal options here
     }
-    //public class Options
-    //{
-    //    [Option('o', "operation", Required = true, HelpText = "Path to .ttmp(2) file")]
-    //    public string Operation { get; set; }
-    //    [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
-    //    public string Directory { get; set; }
-    //    [Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
-    //    public string ModPackDirectory { get; set; }
-    //    [Option('t', "ttmp", Required = false, HelpText = "Path to .ttmp(2) file")]
-    //    public string TTMP { get; set; }
 
-    //}
+    public class ModPack
+    {
+        void ImportModpack(DirectoryInfo path, DirectoryInfo modPackDirectory)
+        {
+            var importError = false;
+
+            try
+            {
+                var ttmp = new TTMP(modPackDirectory, "TexTools");
+                var ttmpData = ttmp.GetModPackJsonData(path);
+                try
+                {
+                    var simpleImport = new SimpleModPackImporter(path,
+                        ttmpData.ModPackJson);
+                }
+                catch
+                {
+                    importError = true;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                if (!importError)
+                {
+                    var simpleImport = new SimpleModPackImporter(path, null);
+                }
+                else
+                {
+                    Console.Write($"There was an error importing the mod pack at {path.FullName}\nMessage: {ex.Message}");
+                    return;
+                }
+            }
+
+            return;
+        }
+    }
 
     public class MainClass
     {
@@ -115,12 +146,6 @@ namespace FFXIV_TexTools_CLI
                 /*.WithParsed<exportoptions>(opts => ...)
                 .WithParsed<resetoptions>(opts => ...)
                 .WithNotParsed(errs => ...)*/;
-
-            //Parser.Default.ParseArguments<Options>(args)
-                       //.WithParsed<Options>(o =>
-                       //{
-                       //    instance._gameDirectory = new DirectoryInfo(o.Directory);
-                       //});
             instance.CheckGameVersion();
 
         }
