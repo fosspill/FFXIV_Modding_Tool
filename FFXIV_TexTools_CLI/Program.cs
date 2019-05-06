@@ -28,6 +28,12 @@ namespace FFXIV_TexTools_CLI
     [Verb("import modpack", HelpText = "Import modpack / texture / model")]
     public class importoptions
     {
+        [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string Directory { get; set; }
+        [Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
+        public string ModPackDirectory { get; set; }
+        [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
+        public string TTMP { get; set; }
     }
     [Verb("export", HelpText = "Export modpack / texture / model")]
     public class exportoptions
@@ -103,18 +109,18 @@ namespace FFXIV_TexTools_CLI
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
-# var options = new Options();
+//var options = new Options();
             Parser.Default.ParseArguments<importoptions, exportoptions, resetoptions>(args)
-                .WithParsed<importoptions>(opts => ...)
-                .WithParsed<exportoptions>(opts => ...)
+            .WithParsed<importoptions>(opts => { instance._gameDirectory = new DirectoryInfo(opts.Directory); })
+                /*.WithParsed<exportoptions>(opts => ...)
                 .WithParsed<resetoptions>(opts => ...)
-                .WithNotParsed(errs => ...)
-}
-            Parser.Default.ParseArguments<Options>(args)
-                       .WithParsed<Options>(o =>
-                       {
-                           instance._gameDirectory = new DirectoryInfo(o.Directory);
-                       });
+                .WithNotParsed(errs => ...)*/;
+
+            //Parser.Default.ParseArguments<Options>(args)
+                       //.WithParsed<Options>(o =>
+                       //{
+                       //    instance._gameDirectory = new DirectoryInfo(o.Directory);
+                       //});
             instance.CheckGameVersion();
 
         }
