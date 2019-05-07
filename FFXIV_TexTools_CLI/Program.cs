@@ -255,29 +255,19 @@ namespace FFXIV_TexTools_CLI
             var xivRace = XivRace.All_Races;
 
             if (modPath.Contains("ui/") || modPath.Contains(".avfx"))
-            {
                 xivRace = XivRace.All_Races;
-            }
             else if (modPath.Contains("monster"))
-            {
                 xivRace = XivRace.Monster;
-            }
             else if (modPath.Contains("bgcommon"))
-            {
                 xivRace = XivRace.All_Races;
-            }
             else if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
             {
                 if (modPath.Contains("accessory") || modPath.Contains("weapon") || modPath.Contains("/common/"))
-                {
                     xivRace = XivRace.All_Races;
-                }
                 else
                 {
                     if (modPath.Contains("demihuman"))
-                    {
                         xivRace = XivRace.DemiHuman;
-                    }
                     else if (modPath.Contains("/v"))
                     {
                         var raceCode = modPath.Substring(modPath.IndexOf("_c") + 2, 4);
@@ -330,13 +320,9 @@ namespace FFXIV_TexTools_CLI
                 catch
                 {
                     if (modPath.Contains("stigma"))
-                    {
                         number = "stigma";
-                    }
                     else
-                    {
                         number = "Error";
-                    }
                 }
             }
 
@@ -362,36 +348,26 @@ namespace FFXIV_TexTools_CLI
             if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
             {
                 if (modPath.Contains("demihuman"))
-                {
                     type = slotAbr[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
-                }
 
                 if (modPath.Contains("/face/"))
                 {
                     if (modPath.Contains(".tex"))
-                    {
                         type = FaceTypes[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
-                    }
                 }
 
                 if (modPath.Contains("/hair/"))
                 {
                     if (modPath.Contains(".tex"))
-                    {
                         type = HairTypes[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
-                    }
                 }
 
                 if (modPath.Contains("/vfx/"))
-                {
                     type = "VFX";
-                }
 
             }
             else if (modPath.Contains(".avfx"))
-            {
                 type = "AVFX";
-            }
 
             return type;
         }
@@ -401,14 +377,10 @@ namespace FFXIV_TexTools_CLI
             var xivTexType = XivTexType.Other;
 
             if (modPath.Contains(".mdl"))
-            {
                 return "3D";
-            }
 
             if (modPath.Contains(".mtrl"))
-            {
                 return "ColorSet";
-            }
 
             if (modPath.Contains("ui/"))
             {
@@ -417,30 +389,20 @@ namespace FFXIV_TexTools_CLI
             }
 
             if (modPath.Contains("_s.tex") || modPath.Contains("skin_m"))
-            {
                 xivTexType = XivTexType.Specular;
-            }
             else if (modPath.Contains("_d.tex"))
-            {
                 xivTexType = XivTexType.Diffuse;
-            }
             else if (modPath.Contains("_n.tex"))
-            {
                 xivTexType = XivTexType.Normal;
-            }
             else if (modPath.Contains("_m.tex"))
-            {
                 xivTexType = XivTexType.Multi;
-            }
             else if (modPath.Contains(".atex"))
             {
                 var atex = Path.GetFileNameWithoutExtension(modPath);
                 return atex.Substring(0, 4);
             }
             else if (modPath.Contains("decal"))
-            {
                 xivTexType = XivTexType.Mask;
-            }
 
             return xivTexType.ToString();
         }
