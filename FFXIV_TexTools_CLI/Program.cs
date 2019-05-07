@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Collections.Generic;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
@@ -49,44 +50,6 @@ namespace FFXIV_TexTools_CLI
     { //normal options here
     }
 
-    public class ModPack
-    {
-        void ImportModpack(DirectoryInfo path, DirectoryInfo modPackDirectory)
-        {
-            var importError = false;
-
-            try
-            {
-                var ttmp = new TTMP(modPackDirectory, "TexTools");
-                var ttmpData = ttmp.GetModPackJsonData(path);
-                try
-                {
-                    var simpleImport = new SimpleModPackImporter(path,
-                        ttmpData.ModPackJson);
-                }
-                catch
-                {
-                    importError = true;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                if (!importError)
-                {
-                    var simpleImport = new SimpleModPackImporter(path, null);
-                }
-                else
-                {
-                    Console.Write($"There was an error importing the mod pack at {path.FullName}\nMessage: {ex.Message}");
-                    return;
-                }
-            }
-
-            return;
-        }
-    }
-
     public class MainClass
     {
         public DirectoryInfo _gameDirectory;
@@ -116,7 +79,7 @@ namespace FFXIV_TexTools_CLI
 
         }
 
-        private void CheckGameVersion()
+        void CheckGameVersion()
         {
 
             Version ffxivVersion = null;
@@ -136,6 +99,351 @@ namespace FFXIV_TexTools_CLI
 
         }
 
+        #region Importing Functions
+        void ImportModpackHandler(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory)
+        {
+            var importError = false;
+            var index = new Index(_gameDirectory);
+
+            bool indexLockStatus = index.IsIndexLocked(XivDataFile._0A_Exd);
+
+            if (indexLockStatus)
+            {
+                Console.Write("Unable to import while the game is running.");
+                return;
+            }
+
+            try
+            {
+                var ttmp = new TTMP(modpackDirectory, "TexTools");
+                var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                try
+                {
+                    ImportModpack(ttmpPath, modpackDirectory, ttmpData.ModPackJson);
+                }
+                catch
+                {
+                    importError = true;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                if (!importError)
+                    ImportModpack(ttmpPath, modpackDirectory, null);
+                else
+                {
+                    Console.Write($"There was an error importing the modpack at {ttmpPath.FullName}\nMessage: {ex.Message}");
+                    return;
+                }
+            }
+
+            return;
+        }
+
+        void ImportModpack(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory, ModPackJson ttmpData)
+        {
+            var modding = new Modding(_gameDirectory);
+            List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
+            TTMP _texToolsModPack = new TTMP(ttmpPath, "TexTools");
+            if (ttmpData != null)
+            {
+                foreach (var modsJson in ttmpData.SimpleModsList)
+                {
+                    var race = GetRace(modsJson.FullPath);
+                    var number = GetNumber(modsJson.FullPath);
+                    var type = GetType(modsJson.FullPath);
+                    var map = GetMap(modsJson.FullPath);
+
+                    var active = false;
+                    var isActive = modding.IsModEnabled(modsJson.FullPath, false);
+
+                    if (isActive == XivModStatus.Enabled)
+                        active = true;
+
+                    modsJson.ModPackEntry = new ModPack
+                    { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version };
+
+                    ttmpDataList.Add(new SimpleModPackEntries
+                    {
+                        Name = modsJson.Name,
+                        Category = modsJson.Category,
+                        Race = race.ToString(),
+                        Part = type,
+                        Num = number,
+                        Map = map,
+                        Active = active,
+                        JsonEntry = modsJson,
+                    });
+                }
+            }
+            else
+            {
+                var originalModPackData = _texToolsModPack.GetOriginalModPackJsonData(modpackDirectory);
+
+                foreach (var modsJson in originalModPackData)
+                {
+                    var race = GetRace(modsJson.FullPath);
+                    var number = GetNumber(modsJson.FullPath);
+                    var type = GetType(modsJson.FullPath);
+                    var map = GetMap(modsJson.FullPath);
+
+                    var active = false;
+                    var isActive = modding.IsModEnabled(modsJson.FullPath, false);
+
+                    if (isActive == XivModStatus.Enabled)
+                    {
+                        active = true;
+                    }
+
+                    ttmpDataList.Add(new SimpleModPackEntries
+                    {
+                        Name = modsJson.Name,
+                        Category = modsJson.Category,
+                        Race = race.ToString(),
+                        Part = type,
+                        Num = number,
+                        Map = map,
+                        Active = active,
+                        JsonEntry = new ModsJson
+                        {
+                            Name = modsJson.Name,
+                            Category = modsJson.Category,
+                            FullPath = modsJson.FullPath,
+                            DatFile = modsJson.DatFile,
+                            ModOffset = modsJson.ModOffset,
+                            ModSize = modsJson.ModSize,
+                            ModPackEntry = new ModPack { name = Path.GetFileNameWithoutExtension(modpackDirectory.FullName), author = "N/A", version = "1.0.0" }
+                        }
+                    });
+                }
+            }
+            ttmpDataList.Sort();
+        }
+
+        XivRace GetRace(string modPath)
+        {
+            var xivRace = XivRace.All_Races;
+
+            if (modPath.Contains("ui/") || modPath.Contains(".avfx"))
+            {
+                xivRace = XivRace.All_Races;
+            }
+            else if (modPath.Contains("monster"))
+            {
+                xivRace = XivRace.Monster;
+            }
+            else if (modPath.Contains("bgcommon"))
+            {
+                xivRace = XivRace.All_Races;
+            }
+            else if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
+            {
+                if (modPath.Contains("accessory") || modPath.Contains("weapon") || modPath.Contains("/common/"))
+                {
+                    xivRace = XivRace.All_Races;
+                }
+                else
+                {
+                    if (modPath.Contains("demihuman"))
+                    {
+                        xivRace = XivRace.DemiHuman;
+                    }
+                    else if (modPath.Contains("/v"))
+                    {
+                        var raceCode = modPath.Substring(modPath.IndexOf("_c") + 2, 4);
+                        xivRace = XivRaces.GetXivRace(raceCode);
+                    }
+                    else
+                    {
+                        var raceCode = modPath.Substring(modPath.IndexOf("/c") + 2, 4);
+                        xivRace = XivRaces.GetXivRace(raceCode);
+                    }
+                }
+
+            }
+
+            return xivRace;
+        }
+
+        string GetNumber(string modPath)
+        {
+            var number = "-";
+
+            if (modPath.Contains("/human/") && modPath.Contains("/body/"))
+            {
+                var subString = modPath.Substring(modPath.LastIndexOf("/b") + 2, 4);
+                number = int.Parse(subString).ToString();
+            }
+
+            if (modPath.Contains("/face/"))
+            {
+                var subString = modPath.Substring(modPath.LastIndexOf("/f") + 2, 4);
+                number = int.Parse(subString).ToString();
+            }
+
+            if (modPath.Contains("decal_face"))
+            {
+                var length = modPath.LastIndexOf(".") - (modPath.LastIndexOf("_") + 1);
+                var subString = modPath.Substring(modPath.LastIndexOf("_") + 1, length);
+
+                number = int.Parse(subString).ToString();
+            }
+
+            if (modPath.Contains("decal_equip"))
+            {
+                var subString = modPath.Substring(modPath.LastIndexOf("_") + 1, 3);
+
+                try
+                {
+                    number = int.Parse(subString).ToString();
+                }
+                catch
+                {
+                    if (modPath.Contains("stigma"))
+                    {
+                        number = "stigma";
+                    }
+                    else
+                    {
+                        number = "Error";
+                    }
+                }
+            }
+
+            if (modPath.Contains("/hair/"))
+            {
+                var t = modPath.Substring(modPath.LastIndexOf("/h") + 2, 4);
+                number = int.Parse(t).ToString();
+            }
+
+            if (modPath.Contains("/tail/"))
+            {
+                var t = modPath.Substring(modPath.LastIndexOf("l/t") + 3, 4);
+                number = int.Parse(t).ToString();
+            }
+
+            return number;
+        }
+
+        string GetType(string modPath)
+        {
+            var type = "-";
+
+            if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
+            {
+                if (modPath.Contains("demihuman"))
+                {
+                    type = slotAbr[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
+                }
+
+                if (modPath.Contains("/face/"))
+                {
+                    if (modPath.Contains(".tex"))
+                    {
+                        type = FaceTypes[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
+                    }
+                }
+
+                if (modPath.Contains("/hair/"))
+                {
+                    if (modPath.Contains(".tex"))
+                    {
+                        type = HairTypes[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
+                    }
+                }
+
+                if (modPath.Contains("/vfx/"))
+                {
+                    type = "VFX";
+                }
+
+            }
+            else if (modPath.Contains(".avfx"))
+            {
+                type = "AVFX";
+            }
+
+            return type;
+        }
+
+        string GetMap(string modPath)
+        {
+            var xivTexType = XivTexType.Other;
+
+            if (modPath.Contains(".mdl"))
+            {
+                return "3D";
+            }
+
+            if (modPath.Contains(".mtrl"))
+            {
+                return "ColorSet";
+            }
+
+            if (modPath.Contains("ui/"))
+            {
+                var subString = modPath.Substring(modPath.IndexOf("/") + 1);
+                return subString.Substring(0, subString.IndexOf("/"));
+            }
+
+            if (modPath.Contains("_s.tex") || modPath.Contains("skin_m"))
+            {
+                xivTexType = XivTexType.Specular;
+            }
+            else if (modPath.Contains("_d.tex"))
+            {
+                xivTexType = XivTexType.Diffuse;
+            }
+            else if (modPath.Contains("_n.tex"))
+            {
+                xivTexType = XivTexType.Normal;
+            }
+            else if (modPath.Contains("_m.tex"))
+            {
+                xivTexType = XivTexType.Multi;
+            }
+            else if (modPath.Contains(".atex"))
+            {
+                var atex = Path.GetFileNameWithoutExtension(modPath);
+                return atex.Substring(0, 4);
+            }
+            else if (modPath.Contains("decal"))
+            {
+                xivTexType = XivTexType.Mask;
+            }
+
+            return xivTexType.ToString();
+        }
+
+        static readonly Dictionary<string, string> FaceTypes = new Dictionary<string, string>
+        {
+            {"fac", "Face"},
+            {"iri", "Iris"},
+            {"etc", "Etc"},
+            {"acc", "Accessory"}
+        };
+
+        static readonly Dictionary<string, string> HairTypes = new Dictionary<string, string>
+        {
+            {"acc", "Accessory"},
+            {"hir", "Hair"},
+        };
+
+        static readonly Dictionary<string, string> slotAbr = new Dictionary<string, string>
+        {
+            {"met", "Head"},
+            {"glv", "Hands"},
+            {"dwn", "Legs"},
+            {"sho", "Feet"},
+            {"top", "Body"},
+            {"ear", "Ears"},
+            {"nek", "Neck"},
+            {"rir", "Ring_Right"},
+            {"ril", "Ring_Left"},
+            {"wrs", "Wrists"},
+        };
+        #endregion
 
         static void Main(string[] args)
         {
@@ -149,7 +457,5 @@ namespace FFXIV_TexTools_CLI
             instance.CheckGameVersion();
 
         }
-
-
     }
 }
