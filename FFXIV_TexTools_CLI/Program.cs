@@ -17,6 +17,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
@@ -103,13 +104,13 @@ namespace FFXIV_TexTools_CLI
         void ImportModpackHandler(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory)
         {
             var importError = false;
-            var index = new Index(_gameDirectory);
+            var index = new Index(new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv")));
 
             bool indexLockStatus = index.IsIndexLocked(XivDataFile._0A_Exd);
 
             if (indexLockStatus)
             {
-                Console.Write("Unable to import while the game is running.");
+                PrintMessage("Unable to import while the game is running.", 2);
                 return;
             }
 
@@ -119,7 +120,7 @@ namespace FFXIV_TexTools_CLI
                 var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
                 try
                 {
-                    ImportModpack(ttmpPath, modpackDirectory, ttmpData.ModPackJson);
+                    GetModpackData(ttmpPath, modpackDirectory, ttmpData.ModPackJson);
                 }
                 catch
                 {
@@ -130,10 +131,10 @@ namespace FFXIV_TexTools_CLI
             catch (Exception ex)
             {
                 if (!importError)
-                    ImportModpack(ttmpPath, modpackDirectory, null);
+                    GetModpackData(ttmpPath, modpackDirectory, null);
                 else
                 {
-                    Console.Write($"There was an error importing the modpack at {ttmpPath.FullName}\nMessage: {ex.Message}");
+                    PrintMessage($"There was an error importing the modpack at {ttmpPath.FullName}\nMessage: {ex.Message}", 2);
                     return;
                 }
             }
@@ -141,11 +142,11 @@ namespace FFXIV_TexTools_CLI
             return;
         }
 
-        void ImportModpack(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory, ModPackJson ttmpData)
+        void GetModpackData(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory, ModPackJson ttmpData)
         {
             var modding = new Modding(_gameDirectory);
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            TTMP _texToolsModPack = new TTMP(ttmpPath, "TexTools");
+            TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
             if (ttmpData != null)
             {
                 foreach (var modsJson in ttmpData.SimpleModsList)
@@ -179,7 +180,7 @@ namespace FFXIV_TexTools_CLI
             }
             else
             {
-                var originalModPackData = _texToolsModPack.GetOriginalModPackJsonData(modpackDirectory);
+                var originalModPackData = _textoolsModpack.GetOriginalModPackJsonData(modpackDirectory);
 
                 foreach (var modsJson in originalModPackData)
                 {
@@ -219,6 +220,34 @@ namespace FFXIV_TexTools_CLI
                 }
             }
             ttmpDataList.Sort();
+            ImportModpack(ttmpDataList, _textoolsModpack, modpackDirectory);
+        }
+
+        async void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo modpackDirectory)
+        {
+            var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
+            var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "XivMods.json"));
+            int totalModsImported = 0;
+            var progressIndicator = new Progress<double>(ReportProgress);
+
+            try
+            {
+                var importResults = await _textoolsModpack.ImportModPackAsync(modpackDirectory, importList,
+                    _gameDirectory, modListDirectory, progressIndicator);
+
+                if (!string.IsNullOrEmpty(importResults.Errors))
+                    PrintMessage($"There were errors importing some mods:\n{importResults.Errors}", 2);
+            }
+            catch (Exception ex)
+            {
+                PrintMessage($"There was an error attempting to import mods:\n{ex.Message}", 2);
+            }
+            PrintMessage($"{totalModsImported} mod(s) successfully imported.", 1);
+        }
+
+        void ReportProgress(double value)
+        {
+            PrintMessage($"{value}%");
         }
 
         XivRace GetRace(string modPath)
@@ -439,8 +468,8 @@ namespace FFXIV_TexTools_CLI
             {"top", "Body"},
             {"ear", "Ears"},
             {"nek", "Neck"},
-            {"rir", "Ring_Right"},
-            {"ril", "Ring_Left"},
+            {"rir", "Ring Right"},
+            {"ril", "Ring Left"},
             {"wrs", "Wrists"},
         };
         #endregion
