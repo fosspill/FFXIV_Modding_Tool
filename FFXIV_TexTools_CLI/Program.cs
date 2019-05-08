@@ -28,7 +28,6 @@ using xivModdingFramework.Textures.Enums;
 using xivModdingFramework.Helpers;
 using xivModdingFramework.Items.Interfaces;
 using CommandLine;
-using Newtonsoft.Json;
 
 namespace FFXIV_TexTools_CLI
 {
@@ -38,8 +37,8 @@ namespace FFXIV_TexTools_CLI
     {
         [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
         public string Directory { get; set; }
-        [Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
-        public string ModPackDirectory { get; set; }
+        //[Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
+        //public string ModPackDirectory { get; set; }
         [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
         public string ttmpPath { get; set; }
     }
@@ -64,7 +63,7 @@ namespace FFXIV_TexTools_CLI
         public DirectoryInfo _gameModDirectory;
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
-         1 = Success message, 2 = Error message 
+         1 = Success message, 2 = Error message, 3 = Warning message 
         */
         public void PrintMessage(string message, int importance = 0)
         {
@@ -76,6 +75,10 @@ namespace FFXIV_TexTools_CLI
                 case 2:
                     Console.Write("ERROR: ");
                     Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                case 3:
+                    Console.Write("WARNING: ");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
                     break;
                 default:
                     Console.ForegroundColor = ConsoleColor.White;
@@ -107,7 +110,7 @@ namespace FFXIV_TexTools_CLI
         }
 
         #region Importing Functions
-        void ImportModpackHandler(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory)
+        void ImportModpackHandler(DirectoryInfo ttmpPath)
         {
             var importError = false;
             _gameDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv"));
@@ -126,14 +129,14 @@ namespace FFXIV_TexTools_CLI
             //{
             //    PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
             //}
-
             try
             {
-                var ttmp = new TTMP(modpackDirectory, "TexTools");
+                var ttmp = new TTMP(ttmpPath, "TexTools");
                 var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
                 try
                 {
-                    GetModpackData(ttmpPath, modpackDirectory, ttmpData.ModPackJson);
+                    PrintMessage("Checking if modpack is .ttmp or .ttmp2...");
+                    GetModpackData(ttmpPath, ttmpData.ModPackJson);
                 }
                 catch
                 {
@@ -144,7 +147,10 @@ namespace FFXIV_TexTools_CLI
             catch (Exception ex)
             {
                 if (!importError)
-                    GetModpackData(ttmpPath, modpackDirectory, null);
+                {
+                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
+                    GetModpackData(ttmpPath, null);
+                }
                 else
                 {
                     PrintMessage($"There was an error importing the modpack at {ttmpPath.FullName}\nMessage: {ex.Message}", 2);
@@ -155,13 +161,14 @@ namespace FFXIV_TexTools_CLI
             return;
         }
 
-        void GetModpackData(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory, ModPackJson ttmpData)
+        void GetModpackData(DirectoryInfo ttmpPath, ModPackJson ttmpData)
         {
             var modding = new Modding(_gameDirectory);
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
             if (ttmpData != null)
             {
+                PrintMessage("New modpack detected. Extracting data from the modpack...");
                 foreach (var modsJson in ttmpData.SimpleModsList)
                 {
                     var race = GetRace(modsJson.FullPath);
@@ -193,7 +200,8 @@ namespace FFXIV_TexTools_CLI
             }
             else
             {
-                var originalModPackData = _textoolsModpack.GetOriginalModPackJsonData(modpackDirectory);
+                PrintMessage("Old modpack detected. Extracting data from the modpack...");
+                var originalModPackData = _textoolsModpack.GetOriginalModPackJsonData(ttmpPath);
 
                 foreach (var modsJson in originalModPackData)
                 {
@@ -227,35 +235,37 @@ namespace FFXIV_TexTools_CLI
                             DatFile = modsJson.DatFile,
                             ModOffset = modsJson.ModOffset,
                             ModSize = modsJson.ModSize,
-                            ModPackEntry = new ModPack { name = Path.GetFileNameWithoutExtension(modpackDirectory.FullName), author = "N/A", version = "1.0.0" }
+                            ModPackEntry = new ModPack { name = Path.GetFileNameWithoutExtension(ttmpPath.FullName), author = "N/A", version = "1.0.0" }
                         }
                     });
                 }
             }
             ttmpDataList.Sort();
-            ImportModpack(ttmpDataList, _textoolsModpack, modpackDirectory);
+            PrintMessage("Data extraction successfull. Importing modpack...");
+            ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
         }
 
-        async void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo modpackDirectory)
+        void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
         {
             var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
-            var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "XivMods.json"));
+            var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.Parent.Parent.FullName, "XivMods.json"));
             int totalModsImported = 0;
             var progressIndicator = new Progress<double>(ReportProgress);
 
             try
             {
-                var importResults = await _textoolsModpack.ImportModPackAsync(modpackDirectory, importList,
-                    _gameDirectory, modListDirectory, progressIndicator);
-
-                if (!string.IsNullOrEmpty(importResults.Errors))
-                    PrintMessage($"There were errors importing some mods:\n{importResults.Errors}", 2);
+                var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, importList,
+                _gameDirectory, modListDirectory, progressIndicator);
+                importResults.Wait();
+                if (!string.IsNullOrEmpty(importResults.Exception.Message))
+                    PrintMessage($"There were errors importing some mods:\n{importResults.Exception.Message}", 2);
+                else
+                    PrintMessage($"{totalModsImported} mod(s) successfully imported.", 1);
             }
             catch (Exception ex)
             {
                 PrintMessage($"There was an error attempting to import mods:\n{ex.Message}", 2);
             }
-            PrintMessage($"{totalModsImported} mod(s) successfully imported.", 1);
         }
 
         void ReportProgress(double value)
@@ -456,7 +466,7 @@ namespace FFXIV_TexTools_CLI
             Parser.Default.ParseArguments<importoptions, exportoptions, resetoptions, versionoptions>(args)
             .WithParsed<importoptions>(opts => { 
                 instance._gameDirectory = new DirectoryInfo(opts.Directory);
-                instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath), new DirectoryInfo(opts.ModPackDirectory));
+                instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath));
             })
             .WithParsed<versionoptions>(opts => { 
                 instance._gameDirectory = new DirectoryInfo(opts.Directory);
