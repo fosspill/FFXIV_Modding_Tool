@@ -28,6 +28,7 @@ using xivModdingFramework.Textures.Enums;
 using xivModdingFramework.Helpers;
 using xivModdingFramework.Items.Interfaces;
 using CommandLine;
+using Newtonsoft.Json;
 
 namespace FFXIV_TexTools_CLI
 {
@@ -40,7 +41,7 @@ namespace FFXIV_TexTools_CLI
         [Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
         public string ModPackDirectory { get; set; }
         [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
-        public string TTMP { get; set; }
+        public string ttmpPath { get; set; }
     }
     [Verb("export", HelpText = "Export modpack / texture / model")]
     public class exportoptions
@@ -49,6 +50,12 @@ namespace FFXIV_TexTools_CLI
     [Verb("reset", HelpText = "Reset game to clean state")]
     public class resetoptions
     { //normal options here
+    }
+    [Verb("gameversion", HelpText = "Display current game version")]
+    public class versionoptions
+    { 
+        [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string Directory { get; set; }
     }
 
     public class MainClass
@@ -74,9 +81,8 @@ namespace FFXIV_TexTools_CLI
                     Console.ForegroundColor = ConsoleColor.White;
                     break;
             }
-            Console.Write(message);
+            Console.WriteLine(message);
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("\n");
 
         }
 
@@ -84,7 +90,7 @@ namespace FFXIV_TexTools_CLI
         {
 
             Version ffxivVersion = null;
-            var versionFile = Path.Combine(_gameDirectory.ToString(), "game", "ffxivgame.ver");
+            var versionFile = Path.Combine(_gameDirectory.FullName, "game", "ffxivgame.ver");
             if (File.Exists(versionFile))
             {
                 var versionData = File.ReadAllLines(versionFile);
@@ -104,15 +110,22 @@ namespace FFXIV_TexTools_CLI
         void ImportModpackHandler(DirectoryInfo ttmpPath, DirectoryInfo modpackDirectory)
         {
             var importError = false;
-            var index = new Index(new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv")));
+            _gameDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv"));
+            //try
+            //{
+            //    var index = new Index(_gameDirectory);
+            //    bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
 
-            bool indexLockStatus = index.IsIndexLocked(XivDataFile._0A_Exd);
-
-            if (indexLockStatus)
-            {
-                PrintMessage("Unable to import while the game is running.", 2);
-                return;
-            }
+            //    if (indexLocked)
+            //    {
+            //        PrintMessage("Unable to import while the game is running.", 2);
+            //        return;
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
+            //}
 
             try
             {
@@ -440,13 +453,18 @@ namespace FFXIV_TexTools_CLI
         {
             MainClass instance = new MainClass();
 //var options = new Options();
-            Parser.Default.ParseArguments<importoptions, exportoptions, resetoptions>(args)
-            .WithParsed<importoptions>(opts => { instance._gameDirectory = new DirectoryInfo(opts.Directory); })
+            Parser.Default.ParseArguments<importoptions, exportoptions, resetoptions, versionoptions>(args)
+            .WithParsed<importoptions>(opts => { 
+                instance._gameDirectory = new DirectoryInfo(opts.Directory);
+                instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath), new DirectoryInfo(opts.ModPackDirectory));
+            })
+            .WithParsed<versionoptions>(opts => { 
+                instance._gameDirectory = new DirectoryInfo(opts.Directory);
+                instance.CheckGameVersion(); 
+            })
                 /*.WithParsed<exportoptions>(opts => ...)
                 .WithParsed<resetoptions>(opts => ...)
                 .WithNotParsed(errs => ...)*/;
-            instance.CheckGameVersion();
-
         }
     }
 }
