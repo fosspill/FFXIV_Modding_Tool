@@ -129,13 +129,13 @@ namespace FFXIV_TexTools_CLI
             //{
             //    PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
             //}
+            PrintMessage("Checking if modpack is .ttmp or .ttmp2...");
             try
             {
                 var ttmp = new TTMP(ttmpPath, "TexTools");
                 var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
                 try
                 {
-                    PrintMessage("Checking if modpack is .ttmp or .ttmp2...");
                     GetModpackData(ttmpPath, ttmpData.ModPackJson);
                 }
                 catch
@@ -148,7 +148,7 @@ namespace FFXIV_TexTools_CLI
             {
                 if (!importError)
                 {
-                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
+                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying...", 3);
                     GetModpackData(ttmpPath, null);
                 }
                 else
@@ -256,11 +256,17 @@ namespace FFXIV_TexTools_CLI
             {
                 var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, importList,
                 _gameDirectory, modListDirectory, progressIndicator);
-                importResults.Wait();
-                if (!string.IsNullOrEmpty(importResults.Exception.Message))
-                    PrintMessage($"There were errors importing some mods:\n{importResults.Exception.Message}", 2);
-                else
+                try
+                {
+                    importResults.Wait();
+                    totalModsImported = ttmpDataList.Count();
                     PrintMessage($"{totalModsImported} mod(s) successfully imported.", 1);
+                }
+                catch (Exception ex)
+                {
+                    PrintMessage($"There were errors importing some mods:\n{ex.Message}", 2);
+                }
+                    
             }
             catch (Exception ex)
             {
@@ -270,7 +276,8 @@ namespace FFXIV_TexTools_CLI
 
         void ReportProgress(double value)
         {
-            PrintMessage($"{value}%");
+            float progress = (float)value * 100;
+            Console.Write($"{(int)progress}%... ");
         }
 
         XivRace GetRace(string modPath)
