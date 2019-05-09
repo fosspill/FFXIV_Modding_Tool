@@ -1,3 +1,5 @@
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#)
+
 # FFXIV_TexTools_CLI
 
 
@@ -7,7 +9,7 @@
 
 Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*
 
-# Current Status: ![Not ready for use](https://placehold.it/15/f03c15/000000?text=+) `NOT READY FOR USE`
+# Current Status: ![Not ready for public use](https://placehold.it/15/00ff00/000000?text=+) `BARELY WORKING. NOT READY FOR PUBLIC USE.`
 
 # Features!
 List is sorted by priority
