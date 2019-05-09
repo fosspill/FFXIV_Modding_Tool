@@ -114,21 +114,21 @@ namespace FFXIV_TexTools_CLI
         {
             var importError = false;
             _gameDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv"));
-            //try
-            //{
-            //    var index = new Index(_gameDirectory);
-            //    bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
+            try
+            {
+                var index = new Index(_gameDirectory);
+                bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
 
-            //    if (indexLocked)
-            //    {
-            //        PrintMessage("Unable to import while the game is running.", 2);
-            //        return;
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
-            //}
+                if (indexLocked)
+                {
+                    PrintMessage("Unable to import while the game is running.", 2);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
+            }
             PrintMessage("Checking if modpack is .ttmp or .ttmp2...");
             try
             {
@@ -256,15 +256,13 @@ namespace FFXIV_TexTools_CLI
             {
                 var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, importList,
                 _gameDirectory, modListDirectory, progressIndicator);
-                try
+                importResults.Wait();
+                if (!string.IsNullOrEmpty(importResults.Result.Errors))
+                    PrintMessage($"There were errors importing some mods:\n{importResults.Result.Errors}", 2);
+                else
                 {
-                    importResults.Wait();
                     totalModsImported = ttmpDataList.Count();
                     PrintMessage($"{totalModsImported} mod(s) successfully imported.", 1);
-                }
-                catch (Exception ex)
-                {
-                    PrintMessage($"There were errors importing some mods:\n{ex.Message}", 2);
                 }
                     
             }

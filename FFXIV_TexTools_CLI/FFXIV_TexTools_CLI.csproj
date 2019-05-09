@@ -33,9 +33,6 @@
     <Reference Include="CommandLine">
       <HintPath>..\packages\CommandLineParser.2.5.0\lib\net461\CommandLine.dll</HintPath>
     </Reference>
-    <Reference Include="xivModdingFramework">
-      <HintPath>..\..\..\..\..\..\main\programming\c#\ffxiv\xivModdingFramework\xivModdingFramework\bin\Debug\netstandard2.0\xivModdingFramework.dll</HintPath>
-    </Reference>
     <Reference Include="Magick.NET-Q8-AnyCPU">
       <HintPath>..\packages\Magick.NET-Q8-AnyCPU.7.12.0\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
     </Reference>
@@ -45,6 +42,9 @@
     </Reference>
     <Reference Include="PresentationCore">
       <HintPath>..\references\PresentationCore.dll</HintPath>
+    </Reference>
+    <Reference Include="xivModdingFramework">
+      <HintPath>..\references\xivModdingFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
