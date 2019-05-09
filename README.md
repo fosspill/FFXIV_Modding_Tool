@@ -15,7 +15,8 @@ Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramewor
 List is sorted by priority
 ## First milestone and release
 - [x] [Full Mac, Linux and Windows support](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/1)
-- [ ] [Import modpacks (ttmp files)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/2)
+
+- [x] [Import modpacks (ttmp files)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/2)
  
 ## Future development
 - [ ] [Storable configuration for important directories](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/3)
