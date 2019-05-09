@@ -25,8 +25,8 @@ using xivModdingFramework.Mods.Enums;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
-using xivModdingFramework.Helpers;
-using xivModdingFramework.Items.Interfaces;
+using ICSharpCode.SharpZipLib.Zip;
+using Newtonsoft.Json;
 using CommandLine;
 
 namespace FFXIV_TexTools_CLI
@@ -37,8 +37,6 @@ namespace FFXIV_TexTools_CLI
     {
         [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
         public string Directory { get; set; }
-        //[Option('m', "modpackdirectory", Required = true, HelpText = "Path to modpackdirectory")]
-        //public string ModPackDirectory { get; set; }
         [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
         public string ttmpPath { get; set; }
     }
@@ -129,14 +127,20 @@ namespace FFXIV_TexTools_CLI
             {
                 PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
             }
-            PrintMessage("Checking if modpack is .ttmp or .ttmp2...");
+            PrintMessage("Starting import...");
             try
             {
                 var ttmp = new TTMP(ttmpPath, "TexTools");
-                var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+
                 try
                 {
-                    GetModpackData(ttmpPath, ttmpData.ModPackJson);
+                    if (ttmpPath.Extension == ".ttmp2")
+                    {
+                        var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                        GetModpackData(ttmpPath, ttmpData.ModPackJson);
+                    }
+                    else
+                        GetModpackData(ttmpPath, null);
                 }
                 catch
                 {
@@ -148,7 +152,7 @@ namespace FFXIV_TexTools_CLI
             {
                 if (!importError)
                 {
-                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying...", 3);
+                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
                     GetModpackData(ttmpPath, null);
                 }
                 else
@@ -166,9 +170,9 @@ namespace FFXIV_TexTools_CLI
             var modding = new Modding(_gameDirectory);
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
+            PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {
-                PrintMessage("New modpack detected. Extracting data from the modpack...");
                 foreach (var modsJson in ttmpData.SimpleModsList)
                 {
                     var race = GetRace(modsJson.FullPath);
@@ -200,8 +204,21 @@ namespace FFXIV_TexTools_CLI
             }
             else
             {
-                PrintMessage("Old modpack detected. Extracting data from the modpack...");
-                var originalModPackData = _textoolsModpack.GetOriginalModPackJsonData(ttmpPath);
+                var originalModPackData = new List<OriginalModPackJson>();
+                var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
+                ZipFile archive = new ZipFile(fs);
+                ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
+                {
+                    using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
+                    {
+                        string line;
+                        while ((line = streamReader.ReadLine()) != null)
+                        {
+                            if (!line.ToLower().Contains("version"))
+                                originalModPackData.Add(JsonConvert.DeserializeObject<OriginalModPackJson>(line));
+                        }
+                    }
+                }
 
                 foreach (var modsJson in originalModPackData)
                 {
@@ -262,7 +279,7 @@ namespace FFXIV_TexTools_CLI
                 else
                 {
                     totalModsImported = ttmpDataList.Count();
-                    PrintMessage($"{totalModsImported} mod(s) successfully imported.", 1);
+                    PrintMessage($"\n{totalModsImported} mod(s) successfully imported.", 1);
                 }
                     
             }
@@ -275,7 +292,7 @@ namespace FFXIV_TexTools_CLI
         void ReportProgress(double value)
         {
             float progress = (float)value * 100;
-            Console.Write($"{(int)progress}%... ");
+            Console.Write($"\r{(int)progress}%...  ");
         }
 
         XivRace GetRace(string modPath)
