@@ -1,6 +1,7 @@
 theme: jekyll-theme-hacker
 show_downloads: true
 github:
-  linux_url: https://www.google.com
-  mac_url: https://www.apple.com
-  win_url: https://www.bing.com
+  current_version: v0.1
+  linux_url: FFXIV_TexTools_CLI-Linux-Bundled
+  mac_url: FFXIV_TexTools_CLI-Mac-Bundled
+  uni_url: FFXIV_TexTools_CLI-Universal.zip
