@@ -9,6 +9,7 @@ We are happy to announce that we now have a (mostly, barely) working version out
 
 ## Mac / Linux Bundled release
 2. Make the file executable and run it through commandline to confirm that it works
+
 ```
 > ./FFXIV_TexTools_CLI-LINUX
 FFXIV_TexTools_CLI 0.1.26946
@@ -36,6 +37,7 @@ ERROR(S):
 
 # How to use
 1.
+
 ```
 
 > ./FFXIV_TexTools_CLI-LINUX
