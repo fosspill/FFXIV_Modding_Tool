@@ -55,7 +55,9 @@ Make issues or pull requests, or just chat with us.
 
 
 ## Building for source
-How to build will be written here
+
+Open .sln file with monodevelop (or presumably Visual Studio) and build a release as you would.
+All dependencies should be gotten automatically, and references are available in the reference directory.
 
 
 License
