@@ -1,6 +1,18 @@
-[Click to download latest release](https://github.com/fosspill/FFXIV_TexTools_CLI/releases)
+Welcome to the Github Page for the FFXIV_TexTools_CLI project.
+
+We are happy to announce that we now have a (mostly, barely) working version out!
 
 ----
-Welcome to the FFXIV_TexTools_CLI Pages.
 
-Here we'll document how to use this tool, with proper examples.
+# How to install
+1.
+2.
+3.
+
+# How to use
+1.
+2.
+3.
+
+Example 1
+Example 2
