@@ -5,12 +5,14 @@ We are happy to announce that we now have a (mostly, barely) working version out
 ----
 
 # How to install
-1. Download the most recent release from the appropriate link above. (Windows should be able to run the Universal release)
 
 ## Mac / Linux Bundled release
+1. Download the most recent release from the appropriate link above. 
+
 2. Make the file executable and run it through commandline to confirm that it works
 
 ```
+> chmod +x FFXIV_TexTools_CLI-LINUX
 > ./FFXIV_TexTools_CLI-LINUX
 FFXIV_TexTools_CLI 0.1.26946
 GPL Licensed
@@ -23,16 +25,18 @@ ERROR(S):
 ```
 
 ## Universal release
-2. Extract the archive
+1. Download and extract the universal release archive
 
+
+
+2. Confirm that the executable runs through commandline: 
 #### Mac/Linux:
-
-3. Run `mono FFXIV_TexTools_CLI.exe` through commandline.
-
-
+Run `mono FFXIV_TexTools_CLI.exe` through commandline.
 #### Windows:
+Run `FFXIV_TexTools_CLI.exe` through commandline.
 
-3. Run `FFXIV_TexTools_CLI.exe` through commandline.
+
+----
 
 
 # How to use
