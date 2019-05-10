@@ -34,6 +34,9 @@ Make issues or pull requests, or just chat with us.
 
 ## Installation / Execution
 
+We try to keep information easily accessable here:
+http://fosspill.github.io/FFXIV_TexTools_CLI
+
 ### Universal
 
 1) Make sure mono is installed on your system. Windows users should not have to worry about this.
