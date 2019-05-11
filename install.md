@@ -1,4 +1,4 @@
-# [How to install]({{ site.github.repository_url }})
+# [How to install]({{ site.baseurl }}/install)
 
 
 
