@@ -1,4 +1,4 @@
-# How to use
+# [How to use]({{ site.baseurl }}/usage)
 
 1.
 
