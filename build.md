@@ -1,1 +1,1 @@
-# How to build
+# [How to build]({{ site.baseurl }}/build)
