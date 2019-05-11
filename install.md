@@ -1,4 +1,4 @@
-# How to install
+# [How to install]({{ site.github.repository_url }})
 
 
 
