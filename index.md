@@ -12,4 +12,4 @@ Welcome to the Github Page for the FFXIV_TexTools_CLI project.
 
 ----
 
-
+{% include_relative build.md %}
