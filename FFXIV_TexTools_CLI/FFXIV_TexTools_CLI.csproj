@@ -40,14 +40,14 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="PresentationCore">
-      <HintPath>..\references\PresentationCore.dll</HintPath>
-    </Reference>
     <Reference Include="xivModdingFramework">
       <HintPath>..\references\xivModdingFramework.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.1.1.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <HintPath>..\references\PresentationCore.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
