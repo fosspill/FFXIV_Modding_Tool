@@ -18,10 +18,12 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
 using xivModdingFramework.Mods.Enums;
+using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
@@ -35,8 +37,8 @@ namespace FFXIV_TexTools_CLI
     [Verb("modpackimport", HelpText = "Import a modpack")]
     public class importoptions
     {
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
-        public string Directory { get; set; }
+        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string gameDirectory { get; set; }
         [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
         public string ttmpPath { get; set; }
     }
@@ -44,9 +46,21 @@ namespace FFXIV_TexTools_CLI
     public class exportoptions
     { //normal options here
     }
+    [Verb("backup", HelpText = "Backup clean index files for use in reseting the game to a clean state")]
+    public class backupoptions
+    {
+        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string gameDirectory { get; set; }
+        [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory you want to use for backups")]
+        public string backupDirectory { get; set; }
+    }
     [Verb("reset", HelpText = "Reset game to clean state")]
     public class resetoptions
-    { //normal options here
+    {
+        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string gameDirectory { get; set; }
+        [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory with your index backups")]
+        public string backupDirectory { get; set; }
     }
     [Verb("gameversion", HelpText = "Display current game version")]
     public class versionoptions
@@ -103,8 +117,13 @@ namespace FFXIV_TexTools_CLI
                 return;
             }
             PrintMessage(ffxivVersion.ToString());
+        }
 
-
+        public bool IndexLocked(DirectoryInfo indexPath)
+        {
+            var index = new Index(indexPath);
+            bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
+            return indexLocked;
         }
 
         #region Importing Functions
@@ -114,10 +133,7 @@ namespace FFXIV_TexTools_CLI
             _gameDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv"));
             try
             {
-                var index = new Index(_gameDirectory);
-                bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
-
-                if (indexLocked)
+                if (IndexLocked(_gameDirectory))
                 {
                     PrintMessage("Unable to import while the game is running.", 2);
                     return;
@@ -481,21 +497,167 @@ namespace FFXIV_TexTools_CLI
         };
         #endregion
 
+        #region Index File Handling
+        Dictionary<string, XivDataFile> IndexFiles()
+        {
+            Dictionary<string, XivDataFile> indexFiles = new Dictionary<string, XivDataFile>();
+            string indexExtension = ".win32.index";
+            string index2Extension = ".win32.index2";
+            List<XivDataFile> dataFiles = new List<XivDataFile>
+            {
+                XivDataFile._01_Bgcommon,
+                XivDataFile._04_Chara,
+                XivDataFile._06_Ui
+            };
+            foreach (XivDataFile dataFile in dataFiles)
+            {
+                indexFiles.Add($"{dataFile.GetDataFileName()}{indexExtension}", dataFile);
+                indexFiles.Add($"{dataFile.GetDataFileName()}{index2Extension}", dataFile);
+            }
+            return indexFiles;
+        }
+
+        void BackupIndexes(DirectoryInfo backupDirectory)
+        {
+            if (!backupDirectory.Exists)
+            {
+                PrintMessage($"{backupDirectory.FullName} does not exist, please specify an existing directory", 2);
+                return;
+            }
+            var indexDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "sqpack", "ffxiv"));
+            if (IndexLocked(indexDirectory))
+            {
+                PrintMessage("Can't make backups while the game is running", 2);
+                return;
+            }
+            string modFile = Path.Combine(_gameDirectory.FullName, "XivMods.json");
+            if (File.Exists(modFile))
+            {
+                var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modFile));
+                if (modData.modCount > 0)
+                {
+                    PrintMessage("Can't make backups while the game is still modded.\nPlease clean your index files using reset first.", 2);
+                    return;
+                }
+            }
+            PrintMessage("Backing up index files...");
+            try
+            {
+                foreach (string indexFile in IndexFiles().Keys)
+                {
+                    string indexPath = Path.Combine(indexDirectory.FullName, indexFile);
+                    string backupPath = Path.Combine(backupDirectory.FullName, indexFile);
+                    File.Copy(indexPath, backupPath, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                PrintMessage($"Something went wrong when backing up the index files\n{ex.Message}", 2);
+                return;
+            }
+            PrintMessage("Successfully backed up the index files!", 1);
+        }
+
+        void ResetMods(DirectoryInfo backupDirectory)
+        {
+            bool allFilesAvailable = true;
+            bool indexesUpToDate = true;
+            var indexDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "sqpack", "ffxiv")); ;
+            var problemChecker = new ProblemChecker(indexDirectory);
+            if (!backupDirectory.Exists)
+            {
+                PrintMessage($"{backupDirectory.FullName} does not exist, please specify an existing directory", 2);
+                return;
+            }
+            foreach (KeyValuePair<string, XivDataFile> indexFile in IndexFiles())
+            {
+                string backupPath = Path.Combine(backupDirectory.FullName, indexFile.Key);
+                if (!File.Exists(backupPath))
+                {
+                    PrintMessage($"{indexFile.Key} not found, aborting...", 3);
+                    allFilesAvailable = false;
+                    break;
+                }
+                if (!problemChecker.CheckForOutdatedBackups(indexFile.Value, backupDirectory))
+                {
+                    PrintMessage($"{indexFile.Key} is out of date, aborting...", 3);
+                    indexesUpToDate = false;
+                    break;
+                }
+            }
+            if (!allFilesAvailable || !indexesUpToDate)
+            {
+                PrintMessage($"{backupDirectory.FullName} has missing or outdated index files. You can either\n1. Download them from the TT discord\n2. Run this command again using \"backup\" instead of \"reset\" using a clean install of the game", 2);
+                return;
+            }
+            if (IndexLocked(indexDirectory))
+            {
+                PrintMessage("Can't reset the game while the game is running", 2);
+                return;
+            }
+            try
+            {
+                var reset = Task.Run(() =>
+                {
+                    var modding = new Modding(indexDirectory);
+                    var dat = new Dat(indexDirectory);
+
+                    var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
+
+                    var backupFiles = Directory.GetFiles(backupDirectory.FullName);
+                    foreach (var backupFile in backupFiles)
+                    {
+                        if (backupFile.Contains(".win32.index"))
+                            File.Copy(backupFile, $"{indexDirectory}/{Path.GetFileName(backupFile)}", true);
+                    }
+
+                // Delete modded dat files
+                foreach (var xivDataFile in (XivDataFile[])Enum.GetValues(typeof(XivDataFile)))
+                    {
+                        var datFiles = dat.GetModdedDatList(xivDataFile);
+
+                        foreach (var datFile in datFiles)
+                            File.Delete(datFile);
+
+                        if (datFiles.Count > 0)
+                            problemChecker.RepairIndexDatCounts(xivDataFile);
+                    }
+
+                // Delete mod list
+                File.Delete(modListDirectory.FullName);
+                    modding.CreateModlist();
+                });
+                reset.Wait();
+                PrintMessage("Reset complete!", 1);
+            }
+            catch (Exception ex)
+            {
+                PrintMessage($"Something went wrong during the reset process\n{ex.Message}", 2);
+            }
+        }
+        #endregion
+
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
-//var options = new Options();
-            Parser.Default.ParseArguments<importoptions, exportoptions, resetoptions, versionoptions>(args)
-            .WithParsed<importoptions>(opts => { 
-                instance._gameDirectory = new DirectoryInfo(opts.Directory);
+            Parser.Default.ParseArguments<importoptions, exportoptions, backupoptions, resetoptions, versionoptions>(args)
+            .WithParsed<importoptions>(opts => {
+                instance._gameDirectory = new DirectoryInfo(opts.gameDirectory);
                 instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath));
             })
-            .WithParsed<versionoptions>(opts => { 
+            .WithParsed<versionoptions>(opts => {
                 instance._gameDirectory = new DirectoryInfo(opts.Directory);
-                instance.CheckGameVersion(); 
+                instance.CheckGameVersion();
+            })
+            .WithParsed<backupoptions>(opts => {
+                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                instance.BackupIndexes(new DirectoryInfo(opts.backupDirectory));
+            })
+            .WithParsed<resetoptions>(opts => {
+                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                instance.ResetMods(new DirectoryInfo(opts.backupDirectory));
             })
                 /*.WithParsed<exportoptions>(opts => ...)
-                .WithParsed<resetoptions>(opts => ...)
                 .WithNotParsed(errs => ...)*/;
         }
     }
