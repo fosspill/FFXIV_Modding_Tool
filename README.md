@@ -25,7 +25,6 @@ List is sorted by priority
 - [ ] [Export specific textures / models](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/6)
 - [ ] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
 - [ ] [ModPack creation](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/8)
-- [ ] [The heat induced death of our planet](https://www.greenpeace.org.uk/what-we-do/climate/)
 
 ## How to Install, Build and Use:
 
