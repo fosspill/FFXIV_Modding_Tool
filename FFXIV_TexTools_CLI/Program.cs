@@ -62,17 +62,27 @@ namespace FFXIV_TexTools_CLI
         [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory with your index backups")]
         public string backupDirectory { get; set; }
     }
+    [Verb("problemcheck", HelpText = "Check if there are any problems with the game, mod or backup files")]
+    public class problemoptions
+    {
+        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string gameDirectory { get; set; }
+        [Option('c', "configdirectory", Required = true, HelpText = "Full path to directory where FFXIV.cfg and character data is saved, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        public string configDirectory { get; set; }
+        [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory with your index backups")]
+        public string backupDirectory { get; set; }
+    }
     [Verb("gameversion", HelpText = "Display current game version")]
     public class versionoptions
     { 
         [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
-        public string Directory { get; set; }
+        public string gameDirectory { get; set; }
     }
 
     public class MainClass
     {
         public DirectoryInfo _gameDirectory;
-        public DirectoryInfo _gameModDirectory;
+        public DirectoryInfo _indexDirectory;
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
          1 = Success message, 2 = Error message, 3 = Warning message 
@@ -103,9 +113,8 @@ namespace FFXIV_TexTools_CLI
 
         void CheckGameVersion()
         {
-
             Version ffxivVersion = null;
-            var versionFile = Path.Combine(_gameDirectory.FullName, "game", "ffxivgame.ver");
+            var versionFile = Path.Combine(_gameDirectory.FullName, "ffxivgame.ver");
             if (File.Exists(versionFile))
             {
                 var versionData = File.ReadAllLines(versionFile);
@@ -119,9 +128,9 @@ namespace FFXIV_TexTools_CLI
             PrintMessage(ffxivVersion.ToString());
         }
 
-        public bool IndexLocked(DirectoryInfo indexPath)
+        public bool IndexLocked()
         {
-            var index = new Index(indexPath);
+            var index = new Index(_indexDirectory);
             bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
             return indexLocked;
         }
@@ -130,10 +139,9 @@ namespace FFXIV_TexTools_CLI
         void ImportModpackHandler(DirectoryInfo ttmpPath)
         {
             var importError = false;
-            _gameDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "game", "sqpack", "ffxiv"));
             try
             {
-                if (IndexLocked(_gameDirectory))
+                if (IndexLocked())
                 {
                     PrintMessage("Unable to import while the game is running.", 2);
                     return;
@@ -183,7 +191,7 @@ namespace FFXIV_TexTools_CLI
 
         void GetModpackData(DirectoryInfo ttmpPath, ModPackJson ttmpData)
         {
-            var modding = new Modding(_gameDirectory);
+            var modding = new Modding(_indexDirectory);
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
@@ -247,9 +255,7 @@ namespace FFXIV_TexTools_CLI
                     var isActive = modding.IsModEnabled(modsJson.FullPath, false);
 
                     if (isActive == XivModStatus.Enabled)
-                    {
                         active = true;
-                    }
 
                     ttmpDataList.Add(new SimpleModPackEntries
                     {
@@ -281,14 +287,14 @@ namespace FFXIV_TexTools_CLI
         void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
         {
             var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
-            var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.Parent.Parent.FullName, "XivMods.json"));
+            var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
             int totalModsImported = 0;
             var progressIndicator = new Progress<double>(ReportProgress);
 
             try
             {
                 var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, importList,
-                _gameDirectory, modListDirectory, progressIndicator);
+                _indexDirectory, modlistPath, progressIndicator);
                 importResults.Wait();
                 if (!string.IsNullOrEmpty(importResults.Result.Errors))
                     PrintMessage($"There were errors importing some mods:\n{importResults.Result.Errors}", 2);
@@ -524,8 +530,7 @@ namespace FFXIV_TexTools_CLI
                 PrintMessage($"{backupDirectory.FullName} does not exist, please specify an existing directory", 2);
                 return;
             }
-            var indexDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "sqpack", "ffxiv"));
-            if (IndexLocked(indexDirectory))
+            if (IndexLocked())
             {
                 PrintMessage("Can't make backups while the game is running", 2);
                 return;
@@ -545,7 +550,7 @@ namespace FFXIV_TexTools_CLI
             {
                 foreach (string indexFile in IndexFiles().Keys)
                 {
-                    string indexPath = Path.Combine(indexDirectory.FullName, indexFile);
+                    string indexPath = Path.Combine(_indexDirectory.FullName, indexFile);
                     string backupPath = Path.Combine(backupDirectory.FullName, indexFile);
                     File.Copy(indexPath, backupPath, true);
                 }
@@ -562,8 +567,7 @@ namespace FFXIV_TexTools_CLI
         {
             bool allFilesAvailable = true;
             bool indexesUpToDate = true;
-            var indexDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "sqpack", "ffxiv")); ;
-            var problemChecker = new ProblemChecker(indexDirectory);
+            var problemChecker = new ProblemChecker(_indexDirectory);
             if (!backupDirectory.Exists)
             {
                 PrintMessage($"{backupDirectory.FullName} does not exist, please specify an existing directory", 2);
@@ -590,7 +594,7 @@ namespace FFXIV_TexTools_CLI
                 PrintMessage($"{backupDirectory.FullName} has missing or outdated index files. You can either\n1. Download them from the TT discord\n2. Run this command again using \"backup\" instead of \"reset\" using a clean install of the game", 2);
                 return;
             }
-            if (IndexLocked(indexDirectory))
+            if (IndexLocked())
             {
                 PrintMessage("Can't reset the game while the game is running", 2);
                 return;
@@ -599,8 +603,8 @@ namespace FFXIV_TexTools_CLI
             {
                 var reset = Task.Run(() =>
                 {
-                    var modding = new Modding(indexDirectory);
-                    var dat = new Dat(indexDirectory);
+                    var modding = new Modding(_indexDirectory);
+                    var dat = new Dat(_indexDirectory);
 
                     var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
 
@@ -608,7 +612,7 @@ namespace FFXIV_TexTools_CLI
                     foreach (var backupFile in backupFiles)
                     {
                         if (backupFile.Contains(".win32.index"))
-                            File.Copy(backupFile, $"{indexDirectory}/{Path.GetFileName(backupFile)}", true);
+                            File.Copy(backupFile, $"{_indexDirectory}/{Path.GetFileName(backupFile)}", true);
                     }
 
                 // Delete modded dat files
@@ -637,25 +641,267 @@ namespace FFXIV_TexTools_CLI
         }
         #endregion
 
+        #region Problem Checking
+        void ProblemChecker(DirectoryInfo configDirectory, DirectoryInfo backupDirectory)
+        {
+            var problemChecker = new ProblemChecker(_indexDirectory);
+            PrintMessage("Initializing problem check...");
+            PrintMessage("Checking index dat values...");
+            List<XivDataFile> _indexDatRepairList = CheckIndexDatCounts(problemChecker);
+            if (_indexDatRepairList.Count > 0)
+            {
+                PrintMessage("Problems found, attempting to repair...", 3);
+                if (!IndexLocked())
+                {
+                    foreach (var xivDataFile in _indexDatRepairList)
+                        problemChecker.RepairIndexDatCounts(xivDataFile);
+                    PrintMessage("Repairs complete!", 1);
+                    CheckIndexDatCounts(problemChecker);
+                }
+                else
+                {
+                    PrintMessage("Cannot run repairs while the game is running.", 2);
+                }
+            }
+
+            PrintMessage("Checking index backups...");
+            CheckBackups(backupDirectory, problemChecker);
+
+            PrintMessage("Checking dat file...");
+            CheckDat();
+
+            PrintMessage("Checking modlist...");
+            CheckMods();
+
+            PrintMessage("Checking LoD settings...");
+            CheckLoD(configDirectory);
+        }
+
+        List<XivDataFile> CheckIndexDatCounts(ProblemChecker problemChecker)
+        {
+            var filesToCheck = new XivDataFile[] { XivDataFile._0A_Exd, XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
+            List<XivDataFile> _indexDatRepairList = new List<XivDataFile>();
+            foreach (var file in filesToCheck)
+            {
+                PrintMessage($"{file.GetDataFileName()} index files");
+                try
+                {
+                    if (problemChecker.CheckIndexDatCounts(file))
+                    {
+                        _indexDatRepairList.Add(file);
+                        PrintMessage("Needs repair", 3);
+                    }
+                    else
+                        PrintMessage("No issues found", 1);
+
+                    if (problemChecker.CheckForLargeDats(file))
+                    {
+                        _indexDatRepairList.Add(file);
+                        PrintMessage("Extra dat files found, a reset is recommended", 3);
+                    }
+                    else
+                        PrintMessage("No extra dat files", 1);
+                }
+                catch (Exception ex)
+                {
+                    PrintMessage($"There was an issue checking index dat counts\n{ex.Message}", 2);
+                }
+            }
+            return _indexDatRepairList;
+        }
+
+        void CheckBackups(DirectoryInfo backupDirectory, ProblemChecker problemChecker)
+        {
+            var filesToCheck = new XivDataFile[] { XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
+            foreach (var file in filesToCheck)
+            {
+                PrintMessage($"{file.GetDataFileName()} index files");
+                try
+                {
+                    var backupFile = new DirectoryInfo(Path.Combine(backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index"));
+                    if (!File.Exists(backupFile.FullName))
+                    {
+                        PrintMessage("No backup found", 3);
+                        continue;
+                    }
+                    if (!problemChecker.CheckForOutdatedBackups(file, backupDirectory))
+                        PrintMessage("Out of date", 3);
+                    else
+                        PrintMessage("Up to date", 1);
+                }
+                catch (Exception ex)
+                {
+                    PrintMessage($"There was an issue checking the backed up index files\n{ex.Message}", 2);
+                }
+            }
+        }
+
+        void CheckDat()
+        {
+            var fileInfo = new FileInfo(Path.Combine(_indexDirectory.FullName, $"{XivDataFile._06_Ui.GetDataFileName()}.win32.dat1"));
+            PrintMessage($"{XivDataFile._06_Ui.GetDataFileName()}.win32.dat1");
+            if (fileInfo.Exists)
+            {
+                if (fileInfo.Length < 10000000)
+                    PrintMessage("File is missing data", 3);
+                else
+                    PrintMessage("No issues found", 1);
+            }
+            else
+                PrintMessage("File could not be found", 2);
+        }
+
+        void CheckMods()
+        {
+            var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
+            var modlistJson = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath.FullName));
+            var dat = new Dat(_indexDirectory);
+
+            if (modlistJson.modCount > 0)
+            {
+                foreach (var mod in modlistJson.Mods)
+                {
+                    if (mod.name.Equals(string.Empty)) 
+                        continue;
+                    var fileName = Path.GetFileName(mod.fullPath);
+                    PrintMessage(fileName);
+                    if (mod.data.originalOffset == 0)
+                        PrintMessage("Original offset was 0, you will be unable to revert to original, consider starting over", 3);
+                    else if (mod.data.modOffset == 0)
+                        PrintMessage("Mod offset was 0, disable it and reimport. (This option is not available yet, consider starting over)", 3);
+                    else
+                        PrintMessage("Correct offsets", 1);
+
+                    var fileType = 0;
+                    try
+                    {
+                        fileType = dat.GetFileType(mod.data.modOffset, XivDataFiles.GetXivDataFile(mod.datFile));
+                    }
+                    catch (Exception ex)
+                    {
+                        PrintMessage($"{ex.Message}", 2);
+                    }
+
+
+                    if (fileType != 2 && fileType != 3 && fileType != 4)
+                        PrintMessage($"Found unknown file type ({fileType}), offset is most likely corrupt", 3);
+                    else
+                        PrintMessage("Correct file type", 1);
+                }
+            }
+            else
+                PrintMessage("No entries found in the modlist", 3);
+        }
+
+        void CheckLoD(DirectoryInfo configDirectory)
+        {
+            var problem = false;
+            var DX11 = false;
+            string ffxivCfg = Path.Combine(configDirectory.FullName, "FFXIV.cfg");
+            string ffxivbootCfg = Path.Combine(configDirectory.FullName, "FFXIV_BOOT.cfg");
+
+            if (configDirectory.Exists)
+            {
+                if (File.Exists(ffxivbootCfg))
+                {
+                    var lines = File.ReadAllLines(ffxivbootCfg);
+                    foreach (var line in lines)
+                    {
+                        if (line.Contains("DX11Enabled"))
+                        {
+                            var val = line.Substring(line.Length - 1, 1);
+                            if (val.Equals("1"))
+                                DX11 = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                    PrintMessage($"Could not find {ffxivbootCfg}", 3);
+
+                if (File.Exists(ffxivCfg))
+                {
+                    var lines = File.ReadAllLines(ffxivCfg);
+
+                    var lineNum = 0;
+                    var tmpLine = 0;
+                    foreach (var line in lines)
+                    {
+                        if (line.Contains("LodType"))
+                        {
+                            var val = line.Substring(line.Length - 1, 1);
+                            if (DX11 && line.Contains("DX11"))
+                            {
+                                if (val.Equals("1"))
+                                {
+                                    PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} ON\nCertain mods have issues with LoD turned on, turning it off...", 3);
+                                    tmpLine = lineNum;
+                                    problem = true;
+                                    break;
+                                }
+                                PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} OFF", 1);
+
+                            }
+                            else if (!DX11 && !line.Contains("DX11"))
+                            {
+                                if (val.Equals("1"))
+                                {
+                                    PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} ON", 3);
+                                    tmpLine = lineNum;
+                                    problem = true;
+                                    break;
+                                }
+                                PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} OFF", 1);
+                            }
+
+                        }
+
+                        lineNum++;
+                    }
+
+                    if (problem)
+                    {
+                        var line = lines[tmpLine];
+                        line = line.Substring(0, line.Length - 1) + 0;
+                        lines[tmpLine] = line;
+                        File.WriteAllLines(ffxivCfg, lines);
+                        PrintMessage("LoD turned off, rerunning check...");
+                        CheckLoD(configDirectory);
+                    }
+                }
+                else
+                    PrintMessage($"Could not find {ffxivCfg}", 3);
+            }
+        }
+        #endregion
+
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
-            Parser.Default.ParseArguments<importoptions, exportoptions, backupoptions, resetoptions, versionoptions>(args)
+            Parser.Default.ParseArguments<importoptions, exportoptions, backupoptions, resetoptions, problemoptions, versionoptions>(args)
             .WithParsed<importoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(opts.gameDirectory);
+                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
                 instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath));
             })
             .WithParsed<versionoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(opts.Directory);
+                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
                 instance.CheckGameVersion();
             })
             .WithParsed<backupoptions>(opts => {
                 instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
                 instance.BackupIndexes(new DirectoryInfo(opts.backupDirectory));
             })
             .WithParsed<resetoptions>(opts => {
                 instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
                 instance.ResetMods(new DirectoryInfo(opts.backupDirectory));
+            })
+            .WithParsed<problemoptions>(opts => {
+                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
+                instance.ProblemChecker(new DirectoryInfo(opts.configDirectory), new DirectoryInfo(opts.backupDirectory));
             })
                 /*.WithParsed<exportoptions>(opts => ...)
                 .WithNotParsed(errs => ...)*/;
