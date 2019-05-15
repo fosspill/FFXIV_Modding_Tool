@@ -23,7 +23,7 @@ List is sorted by priority
 - [x] [Backup and restore of important game files](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/4)
 - [ ] [Import specific textures / models (including advanced import options)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/5)
 - [ ] [Export specific textures / models](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/6)
-- [ ] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
+- [x] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
 - [ ] [ModPack creation](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/8)
 
 ## How to Install, Build and Use:
