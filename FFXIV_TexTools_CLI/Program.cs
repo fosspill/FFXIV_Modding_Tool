@@ -115,13 +115,12 @@ ConfigDirectory",
             if (!File.Exists(configFile) || string.IsNullOrEmpty(File.ReadAllText(configFile)))
                 configFileFromString.Save(configFile);
             string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
-            string indexDirectory = Path.Combine(gameDirectory, "game", "sqpack", "ffxiv");
             string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
             string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
             if (!string.IsNullOrEmpty(gameDirectory))
             {
                 _gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
-                _indexDirectory = new DirectoryInfo(indexDirectory);
+                _indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
             }
             else
                 PrintMessage("No game install directory saved", 3);
