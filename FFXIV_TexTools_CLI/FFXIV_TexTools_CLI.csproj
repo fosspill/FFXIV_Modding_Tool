@@ -49,6 +49,10 @@
     <Reference Include="PresentationCore">
       <HintPath>..\references\PresentationCore.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="ConfigParser">
+      <HintPath>..\packages\Salaros.ConfigParser.0.3.2\lib\net45\ConfigParser.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

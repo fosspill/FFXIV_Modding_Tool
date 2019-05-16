@@ -19,6 +19,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Globalization;
+using System.Reflection;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
@@ -29,15 +31,16 @@ using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
+using Salaros.Configuration;
 using CommandLine;
 
 namespace FFXIV_TexTools_CLI
 {
-// Verbs does not support nesting :( 
+    #region Console Options
     [Verb("modpackimport", HelpText = "Import a modpack")]
     public class importoptions
     {
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        [Option('g', "gamedirectory", Required = false, HelpText = "Full path to game install, including \"FINAL FANTASY XIV - A Realm Reborn\"")]
         public string gameDirectory { get; set; }
         [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
         public string ttmpPath { get; set; }
@@ -49,46 +52,96 @@ namespace FFXIV_TexTools_CLI
     [Verb("backup", HelpText = "Backup clean index files for use in reseting the game to a clean state")]
     public class backupoptions
     {
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        [Option('g', "gamedirectory", Required = false, HelpText = "Full path to game install, including \"FINAL FANTASY XIV - A Realm Reborn\"")]
         public string gameDirectory { get; set; }
-        [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory you want to use for backups")]
+        [Option('b', "backupdirectory", Required = false, HelpText = "Full path to directory you want to use for backups")]
         public string backupDirectory { get; set; }
     }
     [Verb("reset", HelpText = "Reset game to clean state")]
     public class resetoptions
     {
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        [Option('g', "gamedirectory", Required = false, HelpText = "Full path to game install, including \"FINAL FANTASY XIV - A Realm Reborn\"")]
         public string gameDirectory { get; set; }
-        [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory with your index backups")]
+        [Option('b', "backupdirectory", Required = false, HelpText = "Full path to directory with your index backups")]
         public string backupDirectory { get; set; }
     }
     [Verb("problemcheck", HelpText = "Check if there are any problems with the game, mod or backup files")]
     public class problemoptions
     {
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path to game install, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        [Option('g', "gamedirectory", Required = false, HelpText = "Full path to game install, including \"FINAL FANTASY XIV - A Realm Reborn\"")]
         public string gameDirectory { get; set; }
-        [Option('c', "configdirectory", Required = true, HelpText = "Full path to directory where FFXIV.cfg and character data is saved, including \"Final Fantasy XIV - A Realm Reborn\"")]
+        [Option('c', "configdirectory", Required = false, HelpText = "Full path to directory where FFXIV.cfg and character data is saved, including \"FINAL FANTASY XIV - A Realm Reborn\"")]
         public string configDirectory { get; set; }
-        [Option('b', "backupdirectory", Required = true, HelpText = "Full path to directory with your index backups")]
+        [Option('b', "backupdirectory", Required = false, HelpText = "Full path to directory with your index backups")]
         public string backupDirectory { get; set; }
     }
     [Verb("gameversion", HelpText = "Display current game version")]
     public class versionoptions
     { 
-        [Option('g', "gamedirectory", Required = true, HelpText = "Full path including \"Final Fantasy XIV - A Realm Reborn\"")]
+        [Option('g', "gamedirectory", Required = false, HelpText = "Full path including \"FINAL FANTASY XIV - A Realm Reborn\"")]
         public string gameDirectory { get; set; }
     }
+    #endregion
 
     public class MainClass
     {
         public DirectoryInfo _gameDirectory;
         public DirectoryInfo _indexDirectory;
+        public DirectoryInfo _backupDirectory;
+        public DirectoryInfo _configDirectory;
+        #region Config
+        public void ReadConfig()
+        {
+            string projectName = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
+            string sysconfDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string projectConfDirectory = Path.Combine(sysconfDirectory, projectName);
+            if (!Directory.Exists(projectConfDirectory))
+                Directory.CreateDirectory(projectConfDirectory);
+            string configFile = Path.Combine(projectConfDirectory, "config.cfg");
+            var configFileFromPath = new ConfigParser(configFile);
+            var configFileFromString = new ConfigParser(@"[Directories]
+# Full path to game install, including 'Final Fantasy XIV - A Realm Reborn'
+GameDirectory
+
+# Full path to directory with your index backups
+BackupDirectory
+
+# Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
+ConfigDirectory",
+                new ConfigParserSettings {
+                    MultiLineValues = MultiLineValues.Simple | MultiLineValues.AllowValuelessKeys | MultiLineValues.QuoteDelimitedValues,
+                    Culture = new CultureInfo("en-US")
+                });
+            if (!File.Exists(configFile) || string.IsNullOrEmpty(File.ReadAllText(configFile)))
+                configFileFromString.Save(configFile);
+            string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
+            string indexDirectory = Path.Combine(gameDirectory, "game", "sqpack", "ffxiv");
+            string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
+            string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
+            if (!string.IsNullOrEmpty(gameDirectory))
+            {
+                _gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
+                _indexDirectory = new DirectoryInfo(indexDirectory);
+            }
+            else
+                PrintMessage("No game install directory saved", 3);
+            if (!string.IsNullOrEmpty(backupDirectory))
+                _backupDirectory = new DirectoryInfo(backupDirectory);
+            else
+                PrintMessage("No index backup directory saved", 3);
+            if (!string.IsNullOrEmpty(configDirectory))
+                _configDirectory = new DirectoryInfo(configDirectory);
+            else
+                PrintMessage("No game config directory saved", 3);
+        }
+        #endregion
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
          1 = Success message, 2 = Error message, 3 = Warning message 
         */
         public void PrintMessage(string message, int importance = 0)
         {
+            Console.ForegroundColor = ConsoleColor.White;
             switch (importance)
             {
                 case 1:
@@ -523,11 +576,11 @@ namespace FFXIV_TexTools_CLI
             return indexFiles;
         }
 
-        void BackupIndexes(DirectoryInfo backupDirectory)
+        void BackupIndexes()
         {
-            if (!backupDirectory.Exists)
+            if (!_backupDirectory.Exists)
             {
-                PrintMessage($"{backupDirectory.FullName} does not exist, please specify an existing directory", 2);
+                PrintMessage($"{_backupDirectory.FullName} does not exist, please specify an existing directory", 2);
                 return;
             }
             if (IndexLocked())
@@ -551,7 +604,7 @@ namespace FFXIV_TexTools_CLI
                 foreach (string indexFile in IndexFiles().Keys)
                 {
                     string indexPath = Path.Combine(_indexDirectory.FullName, indexFile);
-                    string backupPath = Path.Combine(backupDirectory.FullName, indexFile);
+                    string backupPath = Path.Combine(_backupDirectory.FullName, indexFile);
                     File.Copy(indexPath, backupPath, true);
                 }
             }
@@ -563,26 +616,26 @@ namespace FFXIV_TexTools_CLI
             PrintMessage("Successfully backed up the index files!", 1);
         }
 
-        void ResetMods(DirectoryInfo backupDirectory)
+        void ResetMods()
         {
             bool allFilesAvailable = true;
             bool indexesUpToDate = true;
             var problemChecker = new ProblemChecker(_indexDirectory);
-            if (!backupDirectory.Exists)
+            if (!_backupDirectory.Exists)
             {
-                PrintMessage($"{backupDirectory.FullName} does not exist, please specify an existing directory", 2);
+                PrintMessage($"{_backupDirectory.FullName} does not exist, please specify an existing directory", 2);
                 return;
             }
             foreach (KeyValuePair<string, XivDataFile> indexFile in IndexFiles())
             {
-                string backupPath = Path.Combine(backupDirectory.FullName, indexFile.Key);
+                string backupPath = Path.Combine(_backupDirectory.FullName, indexFile.Key);
                 if (!File.Exists(backupPath))
                 {
                     PrintMessage($"{indexFile.Key} not found, aborting...", 3);
                     allFilesAvailable = false;
                     break;
                 }
-                if (!problemChecker.CheckForOutdatedBackups(indexFile.Value, backupDirectory))
+                if (!problemChecker.CheckForOutdatedBackups(indexFile.Value, _backupDirectory))
                 {
                     PrintMessage($"{indexFile.Key} is out of date, aborting...", 3);
                     indexesUpToDate = false;
@@ -591,7 +644,7 @@ namespace FFXIV_TexTools_CLI
             }
             if (!allFilesAvailable || !indexesUpToDate)
             {
-                PrintMessage($"{backupDirectory.FullName} has missing or outdated index files. You can either\n1. Download them from the TT discord\n2. Run this command again using \"backup\" instead of \"reset\" using a clean install of the game", 2);
+                PrintMessage($"{_backupDirectory.FullName} has missing or outdated index files. You can either\n1. Download them from the TT discord\n2. Run this command again using \"backup\" instead of \"reset\" using a clean install of the game", 2);
                 return;
             }
             if (IndexLocked())
@@ -608,7 +661,7 @@ namespace FFXIV_TexTools_CLI
 
                     var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
 
-                    var backupFiles = Directory.GetFiles(backupDirectory.FullName);
+                    var backupFiles = Directory.GetFiles(_backupDirectory.FullName);
                     foreach (var backupFile in backupFiles)
                     {
                         if (backupFile.Contains(".win32.index"))
@@ -642,7 +695,7 @@ namespace FFXIV_TexTools_CLI
         #endregion
 
         #region Problem Checking
-        void ProblemChecker(DirectoryInfo configDirectory, DirectoryInfo backupDirectory)
+        void ProblemChecker()
         {
             var problemChecker = new ProblemChecker(_indexDirectory);
             PrintMessage("Initializing problem check...");
@@ -659,13 +712,11 @@ namespace FFXIV_TexTools_CLI
                     CheckIndexDatCounts(problemChecker);
                 }
                 else
-                {
                     PrintMessage("Cannot run repairs while the game is running.", 2);
-                }
             }
 
             PrintMessage("Checking index backups...");
-            CheckBackups(backupDirectory, problemChecker);
+            CheckBackups(problemChecker);
 
             PrintMessage("Checking dat file...");
             CheckDat();
@@ -674,7 +725,7 @@ namespace FFXIV_TexTools_CLI
             CheckMods();
 
             PrintMessage("Checking LoD settings...");
-            CheckLoD(configDirectory);
+            CheckLoD();
         }
 
         List<XivDataFile> CheckIndexDatCounts(ProblemChecker problemChecker)
@@ -710,7 +761,7 @@ namespace FFXIV_TexTools_CLI
             return _indexDatRepairList;
         }
 
-        void CheckBackups(DirectoryInfo backupDirectory, ProblemChecker problemChecker)
+        void CheckBackups(ProblemChecker problemChecker)
         {
             var filesToCheck = new XivDataFile[] { XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
             foreach (var file in filesToCheck)
@@ -718,13 +769,13 @@ namespace FFXIV_TexTools_CLI
                 PrintMessage($"{file.GetDataFileName()} index files");
                 try
                 {
-                    var backupFile = new DirectoryInfo(Path.Combine(backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index"));
+                    var backupFile = new DirectoryInfo(Path.Combine(_backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index"));
                     if (!File.Exists(backupFile.FullName))
                     {
                         PrintMessage("No backup found", 3);
                         continue;
                     }
-                    if (!problemChecker.CheckForOutdatedBackups(file, backupDirectory))
+                    if (!problemChecker.CheckForOutdatedBackups(file, _backupDirectory))
                         PrintMessage("Out of date", 3);
                     else
                         PrintMessage("Up to date", 1);
@@ -793,14 +844,14 @@ namespace FFXIV_TexTools_CLI
                 PrintMessage("No entries found in the modlist", 3);
         }
 
-        void CheckLoD(DirectoryInfo configDirectory)
+        void CheckLoD()
         {
             var problem = false;
             var DX11 = false;
-            string ffxivCfg = Path.Combine(configDirectory.FullName, "FFXIV.cfg");
-            string ffxivbootCfg = Path.Combine(configDirectory.FullName, "FFXIV_BOOT.cfg");
+            string ffxivCfg = Path.Combine(_configDirectory.FullName, "FFXIV.cfg");
+            string ffxivbootCfg = Path.Combine(_configDirectory.FullName, "FFXIV_BOOT.cfg");
 
-            if (configDirectory.Exists)
+            if (_configDirectory.Exists)
             {
                 if (File.Exists(ffxivbootCfg))
                 {
@@ -866,7 +917,7 @@ namespace FFXIV_TexTools_CLI
                         lines[tmpLine] = line;
                         File.WriteAllLines(ffxivCfg, lines);
                         PrintMessage("LoD turned off, rerunning check...");
-                        CheckLoD(configDirectory);
+                        CheckLoD();
                     }
                 }
                 else
@@ -878,33 +929,70 @@ namespace FFXIV_TexTools_CLI
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
+            instance.ReadConfig();
             Parser.Default.ParseArguments<importoptions, exportoptions, backupoptions, resetoptions, problemoptions, versionoptions>(args)
             .WithParsed<importoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
-                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
-                instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath));
+                if (!string.IsNullOrEmpty(opts.gameDirectory))
+                {
+                    instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                    instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
+                }
+                if (instance._gameDirectory != null)
+                    instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath));
+                else
+                    instance.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
             })
             .WithParsed<versionoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
-                instance.CheckGameVersion();
+                if (!string.IsNullOrEmpty(opts.gameDirectory))
+                    instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                if (instance._gameDirectory != null)
+                    instance.CheckGameVersion();
+                else
+                    instance.PrintMessage("Checking the game version requires having your game directory set either through the config file or with -g specified", 2);
             })
             .WithParsed<backupoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
-                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
-                instance.BackupIndexes(new DirectoryInfo(opts.backupDirectory));
+                if (!string.IsNullOrEmpty(opts.gameDirectory))
+                {
+                    instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                    instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
+                }
+                if (!string.IsNullOrEmpty(opts.backupDirectory))
+                    instance._backupDirectory = new DirectoryInfo(opts.backupDirectory);
+                if (instance._gameDirectory != null && instance._backupDirectory != null)
+                    instance.BackupIndexes();
+                else
+                    instance.PrintMessage("Backing up index files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
             })
             .WithParsed<resetoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
-                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
-                instance.ResetMods(new DirectoryInfo(opts.backupDirectory));
+                if (!string.IsNullOrEmpty(opts.gameDirectory))
+                {
+                    instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                    instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
+                }
+                if (!string.IsNullOrEmpty(opts.backupDirectory))
+                    instance._backupDirectory = new DirectoryInfo(opts.backupDirectory);
+                if (instance._gameDirectory != null && instance._backupDirectory != null)
+                    instance.ResetMods();
+                else
+                    instance.PrintMessage("Reseting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
             })
             .WithParsed<problemoptions>(opts => {
-                instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
-                instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
-                instance.ProblemChecker(new DirectoryInfo(opts.configDirectory), new DirectoryInfo(opts.backupDirectory));
+                if (!string.IsNullOrEmpty(opts.gameDirectory))
+                {
+                    instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                    instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
+                }
+                if (!string.IsNullOrEmpty(opts.backupDirectory))
+                    instance._backupDirectory = new DirectoryInfo(opts.backupDirectory);
+                if (!string.IsNullOrEmpty(opts.configDirectory))
+                    instance._configDirectory = new DirectoryInfo(opts.configDirectory);
+                if (instance._gameDirectory != null && instance._backupDirectory != null && instance._configDirectory != null)
+                    instance.ProblemChecker();
+                else
+                    instance.PrintMessage("Checking for problems requires having your game, backup and config directories set through the config file or with -g, -b and -c specified", 2);
             })
-                /*.WithParsed<exportoptions>(opts => ...)
-                .WithNotParsed(errs => ...)*/;
+                //.WithParsed<exportoptions>(opts => ...)
+                ;
         }
     }
 }
