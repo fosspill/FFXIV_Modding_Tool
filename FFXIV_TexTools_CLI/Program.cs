@@ -44,6 +44,8 @@ namespace FFXIV_TexTools_CLI
         public string gameDirectory { get; set; }
         [Option('t', "ttmp", Required = true, HelpText = "Path to .ttmp(2) file")]
         public string ttmpPath { get; set; }
+        [Option('c', "custom", Required = false, HelpText = "Use a modpack's config file to selectively import mods from the pack")]
+        public bool customImport { get; set; }
     }
     [Verb("export", HelpText = "Export modpack / texture / model")]
     public class exportoptions
@@ -89,12 +91,15 @@ namespace FFXIV_TexTools_CLI
         public DirectoryInfo _indexDirectory;
         public DirectoryInfo _backupDirectory;
         public DirectoryInfo _configDirectory;
+        public DirectoryInfo _modpackDirectory;
+        public DirectoryInfo _projectconfDirectory;
         #region Config
         public void ReadConfig()
         {
             string projectName = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
             string sysconfDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string projectConfDirectory = Path.Combine(sysconfDirectory, projectName);
+            _projectconfDirectory = new DirectoryInfo(projectConfDirectory);
             if (!Directory.Exists(projectConfDirectory))
                 Directory.CreateDirectory(projectConfDirectory);
             string configFile = Path.Combine(projectConfDirectory, "config.cfg");
@@ -107,7 +112,10 @@ GameDirectory
 BackupDirectory
 
 # Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
-ConfigDirectory",
+ConfigDirectory
+
+# Full path to directory where your modpacks are located
+ModpackDirectory",
                 new ConfigParserSettings {
                     MultiLineValues = MultiLineValues.Simple | MultiLineValues.AllowValuelessKeys | MultiLineValues.QuoteDelimitedValues,
                     Culture = new CultureInfo("en-US")
@@ -117,6 +125,7 @@ ConfigDirectory",
             string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
             string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
             string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
+            string modpackDirectory = configFileFromPath.GetValue("Directories", "ModpackDirectory");
             if (!string.IsNullOrEmpty(gameDirectory))
             {
                 _gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
@@ -132,7 +141,34 @@ ConfigDirectory",
                 _configDirectory = new DirectoryInfo(configDirectory);
             else
                 PrintMessage("No game config directory saved", 3);
+            if (!string.IsNullOrEmpty(modpackDirectory))
+                _modpackDirectory = new DirectoryInfo(modpackDirectory);
+            else
+                PrintMessage("No modpack directory saved", 3);
         }
+
+        public class ModpackImportConfigEntry
+        {
+            public string name { get; set; }
+            public string map { get; set; }
+            public string part { get; set; }
+            public string race { get; set; }
+            public string file { get; set; }
+            public bool import { get; set; }
+
+            public ModpackImportConfigEntry() { }
+
+            public ModpackImportConfigEntry(SimpleModPackEntries entry)
+            {
+                name = entry.Name;
+                map = entry.Map;
+                part = entry.Part;
+                race = entry.Race;
+                file = entry.JsonEntry.FullPath;
+                import = true;
+            }
+        }
+        public ModpackImportConfigEntry modpackImportConfigEntry;
         #endregion
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
@@ -188,7 +224,7 @@ ConfigDirectory",
         }
 
         #region Importing Functions
-        void ImportModpackHandler(DirectoryInfo ttmpPath)
+        void ImportModpackHandler(DirectoryInfo ttmpPath, bool customImport)
         {
             var importError = false;
             try
@@ -213,10 +249,10 @@ ConfigDirectory",
                     if (ttmpPath.Extension == ".ttmp2")
                     {
                         var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                        GetModpackData(ttmpPath, ttmpData.ModPackJson);
+                        GetModpackData(ttmpPath, ttmpData.ModPackJson, customImport);
                     }
                     else
-                        GetModpackData(ttmpPath, null);
+                        GetModpackData(ttmpPath, null, customImport);
                 }
                 catch
                 {
@@ -229,7 +265,7 @@ ConfigDirectory",
                 if (!importError)
                 {
                     PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
-                    GetModpackData(ttmpPath, null);
+                    GetModpackData(ttmpPath, null, customImport);
                 }
                 else
                 {
@@ -241,9 +277,10 @@ ConfigDirectory",
             return;
         }
 
-        void GetModpackData(DirectoryInfo ttmpPath, ModPackJson ttmpData)
+        void GetModpackData(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool customImport)
         {
             var modding = new Modding(_indexDirectory);
+            string ttmpName = null;
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
@@ -262,8 +299,11 @@ ConfigDirectory",
                     if (isActive == XivModStatus.Enabled)
                         active = true;
 
+                    if (string.IsNullOrEmpty(ttmpName))
+                        ttmpName = ttmpData.Name;
+
                     modsJson.ModPackEntry = new ModPack
-                    { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version };
+                    { name = ttmpName, author = ttmpData.Author, version = ttmpData.Version };
 
                     ttmpDataList.Add(new SimpleModPackEntries
                     {
@@ -309,6 +349,9 @@ ConfigDirectory",
                     if (isActive == XivModStatus.Enabled)
                         active = true;
 
+                    if (string.IsNullOrEmpty(ttmpName))
+                        ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
+
                     ttmpDataList.Add(new SimpleModPackEntries
                     {
                         Name = modsJson.Name,
@@ -326,13 +369,51 @@ ConfigDirectory",
                             DatFile = modsJson.DatFile,
                             ModOffset = modsJson.ModOffset,
                             ModSize = modsJson.ModSize,
-                            ModPackEntry = new ModPack { name = Path.GetFileNameWithoutExtension(ttmpPath.FullName), author = "N/A", version = "1.0.0" }
+                            ModPackEntry = new ModPack { name = ttmpName, author = "N/A", version = "1.0.0" }
                         }
                     });
                 }
             }
             ttmpDataList.Sort();
-            PrintMessage("Data extraction successfull. Importing modpack...");
+            PrintMessage("Data extraction successfull.");
+            int originalModCount = ttmpDataList.Count;
+            if (customImport)
+            {
+                string modpackConfDirectory = Path.Combine(_projectconfDirectory.FullName, "ModPacks");
+                List<ModpackImportConfigEntry> desiredModImports = new List<ModpackImportConfigEntry>();
+                if (!Directory.Exists(modpackConfDirectory))
+                    Directory.CreateDirectory(modpackConfDirectory);
+                string modpackConfFile = Path.Combine(modpackConfDirectory, $"{ttmpName}.cfg");
+                if (!File.Exists(modpackConfFile))
+                {
+                    foreach (SimpleModPackEntries entry in ttmpDataList)
+                        desiredModImports.Add(new ModpackImportConfigEntry(entry));
+                    File.WriteAllText(modpackConfFile, JsonConvert.SerializeObject(desiredModImports, Formatting.Indented));
+                    PrintMessage($"{modpackConfFile} created. Edit the file and run this command again to import the desired mods from the modpack", 1);
+                    return;
+                }
+                desiredModImports = JsonConvert.DeserializeObject<List<ModpackImportConfigEntry>>(new StreamReader(modpackConfFile).ReadToEnd());
+                List<SimpleModPackEntries> undesiredModImports = new List<SimpleModPackEntries>();
+                if (desiredModImports.Count != ttmpDataList.Count)
+                    PrintMessage("The config file doesn't seem to contain the same mods as the modpack. Please delete the file if you want to generate an up-to-date version.", 3);
+                foreach (ModpackImportConfigEntry modToCheck in desiredModImports)
+                {
+                    if (!modToCheck.import)
+                    {
+                        foreach (SimpleModPackEntries entry in ttmpDataList)
+                        {
+                            if (entry.JsonEntry.FullPath == modToCheck.file)
+                            {
+                                undesiredModImports.Add(entry);
+                                break;
+                            }
+                        }
+                    }
+                }
+                foreach (SimpleModPackEntries entry in undesiredModImports)
+                    ttmpDataList.Remove(entry);
+            }
+            PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
             ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
         }
 
@@ -355,7 +436,6 @@ ConfigDirectory",
                     totalModsImported = ttmpDataList.Count();
                     PrintMessage($"\n{totalModsImported} mod(s) successfully imported.", 1);
                 }
-                    
             }
             catch (Exception ex)
             {
@@ -937,7 +1017,7 @@ ConfigDirectory",
                     instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
                 }
                 if (instance._gameDirectory != null)
-                    instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath));
+                    instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath), opts.customImport);
                 else
                     instance.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
             })
