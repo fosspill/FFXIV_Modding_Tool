@@ -51,6 +51,12 @@ namespace FFXIV_TexTools_CLI
     public class exportoptions
     { //normal options here
     }
+    [Verb("refresh", HelpText = "Enable/disable mods as specified in modlist.cfg")]
+    public class refreshoptions
+    {
+        [Option('g', "gamedirectory", Required = false, HelpText = "Full path including \"FINAL FANTASY XIV - A Realm Reborn\"")]
+        public string gameDirectory { get; set; }
+    }
     [Verb("backup", HelpText = "Backup clean index files for use in reseting the game to a clean state")]
     public class backupoptions
     {
@@ -168,7 +174,43 @@ ModpackDirectory",
                 import = true;
             }
         }
+
+        public class ModActiveStatus
+        {
+            public string modpack { get; set; }
+            public string name { get; set; }
+            public string map { get; set; }
+            public string part { get; set; }
+            public string race { get; set; }
+            public string file { get; set; }
+            public bool enabled { get; set; }
+
+            public ModActiveStatus() { }
+
+            public ModActiveStatus(SimpleModPackEntries entry)
+            {
+                modpack = entry.JsonEntry.Name;
+                name = entry.Name;
+                map = entry.Map;
+                part = entry.Part;
+                race = entry.Race;
+                file = entry.JsonEntry.FullPath;
+                enabled = true;
+            }
+
+            public ModActiveStatus(string ttmpName, ModpackImportConfigEntry entry)
+            {
+                modpack = ttmpName;
+                name = entry.name;
+                map = entry.map;
+                part = entry.part;
+                race = entry.race;
+                file = entry.file;
+                enabled = true;
+            }
+        }
         public ModpackImportConfigEntry modpackImportConfigEntry;
+        public ModActiveStatus modpackActiveStatus;
         #endregion
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
@@ -377,6 +419,10 @@ ModpackDirectory",
             ttmpDataList.Sort();
             PrintMessage("Data extraction successfull.");
             int originalModCount = ttmpDataList.Count;
+            string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
+            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
+            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
+                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
             if (customImport)
             {
                 string modpackConfDirectory = Path.Combine(_projectconfDirectory.FullName, "ModPacks");
@@ -392,7 +438,7 @@ ModpackDirectory",
                     PrintMessage($"{modpackConfFile} created. Edit the file and run this command again to import the desired mods from the modpack", 1);
                     return;
                 }
-                desiredModImports = JsonConvert.DeserializeObject<List<ModpackImportConfigEntry>>(new StreamReader(modpackConfFile).ReadToEnd());
+                desiredModImports = JsonConvert.DeserializeObject<List<ModpackImportConfigEntry>>(File.ReadAllText(modpackConfFile));
                 List<SimpleModPackEntries> undesiredModImports = new List<SimpleModPackEntries>();
                 if (desiredModImports.Count != ttmpDataList.Count)
                     PrintMessage("The config file doesn't seem to contain the same mods as the modpack. Please delete the file if you want to generate an up-to-date version.", 3);
@@ -409,12 +455,57 @@ ModpackDirectory",
                             }
                         }
                     }
+                    else
+                    {
+                        bool alreadyExists = false;
+                        foreach (ModActiveStatus modState in modActiveStates)
+                        {
+                            if (modToCheck.file == modState.file && !modState.enabled)
+                            {
+                                modState.enabled = true;
+                                alreadyExists = true;
+                                break;
+                            }
+                            if (modToCheck.file == modState.file && modState.enabled)
+                            {
+                                alreadyExists = true;
+                                break;
+                            }
+                        }
+                        if (!alreadyExists)
+                            modActiveStates.Add(new ModActiveStatus(ttmpName, modToCheck));
+                    }
                 }
                 foreach (SimpleModPackEntries entry in undesiredModImports)
                     ttmpDataList.Remove(entry);
             }
+            else
+            {
+                bool alreadyExists = false;
+                foreach (SimpleModPackEntries entry in ttmpDataList)
+                {
+                    foreach (ModActiveStatus modState in modActiveStates)
+                    {
+                        if (entry.JsonEntry.FullPath == modState.file && !modState.enabled)
+                        {
+                            modState.enabled = true;
+                            alreadyExists = true;
+                            break;
+                        }
+                        if (entry.JsonEntry.FullPath == modState.file && modState.enabled)
+                        {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyExists)
+                        modActiveStates.Add(new ModActiveStatus(entry));
+                }
+            }
             PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
             ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
+            File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
+            PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
         }
 
         void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
@@ -739,6 +830,7 @@ ModpackDirectory",
                     var dat = new Dat(_indexDirectory);
 
                     var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
+                    string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
 
                     var backupFiles = Directory.GetFiles(_backupDirectory.FullName);
                     foreach (var backupFile in backupFiles)
@@ -747,8 +839,8 @@ ModpackDirectory",
                             File.Copy(backupFile, $"{_indexDirectory}/{Path.GetFileName(backupFile)}", true);
                     }
 
-                // Delete modded dat files
-                foreach (var xivDataFile in (XivDataFile[])Enum.GetValues(typeof(XivDataFile)))
+                    // Delete modded dat files
+                    foreach (var xivDataFile in (XivDataFile[])Enum.GetValues(typeof(XivDataFile)))
                     {
                         var datFiles = dat.GetModdedDatList(xivDataFile);
 
@@ -759,9 +851,11 @@ ModpackDirectory",
                             problemChecker.RepairIndexDatCounts(xivDataFile);
                     }
 
-                // Delete mod list
-                File.Delete(modListDirectory.FullName);
+                    // Delete mod list
+                    File.Delete(modListDirectory.FullName);
                     modding.CreateModlist();
+                    if (File.Exists(modActiveConfFile))
+                        File.WriteAllText(modActiveConfFile, string.Empty);
                 });
                 reset.Wait();
                 PrintMessage("Reset complete!", 1);
@@ -1005,11 +1099,37 @@ ModpackDirectory",
         }
         #endregion
 
+        void SetModActiveStates()
+        {
+            Modding modding = new Modding(_indexDirectory);
+            string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
+            string modlistFile = Path.Combine(_gameDirectory.FullName, "XivMods.json");
+            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
+            if (!File.Exists(modActiveConfFile) || string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
+            {
+                PrintMessage("Can't enable/disable mods when no mods are installed", 2);
+                return;
+            }
+            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
+                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
+            try
+            {
+                foreach (ModActiveStatus modState in modActiveStates)
+                    modding.ToggleModStatus(modState.file, modState.enabled);
+            }
+            catch (Exception ex)
+            {
+                PrintMessage($"Something went wrong during the toggle process\n{ex.Message}", 3);
+                return;
+            }
+            PrintMessage("Successfully enabled and disabled all mods!", 1);
+        }
+
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
             instance.ReadConfig();
-            Parser.Default.ParseArguments<importoptions, exportoptions, backupoptions, resetoptions, problemoptions, versionoptions>(args)
+            Parser.Default.ParseArguments<importoptions, exportoptions, refreshoptions, backupoptions, resetoptions, problemoptions, versionoptions>(args)
             .WithParsed<importoptions>(opts => {
                 if (!string.IsNullOrEmpty(opts.gameDirectory))
                 {
@@ -1020,6 +1140,17 @@ ModpackDirectory",
                     instance.ImportModpackHandler(new DirectoryInfo(opts.ttmpPath), opts.customImport);
                 else
                     instance.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
+            })
+            .WithParsed<refreshoptions>(opts => {
+                if (!string.IsNullOrEmpty(opts.gameDirectory))
+                {
+                    instance._gameDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game"));
+                    instance._indexDirectory = new DirectoryInfo(Path.Combine(opts.gameDirectory, "game", "sqpack", "ffxiv"));
+                }
+                if (instance._gameDirectory != null)
+                    instance.SetModActiveStates();
+                else
+                    instance.PrintMessage("Enabling/disabling mods requires having your game directory set either through the config file or with -g specified", 2);
             })
             .WithParsed<versionoptions>(opts => {
                 if (!string.IsNullOrEmpty(opts.gameDirectory))
