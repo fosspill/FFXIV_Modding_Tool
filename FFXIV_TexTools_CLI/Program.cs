@@ -19,7 +19,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Globalization;
 using System.Reflection;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
@@ -29,9 +28,10 @@ using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
+using FFXIV_TexTools_CLI.Configuration;
+using FFXIV_TexTools_CLI.Commandline;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
-using Salaros.Configuration;
 
 namespace FFXIV_TexTools_CLI
 {
@@ -43,59 +43,6 @@ namespace FFXIV_TexTools_CLI
         public DirectoryInfo _configDirectory;
         public DirectoryInfo _modpackDirectory;
         public DirectoryInfo _projectconfDirectory;
-        #region Config
-        public void ReadConfig()
-        {
-            string projectName = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title;
-            string sysconfDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string projectConfDirectory = Path.Combine(sysconfDirectory, projectName);
-            _projectconfDirectory = new DirectoryInfo(projectConfDirectory);
-            if (!Directory.Exists(projectConfDirectory))
-                Directory.CreateDirectory(projectConfDirectory);
-            string configFile = Path.Combine(projectConfDirectory, "config.cfg");
-            var configFileFromPath = new ConfigParser(configFile);
-            var configFileFromString = new ConfigParser(@"[Directories]
-# Full path to game install, including 'Final Fantasy XIV - A Realm Reborn'
-GameDirectory
-
-# Full path to directory with your index backups
-BackupDirectory
-
-# Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
-ConfigDirectory
-
-# Full path to directory where your modpacks are located
-ModpackDirectory",
-                new ConfigParserSettings {
-                    MultiLineValues = MultiLineValues.Simple | MultiLineValues.AllowValuelessKeys | MultiLineValues.QuoteDelimitedValues,
-                    Culture = new CultureInfo("en-US")
-                });
-            if (!File.Exists(configFile) || string.IsNullOrEmpty(File.ReadAllText(configFile)))
-                configFileFromString.Save(configFile);
-            string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
-            string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
-            string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
-            string modpackDirectory = configFileFromPath.GetValue("Directories", "ModpackDirectory");
-            if (!string.IsNullOrEmpty(gameDirectory))
-            {
-                _gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
-                _indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
-            }
-            else
-                PrintMessage("No game install directory saved", 3);
-            if (!string.IsNullOrEmpty(backupDirectory))
-                _backupDirectory = new DirectoryInfo(backupDirectory);
-            else
-                PrintMessage("No index backup directory saved", 3);
-            if (!string.IsNullOrEmpty(configDirectory))
-                _configDirectory = new DirectoryInfo(configDirectory);
-            else
-                PrintMessage("No game config directory saved", 3);
-            if (!string.IsNullOrEmpty(modpackDirectory))
-                _modpackDirectory = new DirectoryInfo(modpackDirectory);
-            else
-                PrintMessage("No modpack directory saved", 3);
-        }
 
         public class ModpackImportConfigEntry
         {
@@ -155,7 +102,6 @@ ModpackDirectory",
         }
         public ModpackImportConfigEntry modpackImportConfigEntry;
         public ModActiveStatus modpackActiveStatus;
-        #endregion
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
          1 = Success message, 2 = Error message, 3 = Warning message 
@@ -185,7 +131,7 @@ ModpackDirectory",
 
         }
 
-        void CheckGameVersion()
+        public void CheckGameVersion()
         {
             Version ffxivVersion = null;
             var versionFile = Path.Combine(_gameDirectory.FullName, "ffxivgame.ver");
@@ -210,7 +156,7 @@ ModpackDirectory",
         }
 
         #region Importing Functions
-        void ImportModpackHandler(DirectoryInfo ttmpPath, bool customImport)
+        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool customImport)
         {
             var importError = false;
             try
@@ -690,7 +636,7 @@ ModpackDirectory",
             return indexFiles;
         }
 
-        void BackupIndexes()
+        public void BackupIndexes()
         {
             if (!_backupDirectory.Exists)
             {
@@ -730,7 +676,7 @@ ModpackDirectory",
             PrintMessage("Successfully backed up the index files!", 1);
         }
 
-        void ResetMods()
+        public void ResetMods()
         {
             bool allFilesAvailable = true;
             bool indexesUpToDate = true;
@@ -812,7 +758,7 @@ ModpackDirectory",
         #endregion
 
         #region Problem Checking
-        void ProblemChecker()
+        public void ProblemChecker()
         {
             var problemChecker = new ProblemChecker(_indexDirectory);
             PrintMessage("Initializing problem check...");
@@ -1043,7 +989,7 @@ ModpackDirectory",
         }
         #endregion
 
-        void SetModActiveStates()
+        public void SetModActiveStates()
         {
             Modding modding = new Modding(_indexDirectory);
             string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
@@ -1072,179 +1018,11 @@ ModpackDirectory",
         static void Main(string[] args)
         {
             MainClass instance = new MainClass();
-            string helpText = $"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}\n\n";
-            helpText = helpText + @"Available actions:
-  modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
-  mods list, ml            List all currently installed mods
-  mods enable, me          Enable all installed mods
-  mods disable, md         Disable all installed mods
-  mods refresh, mr         Enable/disable mods as specified in modlist.cfg
-  backup, b                Backup clean index files for use in resetting the game
-  reset, r                 Reset game to clean state
-  problemcheck, p          Check if there are any problems with the game, mod or backup files
-  version, v               Display current game version
-  help, h                  Display this text
-
-Available arguments:
-  -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
-  -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
-  -b, --backupdirectory    Full path to directory with your index backups
-  -t, --ttmp               Full path to .ttmp(2) file (mods import only)
-  -C, --custom             Use a modpack's config file to selectively import mods from the pack (mods import only)";
-            instance.ReadConfig();
-            int i = 0;
-            string ttmpPath = "";
-            bool customImport = false;
-            foreach (string cmdArg in args)
-            {
-                string nextArg = "";
-                if (args.Count() > 1 && i + 1 < args.Count())
-                    nextArg = args[i + 1];
-                if (cmdArg.StartsWith("-"))
-                {
-                    string arg = cmdArg.Split('-').Last();
-                    switch (arg)
-                    {
-                        case "g":
-                        case "gamedirectory":
-                            if (!nextArg.StartsWith("-"))
-                            {
-                                instance._gameDirectory = new DirectoryInfo(Path.Combine(nextArg, "game"));
-                                instance._indexDirectory = new DirectoryInfo(Path.Combine(nextArg, "game", "sqpack", "ffxiv"));
-                            }
-                            continue;
-                        case "c":
-                        case "configdirectory":
-                            if (!nextArg.StartsWith("-"))
-                                instance._configDirectory = new DirectoryInfo(nextArg);
-                            continue;
-                        case "b":
-                        case "backupdirectory":
-                            if (!nextArg.StartsWith("-"))
-                                instance._backupDirectory = new DirectoryInfo(nextArg);
-                            continue;
-                        case "t":
-                        case "ttmp":
-                            if (!nextArg.StartsWith("-"))
-                                ttmpPath = nextArg;
-                            continue;
-                        case "C":
-                        case "custom":
-                            customImport = true;
-                            continue;
-                        default:
-                            instance.PrintMessage($"Unknown argument {arg}", 3);
-                            continue;
-                    }
-                }
-                i++;
-            }
-            string secondAction = ""; 
-            if (args.Count() > 1)
-                secondAction = args[1];
-            switch (args[0])
-            {
-                case "mpi":
-                    if (string.IsNullOrEmpty(ttmpPath))
-                    {
-                        instance.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
-                        return;
-                    }
-                    if (instance._gameDirectory != null)
-                        instance.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport);
-                    else
-                        instance.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
-                    break;
-                case "mpe":
-                    // function to export modpacks
-                    break;
-                case "mpinfo":
-                    // function to list info about modpack
-                    break;
-                case "modpack":
-                    if (secondAction == "import")
-                        goto case "mpi";
-                    if (secondAction == "export")
-                        goto case "mpe";
-                    if (secondAction == "info")
-                        goto case "mpinfo";
-                    break;
-                case "mr":
-                    if (instance._gameDirectory != null)
-                        instance.SetModActiveStates();
-                    else
-                        instance.PrintMessage("Enabling/disabling mods requires having your game directory set either through the config file or with -g specified", 2);
-                    break;
-                case "ml":
-                    // function to list current mods
-                    break;
-                case "me":
-                    if (instance._gameDirectory != null)
-                    {
-                        var modding = new Modding(instance._indexDirectory);
-                        modding.ToggleAllMods(true);
-                        instance.PrintMessage("Successfully enabled all mods", 1);
-                    }
-                    else
-                        instance.PrintMessage("Enabling mods requires having your game directory set either through the config file or with -g specified", 2);
-                    break;
-                case "md":
-                    if (instance._gameDirectory != null)
-                    {
-                        var modding = new Modding(instance._indexDirectory);
-                        modding.ToggleAllMods(false);
-                        instance.PrintMessage("Successfully disabled all mods", 1);
-                    }
-                    else
-                        instance.PrintMessage("Disabling mods requires having your game directory set either through the config file or with -g specified", 2);
-                    break;
-                case "mods":
-                    if (secondAction == "refresh")
-                        goto case "mr";
-                    if (secondAction == "list")
-                        goto case "ml";
-                    if (secondAction == "enable")
-                        goto case "me";
-                    if (secondAction == "disable")
-                        goto case "md"; 
-                    break;
-                case "backup":
-                case "b":
-                    if (instance._gameDirectory != null && instance._backupDirectory != null)
-                        instance.BackupIndexes();
-                    else
-                        instance.PrintMessage("Backing up index files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
-                    break;
-                case "reset":
-                case "r":
-                    if (instance._gameDirectory != null && instance._backupDirectory != null)
-                        instance.ResetMods();
-                    else
-                        instance.PrintMessage("Reseting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
-                    break;
-                case "problemcheck":
-                case "p":
-                    if (instance._gameDirectory != null && instance._backupDirectory != null && instance._configDirectory != null)
-                        instance.ProblemChecker();
-                    else
-                        instance.PrintMessage("Checking for problems requires having your game, backup and config directories set through the config file or with -g, -b and -c specified", 2);
-                    break;
-                case "version":
-                case "v":
-                    if (instance._gameDirectory != null)
-                        instance.CheckGameVersion();
-                    else
-                        instance.PrintMessage("Checking the game version requires having your game directory set either through the config file or with -g specified", 2);
-                    break;
-                case "help":
-                case "h":
-                    instance.PrintMessage(helpText);
-                    break;
-                default:
-                    instance.PrintMessage($"Unknown action: {args[0]}");
-                    instance.PrintMessage(helpText);
-                    break;
-            }
+            instance._projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
+            Config config = new Config(instance._projectconfDirectory);
+            Arguments arguments = new Arguments();
+            config.ReadConfig();
+            arguments.ArgumentHandler(args);
         }
     }
 }
