@@ -7,7 +7,6 @@ namespace FFXIV_TexTools_CLI.Configuration
     public class Config
     {
         public DirectoryInfo _projectconfDirectory;
-        MainClass main = new MainClass();
 
         public Config(DirectoryInfo projectconfDirectory)
         {
@@ -16,6 +15,7 @@ namespace FFXIV_TexTools_CLI.Configuration
 
         public void ReadConfig()
         {
+            MainClass main = new MainClass();
             if (!Directory.Exists(_projectconfDirectory.FullName))
                 Directory.CreateDirectory(_projectconfDirectory.FullName);
             string configFile = Path.Combine(_projectconfDirectory.FullName, "config.cfg");
@@ -45,21 +45,21 @@ ModpackDirectory",
             string modpackDirectory = configFileFromPath.GetValue("Directories", "ModpackDirectory");
             if (!string.IsNullOrEmpty(gameDirectory))
             {
-                main._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
-                main._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
+                MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
+                MainClass._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
             }
             else
                 main.PrintMessage("No game install directory saved", 3);
             if (!string.IsNullOrEmpty(backupDirectory))
-                main._backupDirectory = new DirectoryInfo(backupDirectory);
+                MainClass._backupDirectory = new DirectoryInfo(backupDirectory);
             else
                 main.PrintMessage("No index backup directory saved", 3);
             if (!string.IsNullOrEmpty(configDirectory))
-                main._configDirectory = new DirectoryInfo(configDirectory);
+                MainClass._configDirectory = new DirectoryInfo(configDirectory);
             else
                 main.PrintMessage("No game config directory saved", 3);
             if (!string.IsNullOrEmpty(modpackDirectory))
-                main._modpackDirectory = new DirectoryInfo(modpackDirectory);
+                MainClass._modpackDirectory = new DirectoryInfo(modpackDirectory);
             else
                 main.PrintMessage("No modpack directory saved", 3);
         }

@@ -31,13 +31,13 @@ Available arguments:
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (mods import only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (mods import only)";
-            int i = 0;
             string ttmpPath = "";
             bool customImport = false;
             foreach (string cmdArg in args)
             {
                 string nextArg = "";
-                if (args.Count() > 1 && i + 1 < args.Count())
+                int i = Array.IndexOf(args, cmdArg);
+                if (args.Length > 1 && i + 1 < args.Length)
                     nextArg = args[i + 1];
                 if (cmdArg.StartsWith("-"))
                 {
@@ -48,19 +48,19 @@ Available arguments:
                         case "gamedirectory":
                             if (!nextArg.StartsWith("-"))
                             {
-                                main._gameDirectory = new DirectoryInfo(Path.Combine(nextArg, "game"));
-                                main._indexDirectory = new DirectoryInfo(Path.Combine(nextArg, "game", "sqpack", "ffxiv"));
+                                MainClass._gameDirectory = new DirectoryInfo(Path.Combine(nextArg, "game"));
+                                MainClass._indexDirectory = new DirectoryInfo(Path.Combine(nextArg, "game", "sqpack", "ffxiv"));
                             }
                             continue;
                         case "c":
                         case "configdirectory":
                             if (!nextArg.StartsWith("-"))
-                                main._configDirectory = new DirectoryInfo(nextArg);
+                                MainClass._configDirectory = new DirectoryInfo(nextArg);
                             continue;
                         case "b":
                         case "backupdirectory":
                             if (!nextArg.StartsWith("-"))
-                                main._backupDirectory = new DirectoryInfo(nextArg);
+                                MainClass._backupDirectory = new DirectoryInfo(nextArg);
                             continue;
                         case "t":
                         case "ttmp":
@@ -76,7 +76,6 @@ Available arguments:
                             continue;
                     }
                 }
-                i++;
             }
             string secondAction = "";
             if (args.Count() > 1)
@@ -89,7 +88,7 @@ Available arguments:
                         main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
                         return;
                     }
-                    if (main._gameDirectory != null)
+                    if (MainClass._gameDirectory != null)
                         main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport);
                     else
                         main.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
@@ -109,7 +108,7 @@ Available arguments:
                         goto case "mpinfo";
                     break;
                 case "mr":
-                    if (main._gameDirectory != null)
+                    if (MainClass._gameDirectory != null)
                         main.SetModActiveStates();
                     else
                         main.PrintMessage("Enabling/disabling mods requires having your game directory set either through the config file or with -g specified", 2);
@@ -118,9 +117,9 @@ Available arguments:
                     // function to list current mods
                     break;
                 case "me":
-                    if (main._gameDirectory != null)
+                    if (MainClass._gameDirectory != null)
                     {
-                        var modding = new Modding(main._indexDirectory);
+                        var modding = new Modding(MainClass._indexDirectory);
                         modding.ToggleAllMods(true);
                         main.PrintMessage("Successfully enabled all mods", 1);
                     }
@@ -128,9 +127,9 @@ Available arguments:
                         main.PrintMessage("Enabling mods requires having your game directory set either through the config file or with -g specified", 2);
                     break;
                 case "md":
-                    if (main._gameDirectory != null)
+                    if (MainClass._gameDirectory != null)
                     {
-                        var modding = new Modding(main._indexDirectory);
+                        var modding = new Modding(MainClass._indexDirectory);
                         modding.ToggleAllMods(false);
                         main.PrintMessage("Successfully disabled all mods", 1);
                     }
@@ -149,28 +148,28 @@ Available arguments:
                     break;
                 case "backup":
                 case "b":
-                    if (main._gameDirectory != null && main._backupDirectory != null)
+                    if (MainClass._gameDirectory != null && MainClass._backupDirectory != null)
                         main.BackupIndexes();
                     else
                         main.PrintMessage("Backing up index files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
                     break;
                 case "reset":
                 case "r":
-                    if (main._gameDirectory != null && main._backupDirectory != null)
+                    if (MainClass._gameDirectory != null && MainClass._backupDirectory != null)
                         main.ResetMods();
                     else
                         main.PrintMessage("Resetting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
                     break;
                 case "problemcheck":
                 case "p":
-                    if (main._gameDirectory != null && main._backupDirectory != null && main._configDirectory != null)
+                    if (MainClass._gameDirectory != null && MainClass._backupDirectory != null && MainClass._configDirectory != null)
                         main.ProblemChecker();
                     else
                         main.PrintMessage("Checking for problems requires having your game, backup and config directories set through the config file or with -g, -b and -c specified", 2);
                     break;
                 case "version":
                 case "v":
-                    if (main._gameDirectory != null)
+                    if (MainClass._gameDirectory != null)
                         main.CheckGameVersion();
                     else
                         main.PrintMessage("Checking the game version requires having your game directory set either through the config file or with -g specified", 2);

@@ -37,12 +37,12 @@ namespace FFXIV_TexTools_CLI
 {
     public class MainClass
     {
-        public DirectoryInfo _gameDirectory;
-        public DirectoryInfo _indexDirectory;
-        public DirectoryInfo _backupDirectory;
-        public DirectoryInfo _configDirectory;
-        public DirectoryInfo _modpackDirectory;
-        public DirectoryInfo _projectconfDirectory;
+        public static DirectoryInfo _gameDirectory;
+        public static DirectoryInfo _indexDirectory;
+        public static DirectoryInfo _backupDirectory;
+        public static DirectoryInfo _configDirectory;
+        public static DirectoryInfo _modpackDirectory;
+        public static DirectoryInfo _projectconfDirectory;
 
         public class ModpackImportConfigEntry
         {
@@ -80,7 +80,7 @@ namespace FFXIV_TexTools_CLI
 
             public ModActiveStatus(SimpleModPackEntries entry)
             {
-                modpack = entry.JsonEntry.Name;
+                modpack = entry.JsonEntry.ModPackEntry.name;
                 name = entry.Name;
                 map = entry.Map;
                 part = entry.Part;
@@ -1002,24 +1002,34 @@ namespace FFXIV_TexTools_CLI
             }
             if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
                 modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
+            int enabled = 0;
+            int disabled = 0;
             try
             {
+                PrintMessage("Toggling mods...");
                 foreach (ModActiveStatus modState in modActiveStates)
+                {
                     modding.ToggleModStatus(modState.file, modState.enabled);
+                    if (modState.enabled)
+                        enabled++;
+                    else
+                        disabled++;
+                    int atMod = modActiveStates.IndexOf(modState) + 1;
+                    Console.Write($"\r{(int)(0.5f + ((100f * atMod) / modActiveStates.Count))}%...  ");
+                }
             }
             catch (Exception ex)
             {
                 PrintMessage($"Something went wrong during the toggle process\n{ex.Message}", 3);
                 return;
             }
-            PrintMessage("Successfully enabled and disabled all mods!", 1);
+            PrintMessage($"\nSuccessfully enabled {enabled} and disabled {disabled} out of {modActiveStates.Count} mods!", 1);
         }
 
         static void Main(string[] args)
         {
-            MainClass instance = new MainClass();
-            instance._projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
-            Config config = new Config(instance._projectconfDirectory);
+            _projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
+            Config config = new Config(_projectconfDirectory);
             Arguments arguments = new Arguments();
             config.ReadConfig();
             arguments.ArgumentHandler(args);
