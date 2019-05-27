@@ -159,7 +159,7 @@ Available arguments:
                     if (main._gameDirectory != null && main._backupDirectory != null)
                         main.ResetMods();
                     else
-                        main.PrintMessage("Reseting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
+                        main.PrintMessage("Resetting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
                     break;
                 case "problemcheck":
                 case "p":
