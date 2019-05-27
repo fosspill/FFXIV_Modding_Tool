@@ -11,13 +11,10 @@
 ```
 > chmod +x FFXIV_TexTools_CLI-LINUX
 > ./FFXIV_TexTools_CLI-LINUX
-FFXIV_TexTools_CLI 0.1.26946
-GPL Licensed
+Usage: FFXIV_TexTools_CLI.exe [action] {arguments}
 
-ERROR(S):
-  No verb selected.
-  modpackimport    Import a modpack
-  export           Export modpack / texture / model
+Available actions:
+  modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
   ...
 ```
 
