@@ -540,10 +540,10 @@ namespace FFXIV_TexTools_CLI
 
                 if (modPath.Contains("/vfx/"))
                     type = "VFX";
-
             }
             else if (modPath.Contains(".avfx"))
                 type = "AVFX";
+            
             return type;
         }
 
