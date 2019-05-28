@@ -1,4 +1,5 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_TexTools_CLI)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/badge/master)](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/overview/master)
+
 
 # FFXIV_TexTools_CLI
 
@@ -7,9 +8,9 @@
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*
+Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*. *[Our modifications](https://github.com/shinnova/xivModdingFramework/tree/develop)*
 
-# Current Status: ![Not ready for public use](https://placehold.it/15/00ff00/000000?text=+) `BARELY WORKING. NOT READY FOR PUBLIC USE.`
+# Current Status: ![Working](https://placehold.it/15/00ff00/000000?text=+) `READY FOR PUBLIC TESTING.`
 
 # Features!
 List is sorted by priority
@@ -21,7 +22,7 @@ List is sorted by priority
 ## Roadmap
 - [x] [Storable configuration for important directories](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/3)
 - [x] [Backup and restore of important game files](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/4)
-- [ ] [Manage mods (enable/disable)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/27)
+- [x] [Manage mods (enable/disable)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/27)
 - [ ] [Import specific textures / models (including advanced import options)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/5)
 - [ ] [Export specific textures / models](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/6)
 - [x] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
