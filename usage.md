@@ -33,6 +33,7 @@ Available arguments:
 </summary>
   
 #### First time setup
+This is only a recommended first time setup. You are not required to make use of the config file created by this application, as all required directories can be specified through commandline instead.
 1. The first run will create the application's config file
 ```
 > ./FFXIV_TexTools_CLI-LINUX
