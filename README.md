@@ -1,4 +1,5 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_TexTools_CLI)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/badge/master)](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/overview/master)
+
 
 # FFXIV_TexTools_CLI
 
@@ -7,7 +8,7 @@
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*
+Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*. *[Our modifications](https://github.com/shinnova/xivModdingFramework/tree/develop)*
 
 # Current Status: ![Working](https://placehold.it/15/00ff00/000000?text=+) `READY FOR PUBLIC TESTING.`
 
