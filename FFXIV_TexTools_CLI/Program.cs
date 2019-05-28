@@ -128,7 +128,6 @@ namespace FFXIV_TexTools_CLI
             }
             Console.WriteLine(message);
             Console.ForegroundColor = ConsoleColor.White;
-
         }
 
         public void CheckGameVersion()
@@ -458,9 +457,7 @@ namespace FFXIV_TexTools_CLI
                         xivRace = XivRaces.GetXivRace(raceCode);
                     }
                 }
-
             }
-
             return xivRace;
         }
 
@@ -543,11 +540,10 @@ namespace FFXIV_TexTools_CLI
 
                 if (modPath.Contains("/vfx/"))
                     type = "VFX";
-
             }
             else if (modPath.Contains(".avfx"))
                 type = "AVFX";
-
+            
             return type;
         }
 
