@@ -1,6 +1,8 @@
 .vs
 FFXIV_TexTools_CLI/bin
 FFXIV_TexTools_CLI/obj
+.github
+
 
 
 # Created by https://www.gitignore.io/api/csharp,monodevelop,visualstudio
