@@ -40,6 +40,7 @@ This is only a recommended first time setup. You are not required to make use of
 ```
 > ./FFXIV_TexTools_CLI-LINUX backup
 ```
+
 You are now ready to start modding the game.
 
 #### Before patching the game
@@ -52,6 +53,7 @@ You can either:
 ```
 > ./FFXIV_TexTools_CLI-LINUX reset -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
 ```
+
 #### After patching the game
 Backup the new index files first
 ```
