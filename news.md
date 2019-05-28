@@ -1,3 +1,3 @@
 - 28.05.2019 - v0.3 Milestone reached! Binaries are now ready for testing 🥳🎆🎆
-- ~27.05.2019 - Currently working on releasing binaries ready for testing on Windows, Mac and Linux.~
-- ~11.05.2019 - v0.1 We are happy to announce that we now have a (mostly, barely) working version out!~
+- ~~27.05.2019 - Currently working on releasing binaries ready for testing on Windows, Mac and Linux.~~
+- ~~11.05.2019 - v0.1 We are happy to announce that we now have a (mostly, barely) working version out!~~
