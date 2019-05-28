@@ -15,7 +15,6 @@ namespace FFXIV_TexTools_CLI.Commandline
             string helpText = $"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}\n\n";
             helpText = helpText + @"Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
-  mods list, ml            List all currently installed mods
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
@@ -33,6 +32,11 @@ Available arguments:
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)";
             string ttmpPath = "";
             bool customImport = false;
+            if (args.Length == 0)
+            {
+                main.PrintMessage(helpText);
+                return;
+            }
             foreach (string cmdArg in args)
             {
                 string nextArg = "";
