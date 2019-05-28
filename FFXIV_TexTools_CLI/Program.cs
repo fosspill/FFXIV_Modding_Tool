@@ -190,7 +190,6 @@ namespace FFXIV_TexTools_CLI
                 {
                     importError = true;
                 }
-
             }
             catch (Exception ex)
             {
@@ -908,7 +907,6 @@ namespace FFXIV_TexTools_CLI
                         PrintMessage($"{ex.Message}", 2);
                     }
 
-
                     if (fileType != 2 && fileType != 3 && fileType != 4)
                         PrintMessage($"Found unknown file type ({fileType}), offset is most likely corrupt", 3);
                     else
@@ -948,7 +946,6 @@ namespace FFXIV_TexTools_CLI
                 if (File.Exists(ffxivCfg))
                 {
                     var lines = File.ReadAllLines(ffxivCfg);
-
                     var lineNum = 0;
                     var tmpLine = 0;
                     foreach (var line in lines)
@@ -966,7 +963,6 @@ namespace FFXIV_TexTools_CLI
                                     break;
                                 }
                                 PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} OFF", 1);
-
                             }
                             else if (!DX11 && !line.Contains("DX11"))
                             {
@@ -979,9 +975,7 @@ namespace FFXIV_TexTools_CLI
                                 }
                                 PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} OFF", 1);
                             }
-
                         }
-
                         lineNum++;
                     }
 
