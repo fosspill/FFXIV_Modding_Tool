@@ -30,7 +30,7 @@ Available arguments:
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (mods import only)
-  -C, --custom             Use a modpack's config file to selectively import mods from the pack (mods import only)";
+  -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)";
             string ttmpPath = "";
             bool customImport = false;
             foreach (string cmdArg in args)

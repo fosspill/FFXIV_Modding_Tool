@@ -654,8 +654,20 @@ namespace FFXIV_TexTools_CLI
                 var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modFile));
                 if (modData.modCount > 0)
                 {
-                    PrintMessage("Can't make backups while the game is still modded.\nPlease clean your index files using reset first.", 2);
-                    return;
+                    bool allDisabled = true;
+                    foreach (Mod mod in modData.Mods)
+                    {
+                        if (mod.enabled)
+                        {
+                            allDisabled = false;
+                            break;
+                        }
+                    }
+                    if (!allDisabled)
+                    {
+                        PrintMessage("Can't make backups while the game is still modded.\nPlease disable all mods or reset your index files first", 2);
+                        return;
+                    }
                 }
             }
             PrintMessage("Backing up index files...");
