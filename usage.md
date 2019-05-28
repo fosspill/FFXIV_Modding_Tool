@@ -43,7 +43,7 @@ This is only a recommended first time setup. You are not required to make use of
 
 You are now ready to start modding the game.
 
-#### Before patching the game
+#### Before patching the game (Game Updates are announced on the lodestone)
 You can either:
 1. Disable all mods
 ```
@@ -80,3 +80,15 @@ Selectively importing mods from a modpack
 > nano ~/.config/FFXIV_TexTools_CLI/ModPacks/modpack.cfg
 > ./FFXIV_TexTools_CLI-LINUX mpi -t /path/to/modpack.ttmp2 --custom
 ```
+
+#### Enabling or disabling specific mods (Mod management)
+Edit the modlist.cfg file within your operatingsystem's configuration directory. 
+Set Enabled to True or False depending on what you want.
+ Then run:
+ ```
+ > ./FFXIV_TexTools_CLI-LINUX mr
+ ```
+ or
+ ```
+ > ./FFXIV_TexTools_CLI-LINUX mods refresh
+ ```
