@@ -37,7 +37,7 @@ http://fosspill.github.io/FFXIV_TexTools_CLI
 License
 ----
 
-GNU
+GNU General Public License v3.0
 
 
 **Free Software, Hell Yeah!**
