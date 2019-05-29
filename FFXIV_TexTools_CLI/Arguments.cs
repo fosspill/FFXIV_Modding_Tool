@@ -1,17 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
+using xivModdingFramework.Helpers;
 
 namespace FFXIV_TexTools_CLI.Commandline
 {
     public class Arguments
     {
         public Arguments(){}
+        MainClass main = new MainClass();
 
         public void ArgumentHandler(string[] args)
         {
-            MainClass main = new MainClass();
             string helpText = $"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}\n\n";
             helpText = helpText + @"Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
@@ -21,7 +23,7 @@ namespace FFXIV_TexTools_CLI.Commandline
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, p          Check if there are any problems with the game, mod or backup files
-  version, v               Display current game version
+  version, v               Display current application and game version
   help, h                  Display this text
 
 Available arguments:
@@ -81,6 +83,8 @@ Available arguments:
                     }
                 }
             }
+            if (!BackupStatus())
+                return;
             string secondAction = "";
             if (args.Count() > 1)
                 secondAction = args[1];
@@ -173,10 +177,7 @@ Available arguments:
                     break;
                 case "version":
                 case "v":
-                    if (MainClass._gameDirectory != null)
-                        main.CheckGameVersion();
-                    else
-                        main.PrintMessage("Checking the game version requires having your game directory set either through the config file or with -g specified", 2);
+                    main.CheckVersions();
                     break;
                 case "help":
                 case "h":
@@ -187,6 +188,54 @@ Available arguments:
                     main.PrintMessage(helpText);
                     break;
             }
+        }
+
+        bool BackupStatus()
+        {
+            bool keepGoing = false;
+            if (MainClass._backupDirectory == null)
+                main.PrintMessage("No backup directory specified, can't check the status of backups", 2);
+            else if (MainClass._gameDirectory == null)
+                main.PrintMessage("No game directory specified, can't check if backups are up to date", 2);
+            else
+            {
+                keepGoing = true;
+                var filesToCheck = new XivDataFile[] { XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
+                foreach (var file in filesToCheck)
+                {
+                    if (!File.Exists(Path.Combine(MainClass._backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index")))
+                    {
+                        main.PrintMessage($"One or more index files could not be found in {MainClass._backupDirectory.FullName}. Creating new ones or downloading them from the TexTools discord is recommended", 2);
+                        keepGoing = false;
+                        break;
+                    }
+                    ProblemChecker problemChecker = new ProblemChecker(MainClass._indexDirectory);
+                    if (!problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory))
+                    {
+                        keepGoing = false;
+                        main.PrintMessage($"One or more index files are out of date in {MainClass._backupDirectory.FullName}. Recreating or downloading them from the TexTools discord is recommended", 2);
+                        break;
+                    }
+                }
+            }
+            if (!keepGoing)
+            {
+                main.PrintMessage("Continue anyway? y/N");
+                string answer = Console.ReadKey().KeyChar.ToString();
+                if (answer == "y")
+                {
+                    Console.Write("\n");
+                    keepGoing = true;
+                }
+                else
+                {
+                    string prefix = "";
+                    if (answer != "\n")
+                        prefix = "\n";
+                    main.PrintMessage($"{prefix}Quitting...");
+                }
+            }
+            return keepGoing;
         }
     }
 }
