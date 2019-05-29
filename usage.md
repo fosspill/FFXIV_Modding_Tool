@@ -55,6 +55,7 @@ You are now ready to start modding the game.
 <summary>
   <b>Before updating/patching the game (Game Updates are announced on the lodestone)</b>
 </summary>
+  
 #### Before game patch
 You can either:
 1. Disable all mods
