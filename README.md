@@ -4,7 +4,7 @@
 # FFXIV_TexTools_CLI
 
 
-**FFXIV_TexTools_CLI** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI*
+**FFXIV_TexTools_CLI** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI* for Mac, Windows and Linux!
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
