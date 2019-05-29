@@ -1,11 +1,4 @@
-<p align="center">
-
-<a href="https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity"><img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg"></a> 
-  <a href="#"><img src="https://img.shields.io/badge/Functional%3F-yes-success.svg"></a> 
-  <a href="https://dependabot.com"><img src="https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_TexTools_CLI"></a>
-    <a href="https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/overview/master"><img src="https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/badge/master"></a>
-      
-</p>
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_TexTools_CLI)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/badge/master)](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/overview/master)
 
 ----
 
