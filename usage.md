@@ -29,7 +29,7 @@ Available arguments:
 
 <details>
 <summary>
-  <b>First time setup</b>
+  <b>First time setup 👈</b>
 </summary>
   
 This is only a recommended first time setup. You are not required to make use of the config file created by this application, as all required directories can be specified through commandline instead.
@@ -51,12 +51,14 @@ You are now ready to start modding the game.
 
 </details>
 
+
+
 <details>
 <summary>
-  <b>Before updating/patching the game (Game Updates are announced on the lodestone)</b>
+  <b>Before updating/patching the game (Game Updates are announced on the lodestone) 👈</b>
 </summary>
   
-#### Before game patch
+##### Before game patch
 You can either:
 1. Disable all mods
 ```
@@ -67,7 +69,7 @@ You can either:
 > ./FFXIV_TexTools_CLI-LINUX reset -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
 ```
 
-#### After game patch
+##### After game patch
 Backup the new index files first
 ```
 > ./FFXIV_TexTools_CLI-LINUX backup -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
@@ -84,10 +86,13 @@ Depending on the chosen step before patching, you now either:
 </details>
 
 
+
+
 <details>
 <summary>
-  <b>Importing a modpack</b>
+  <b>Importing a modpack 👈</b>
 </summary>
+
 
 Importing a full modpack
 ```
@@ -103,10 +108,14 @@ Selectively importing mods from a modpack
 </details>
 
 
+
+
+
 <details>
 <summary>
-  <b>Enabling or disabling specific mods (Mod management)</b>
+  <b>Enabling or disabling specific mods (Mod management) 👈</b>
 </summary>
+
 
 Edit the modlist.cfg file within your operatingsystem's configuration directory. 
 Set Enabled to True or False depending on what you want.
