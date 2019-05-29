@@ -195,7 +195,7 @@ Available arguments:
             main.PrintMessage("Checking backups before proceeding...");
             bool keepGoing = false;
             if (MainClass._backupDirectory == null)
-                main.PrintMessage($"No backup directory specified, can't check the status of backups. You are strongly recommended to add a backup directory in {Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg")}", 2);
+                main.PrintMessage($"No backup directory specified, can't check the status of backups.\nYou are strongly recommended to add a backup directory in {Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg")} and running the 'backup' command before proceeding", 2);
             else if (MainClass._gameDirectory == null)
                 main.PrintMessage("No game directory specified, can't check if backups are up to date", 2);
             else
