@@ -32,8 +32,8 @@ Available arguments:
   <b>First time setup</b>
 </summary>
   
-#### First time setup
 This is only a recommended first time setup. You are not required to make use of the config file created by this application, as all required directories can be specified through commandline instead.
+
 1. The first run will create the application's config file
 ```
 > ./FFXIV_TexTools_CLI-LINUX
@@ -55,8 +55,7 @@ You are now ready to start modding the game.
 <summary>
   <b>Before updating/patching the game (Game Updates are announced on the lodestone)</b>
 </summary>
-  
-#### Before updating/patching the game
+#### Before game patch
 You can either:
 1. Disable all mods
 ```
@@ -67,7 +66,7 @@ You can either:
 > ./FFXIV_TexTools_CLI-LINUX reset -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
 ```
 
-#### After patching the game
+#### After game patch
 Backup the new index files first
 ```
 > ./FFXIV_TexTools_CLI-LINUX backup -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
@@ -89,7 +88,6 @@ Depending on the chosen step before patching, you now either:
   <b>Importing a modpack</b>
 </summary>
 
-#### Importing a modpack
 Importing a full modpack
 ```
 > ./FFXIV_TexTools_CLI-LINUX mpi -t /path/to/modpack.ttmp2
@@ -109,7 +107,6 @@ Selectively importing mods from a modpack
   <b>Enabling or disabling specific mods (Mod management)</b>
 </summary>
 
-#### Enabling or disabling specific mods (Mod management)
 Edit the modlist.cfg file within your operatingsystem's configuration directory. 
 Set Enabled to True or False depending on what you want.
  Then run:
