@@ -172,7 +172,7 @@ namespace FFXIV_TexTools_CLI
             PrintMessage("Starting import...");
             try
             {
-                var ttmp = new TTMP(ttmpPath, "TexTools");
+                var ttmp = new TTMP(ttmpPath, "TexToolsCLI");
 
                 try
                 {
@@ -211,7 +211,7 @@ namespace FFXIV_TexTools_CLI
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
+            TTMP _textoolsModpack = new TTMP(ttmpPath, "TexToolsCLI");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {

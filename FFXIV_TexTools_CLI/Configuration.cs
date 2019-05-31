@@ -42,7 +42,6 @@ ConfigDirectory",
             string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
             string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
             string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
-            string modpackDirectory = configFileFromPath.GetValue("Directories", "ModpackDirectory");
             if (!string.IsNullOrEmpty(gameDirectory))
             {
                 MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
