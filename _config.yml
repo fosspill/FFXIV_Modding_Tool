@@ -2,7 +2,7 @@ theme: jekyll-theme-leap-day
 markdown: CommonMarkGhPages
 show_downloads: true
 github:
-  current_version: v0.3
+  current_version: v0.3.5
   linux_url: FFXIV_TexTools_CLI-Linux-Bundled
   mac_url: FFXIV_TexTools_CLI-Mac-Bundled
   uni_url: FFXIV_TexTools_CLI-Universal.zip
