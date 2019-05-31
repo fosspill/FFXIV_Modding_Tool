@@ -21,17 +21,17 @@ namespace FFXIV_TexTools_CLI.Configuration
             string configFile = Path.Combine(_projectconfDirectory.FullName, "config.cfg");
             var configFileFromPath = new ConfigParser(configFile);
             var configFileFromString = new ConfigParser(@"[Directories]
-# Full path to game install, including 'Final Fantasy XIV - A Realm Reborn'
+# All paths can be written with or without escaping
+
+# Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
 GameDirectory
 
-# Full path to directory with your index backups
+# Full path to directory with your index backups, this can be any directory where you wish to store your backups
 BackupDirectory
 
 # Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
-ConfigDirectory
-
-# Full path to directory where your modpacks are located
-ModpackDirectory",
+# This is usually located in 'My Documents/My Games', in your wine prefix if not on Windows
+ConfigDirectory",
                 new ConfigParserSettings
                 {
                     MultiLineValues = MultiLineValues.Simple | MultiLineValues.AllowValuelessKeys | MultiLineValues.QuoteDelimitedValues,
@@ -42,7 +42,6 @@ ModpackDirectory",
             string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
             string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
             string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
-            string modpackDirectory = configFileFromPath.GetValue("Directories", "ModpackDirectory");
             if (!string.IsNullOrEmpty(gameDirectory))
             {
                 MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
@@ -58,10 +57,6 @@ ModpackDirectory",
                 MainClass._configDirectory = new DirectoryInfo(configDirectory);
             else
                 main.PrintMessage("No game config directory saved", 3);
-            if (!string.IsNullOrEmpty(modpackDirectory))
-                MainClass._modpackDirectory = new DirectoryInfo(modpackDirectory);
-            else
-                main.PrintMessage("No modpack directory saved", 3);
         }
     }
 }

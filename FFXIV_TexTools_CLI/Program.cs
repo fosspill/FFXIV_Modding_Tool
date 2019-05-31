@@ -130,21 +130,20 @@ namespace FFXIV_TexTools_CLI
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        public void CheckGameVersion()
+        public void CheckVersions()
         {
-            Version ffxivVersion = null;
-            var versionFile = Path.Combine(_gameDirectory.FullName, "ffxivgame.ver");
-            if (File.Exists(versionFile))
+            string ffxivVersion = "Not detected";
+            if (_gameDirectory != null)
             {
-                var versionData = File.ReadAllLines(versionFile);
-                ffxivVersion = new Version(versionData[0].Substring(0, versionData[0].LastIndexOf(".")));
+                var versionFile = Path.Combine(_gameDirectory.FullName, "ffxivgame.ver");
+                if (File.Exists(versionFile))
+                {
+                    var versionData = File.ReadAllLines(versionFile);
+                    ffxivVersion = new Version(versionData[0].Substring(0, versionData[0].LastIndexOf("."))).ToString();
+                }
             }
-            else
-            {
-                PrintMessage("Incorrect directory", 2);
-                return;
-            }
-            PrintMessage(ffxivVersion.ToString());
+            Version version = Assembly.GetEntryAssembly().GetName().Version;
+            PrintMessage($"{Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title} {version}\nGame version {ffxivVersion}");
         }
 
         public bool IndexLocked()
@@ -173,7 +172,7 @@ namespace FFXIV_TexTools_CLI
             PrintMessage("Starting import...");
             try
             {
-                var ttmp = new TTMP(ttmpPath, "TexTools");
+                var ttmp = new TTMP(ttmpPath, "TexToolsCLI");
 
                 try
                 {
@@ -212,7 +211,7 @@ namespace FFXIV_TexTools_CLI
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            TTMP _textoolsModpack = new TTMP(ttmpPath, "TexTools");
+            TTMP _textoolsModpack = new TTMP(ttmpPath, "TexToolsCLI");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {

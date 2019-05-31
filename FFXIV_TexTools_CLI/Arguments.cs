@@ -1,17 +1,21 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
+using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
+using xivModdingFramework.Mods.DataContainers;
+using xivModdingFramework.Helpers;
 
 namespace FFXIV_TexTools_CLI.Commandline
 {
     public class Arguments
     {
         public Arguments(){}
+        MainClass main = new MainClass();
 
         public void ArgumentHandler(string[] args)
         {
-            MainClass main = new MainClass();
             string helpText = $"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}\n\n";
             helpText = helpText + @"Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
@@ -21,7 +25,7 @@ namespace FFXIV_TexTools_CLI.Commandline
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, p          Check if there are any problems with the game, mod or backup files
-  version, v               Display current game version
+  version, v               Display current application and game version
   help, h                  Display this text
 
 Available arguments:
@@ -81,6 +85,10 @@ Available arguments:
                     }
                 }
             }
+            if (BackupsMissingOrOutdated())
+                return;
+            if (PreviouslyModifiedGame())
+                return;
             string secondAction = "";
             if (args.Count() > 1)
                 secondAction = args[1];
@@ -173,10 +181,7 @@ Available arguments:
                     break;
                 case "version":
                 case "v":
-                    if (MainClass._gameDirectory != null)
-                        main.CheckGameVersion();
-                    else
-                        main.PrintMessage("Checking the game version requires having your game directory set either through the config file or with -g specified", 2);
+                    main.CheckVersions();
                     break;
                 case "help":
                 case "h":
@@ -187,6 +192,109 @@ Available arguments:
                     main.PrintMessage(helpText);
                     break;
             }
+        }
+
+        bool BackupsMissingOrOutdated()
+        {
+            main.PrintMessage("Checking backups before proceeding...");
+            bool keepGoing = true;
+            bool problemFound = false;
+            if (MainClass._backupDirectory == null)
+            {
+                main.PrintMessage($"No backup directory specified, can't check the status of backups.\nYou are strongly recommended to add a backup directory in {Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg")} and running the 'backup' command before proceeding", 2);
+                problemFound = true;
+            }
+            else if (MainClass._gameDirectory == null)
+            {
+                main.PrintMessage("No game directory specified, can't check if backups are up to date", 2);
+                problemFound = true;
+            }
+            else
+            {
+                var filesToCheck = new XivDataFile[] { XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
+                ProblemChecker problemChecker = new ProblemChecker(MainClass._indexDirectory);
+                foreach (var file in filesToCheck)
+                {
+                    if (!File.Exists(Path.Combine(MainClass._backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index")))
+                    {
+                        main.PrintMessage($"One or more index files could not be found in {MainClass._backupDirectory.FullName}. Creating new ones or downloading them from the TexTools discord is recommended", 2);
+                        problemFound = true;
+                        break;
+                    }
+                    if (!problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory))
+                    {
+                        main.PrintMessage($"One or more index files are out of date in {MainClass._backupDirectory.FullName}. Recreating or downloading them from the TexTools discord is recommended", 2);
+                        problemFound = true;
+                        break;
+                    }
+                }
+            }
+            if (problemFound)
+                keepGoing = PromptContinuation();
+            else
+                main.PrintMessage("All backups present and up to date", 1);
+            return !keepGoing;
+        }
+
+        bool PreviouslyModifiedGame()
+        {
+            bool keepGoing = true;
+            if (MainClass._gameDirectory != null)
+            {
+                string modlistPath = Path.Combine(MainClass._gameDirectory.FullName, "XivMods.json");
+                if (!File.Exists(modlistPath))
+                {
+                    ProblemChecker problemChecker = new ProblemChecker(MainClass._indexDirectory);
+                    var filesToCheck = new XivDataFile[] { XivDataFile._0A_Exd, XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
+                    bool modifiedIndex = false;
+                    foreach (var file in filesToCheck)
+                    {
+                        if (problemChecker.CheckIndexDatCounts(file))
+                        {
+                            modifiedIndex = true;
+                            break;
+                        }
+                    }
+                    if (modifiedIndex)
+                    {
+                        main.PrintMessage("HERE BE DRAGONS\nPreviously modified game files found\nUse the originally used tool to start over, or reinstall the game before using this tool", 2);
+                        keepGoing = PromptContinuation();
+                    }
+                }
+                else
+                {
+                    var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath));
+                    bool unsupportedSource = false;
+                    foreach (Mod mod in modData.Mods)
+                    {
+                        if (mod.source != "TexToolsCLI")
+                        {
+                            unsupportedSource = true;
+                            break;
+                        }
+                    }
+                    if (unsupportedSource)
+                    {
+                        main.PrintMessage("Found a mod applied by an unknown application, game stability cannot be guaranteed", 3);
+                        keepGoing = PromptContinuation();
+                    }
+                }
+            }
+            return !keepGoing;
+        }
+
+        bool PromptContinuation()
+        {
+            main.PrintMessage("Continue anyway? y/N");
+            string answer = Console.ReadKey().KeyChar.ToString();
+            if (answer == "y")
+            {
+                Console.Write("\n");
+                return true;
+            }
+            if (answer != "\n")
+                Console.Write("\n");
+            return false;
         }
     }
 }
