@@ -85,10 +85,7 @@ Available arguments:
                     }
                 }
             }
-            if (BackupsMissingOrOutdated())
-                return;
-            if (PreviouslyModifiedGame())
-                return;
+
             string secondAction = "";
             if (args.Count() > 1)
                 secondAction = args[1];
@@ -100,6 +97,10 @@ Available arguments:
                         main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
                         return;
                     }
+                    if (BackupsMissingOrOutdated())
+                        return;
+                    if (PreviouslyModifiedGame())
+                        return;
                     if (MainClass._gameDirectory != null)
                         main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport);
                     else
@@ -160,6 +161,8 @@ Available arguments:
                     break;
                 case "backup":
                 case "b":
+                    if (PreviouslyModifiedGame())
+                        return;
                     if (MainClass._gameDirectory != null && MainClass._backupDirectory != null)
                         main.BackupIndexes();
                     else
