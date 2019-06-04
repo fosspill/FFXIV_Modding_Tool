@@ -34,7 +34,7 @@ Available arguments:
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (mods import only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
-  -np, --noproblemcheck    Skip the problem check after importing a modpack";
+  -npc, --noproblemcheck   Skip the problem check after importing a modpack";
             string ttmpPath = "";
             bool customImport = false;
             bool skipProblemCheck = false;
