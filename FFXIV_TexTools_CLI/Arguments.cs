@@ -81,7 +81,7 @@ Available arguments:
                         case "custom":
                             customImport = true;
                             continue;
-                        case "np":
+                        case "npc":
                         case "noproblemcheck":
                             skipProblemCheck = true;
                             continue;
