@@ -1,10 +1,10 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_TexTools_CLI/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_TexTools_CLI)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/badge/master)](https://www.codefactor.io/repository/github/fosspill/ffxiv_textools_cli/overview/master)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity) [![Functinal?](https://img.shields.io/badge/Functional%3F-yes-success.svg)](#) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_TexTools_CLI)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/master)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/master)
 
 
-# FFXIV_TexTools_CLI
+# FMT
 
 
-**FFXIV_TexTools_CLI** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI* for Mac, Windows and Linux!
+**FMT** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI* for Mac, Windows and Linux!
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
@@ -30,7 +30,7 @@ List is sorted by priority
 
 ## How to Install, Build and Use:
 
-http://fosspill.github.io/FFXIV_TexTools_CLI
+http://fosspill.github.io/FFXIV_Modding_Tool
 
 
 
