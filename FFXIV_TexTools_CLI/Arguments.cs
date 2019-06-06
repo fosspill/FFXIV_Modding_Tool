@@ -24,7 +24,7 @@ namespace FFXIV_TexTools_CLI.Commandline
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
-  problemcheck, p          Check if there are any problems with the game, mod or backup files
+  problemcheck, pc         Check if there are any problems with the game, mod or backup files
   version, v               Display current application and game version
   help, h                  Display this text
 
@@ -33,9 +33,11 @@ Available arguments:
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (mods import only)
-  -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)";
+  -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
+  -npc, --noproblemcheck   Skip the problem check after importing a modpack";
             string ttmpPath = "";
             bool customImport = false;
+            bool skipProblemCheck = false;
             if (args.Length == 0)
             {
                 main.PrintMessage(helpText);
@@ -79,6 +81,10 @@ Available arguments:
                         case "custom":
                             customImport = true;
                             continue;
+                        case "npc":
+                        case "noproblemcheck":
+                            skipProblemCheck = true;
+                            continue;
                         default:
                             main.PrintMessage($"Unknown argument {arg}", 3);
                             continue;
@@ -102,7 +108,7 @@ Available arguments:
                     if (PreviouslyModifiedGame())
                         return;
                     if (MainClass._gameDirectory != null)
-                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport);
+                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport, skipProblemCheck);
                     else
                         main.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
                     break;
@@ -176,7 +182,9 @@ Available arguments:
                         main.PrintMessage("Resetting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
                     break;
                 case "problemcheck":
-                case "p":
+                case "pc":
+                    if (PreviouslyModifiedGame())
+                        return;
                     if (MainClass._gameDirectory != null && MainClass._backupDirectory != null && MainClass._configDirectory != null)
                         main.ProblemChecker();
                     else

@@ -154,7 +154,7 @@ namespace FFXIV_TexTools_CLI
         }
 
         #region Importing Functions
-        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool customImport)
+        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool customImport, bool skipProblemCheck)
         {
             var importError = false;
             try
@@ -202,7 +202,8 @@ namespace FFXIV_TexTools_CLI
                     return;
                 }
             }
-
+            if (!skipProblemCheck)
+                ProblemChecker();
             return;
         }
 
@@ -909,11 +910,16 @@ namespace FFXIV_TexTools_CLI
                 }
             }
             else
-                PrintMessage("No entries found in the modlist", 3);
+                PrintMessage("No entries found in the modlist, skipping", 3);
         }
 
         void CheckLoD()
         {
+            if (_configDirectory == null)
+            {
+                PrintMessage("No config directory specified, skipping", 3);
+                return;
+            }
             var problem = false;
             var DX11 = false;
             string ffxivCfg = Path.Combine(_configDirectory.FullName, "FFXIV.cfg");
