@@ -28,12 +28,12 @@ using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
-using FFXIV_TexTools_CLI.Configuration;
-using FFXIV_TexTools_CLI.Commandline;
+using FFXIV_Modding_Tool.Configuration;
+using FFXIV_Modding_Tool.Commandline;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
-namespace FFXIV_TexTools_CLI
+namespace FFXIV_Modding_Tool
 {
     public class MainClass
     {
@@ -172,7 +172,7 @@ namespace FFXIV_TexTools_CLI
             PrintMessage("Starting import...");
             try
             {
-                var ttmp = new TTMP(ttmpPath, "TexToolsCLI");
+                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
 
                 try
                 {
@@ -212,7 +212,7 @@ namespace FFXIV_TexTools_CLI
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            TTMP _textoolsModpack = new TTMP(ttmpPath, "TexToolsCLI");
+            TTMP _textoolsModpack = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {
