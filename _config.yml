@@ -1,8 +1,10 @@
 theme: jekyll-theme-leap-day
 markdown: CommonMarkGhPages
 show_downloads: true
+plugins:
+  - jekyll-seo-tag
 github:
   current_version: v0.3.5
-  linux_url: FFXIV_TexTools_CLI-Linux-Bundled
-  mac_url: FFXIV_TexTools_CLI-Mac-Bundled
-  uni_url: FFXIV_TexTools_CLI-Universal.zip
+  linux_url: FFXIV_Modding_Tool-Linux-Bundled
+  mac_url: FFXIV_Modding_Tool-Mac-Bundled
+  uni_url: FFXIV_Modding_Tool-Universal.zip
