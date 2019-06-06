@@ -2,7 +2,7 @@
 
 ----
 
-Welcome to the Github Page for the FFXIV_TexTools_CLI project.
+Welcome to the Github Page for the FFXIV_Modding_Tool project.
 
 {% include_relative news.md %}
 
