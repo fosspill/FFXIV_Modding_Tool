@@ -278,7 +278,7 @@ Available arguments:
                     bool unsupportedSource = false;
                     foreach (Mod mod in modData.Mods)
                     {
-                        if (mod.source != "FFMT")
+                        if (mod.source != "FFXIV_Modding_Tool")
                         {
                             unsupportedSource = true;
                             break;

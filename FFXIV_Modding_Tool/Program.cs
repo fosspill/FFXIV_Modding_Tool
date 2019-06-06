@@ -172,7 +172,7 @@ namespace FFXIV_Modding_Tool
             PrintMessage("Starting import...");
             try
             {
-                var ttmp = new TTMP(ttmpPath, "");
+                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
 
                 try
                 {
@@ -212,7 +212,7 @@ namespace FFXIV_Modding_Tool
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            TTMP _textoolsModpack = new TTMP(ttmpPath, "FFMT");
+            TTMP _textoolsModpack = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {
