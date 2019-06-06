@@ -2,8 +2,8 @@
 
 ```
 
-> ./FFXIV_TexTools_CLI-LINUX
-Usage: FFXIV_TexTools_CLI.exe [action] {arguments}
+> ./FFMT-LINUX
+Usage: FFMT.exe [action] {arguments}
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
@@ -36,15 +36,15 @@ This is only a recommended first time setup. You are not required to make use of
 
 1. The first run will create the application's config file
 ```
-> ./FFXIV_TexTools_CLI-LINUX
+> ./FFMT-LINUX
 ```
 2. Edit the config file with your editor of choice
 ```
-> nano ~/.config/FFXIV_TexTools_CLI/config.cfg
+> nano ~/.config/FFMT/config.cfg
 ```
 3. Create a backup of your clean index files
 ```
-> ./FFXIV_TexTools_CLI-LINUX backup
+> ./FFMT-LINUX backup
 ```
 
 You are now ready to start modding the game.
@@ -62,26 +62,26 @@ You are now ready to start modding the game.
 You can either:
 1. Disable all mods
 ```
-> ./FFXIV_TexTools_CLI-LINUX mods disable -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn
+> ./FFMT-LINUX mods disable -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn
 ```
 2. Reset the game's files entirely 
 ```
-> ./FFXIV_TexTools_CLI-LINUX reset -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
+> ./FFMT-LINUX reset -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
 ```
 
 ##### After game patch
 Backup the new index files first
 ```
-> ./FFXIV_TexTools_CLI-LINUX backup -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
+> ./FFMT-LINUX backup -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -b /path/to/index/backups
 ```
 Depending on the chosen step before patching, you now either:
 1. Re-enable all mods
 ```
-> ./FFXIV_TexTools_CLI-LINUX mods enable -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn
+> ./FFMT-LINUX mods enable -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn
 ```
 2. Import your modpacks from scratch
 ```
-> ./FFXIV_TexTools_CLI-LINUX modpack import -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -t /path/to/modpack.ttmp2
+> ./FFMT-LINUX modpack import -g /path/to/FINAL\ FANTASY\ XIV\ - A\ Realm\ Reborn -t /path/to/modpack.ttmp2
 ```
 </details>
 
@@ -96,13 +96,13 @@ Depending on the chosen step before patching, you now either:
 
 Importing a full modpack
 ```
-> ./FFXIV_TexTools_CLI-LINUX mpi -t /path/to/modpack.ttmp2
+> ./FFMT-LINUX mpi -t /path/to/modpack.ttmp2
 ```
 Selectively importing mods from a modpack
 ```
-> ./FFXIV_TexTools_CLI-LINUX mpi -t /path/to/modpack.ttmp2 --custom
-> nano ~/.config/FFXIV_TexTools_CLI/ModPacks/modpack.cfg
-> ./FFXIV_TexTools_CLI-LINUX mpi -t /path/to/modpack.ttmp2 --custom
+> ./FFMT-LINUX mpi -t /path/to/modpack.ttmp2 --custom
+> nano ~/.config/FFMT/ModPacks/modpack.cfg
+> ./FFMT-LINUX mpi -t /path/to/modpack.ttmp2 --custom
 ```
 
 </details>
@@ -121,11 +121,11 @@ Edit the modlist.cfg file within your operatingsystem's configuration directory.
 Set Enabled to True or False depending on what you want.
  Then run:
  ```
- > ./FFXIV_TexTools_CLI-LINUX mr
+ > ./FFMT-LINUX mr
  ```
  or
  ```
- > ./FFXIV_TexTools_CLI-LINUX mods refresh
+ > ./FFMT-LINUX mods refresh
  ```
  
  </details>

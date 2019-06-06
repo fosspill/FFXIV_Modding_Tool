@@ -9,9 +9,9 @@
 2. Make the file executable and run it through commandline to confirm that it works
 
 ```
-> chmod +x FFXIV_TexTools_CLI-LINUX
-> ./FFXIV_TexTools_CLI-LINUX
-Usage: FFXIV_TexTools_CLI.exe [action] {arguments}
+> chmod +x FFMT-LINUX
+> ./FFMT-LINUX
+Usage: FFMT.exe [action] {arguments}
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
@@ -28,11 +28,11 @@ Available actions:
 
 #### Mac/Linux:
 
-Run `mono FFXIV_TexTools_CLI.exe` through commandline.
+Run `mono FFMT.exe` through commandline.
 
 #### Windows:
 
-Run `FFXIV_TexTools_CLI.exe` through commandline.
+Run `FFMT.exe` through commandline.
 
 
 
