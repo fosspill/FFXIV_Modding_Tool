@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXIV_TexTools_CLI", "FFXIV_TexTools_CLI\FFXIV_TexTools_CLI.csproj", "{513E502F-A861-448E-9A78-FBA09C5B8E5C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FFXIV_Modding_Tool", "FFXIV_Modding_Tool\FFXIV_Modding_Tool.csproj", "{513E502F-A861-448E-9A78-FBA09C5B8E5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,5 +13,17 @@ Global
 		{513E502F-A861-448E-9A78-FBA09C5B8E5C}.Debug|x86.Build.0 = Debug|x86
 		{513E502F-A861-448E-9A78-FBA09C5B8E5C}.Release|x86.ActiveCfg = Release|x86
 		{513E502F-A861-448E-9A78-FBA09C5B8E5C}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = PrefixedHierarchical
+		$0.TextStylePolicy = $2
+		$2.inheritsSet = null
+		$2.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $3
+		$3.scope = text/x-csharp
+		$0.StandardHeader = $4
+		$0.VersionControlPolicy = $5
 	EndGlobalSection
 EndGlobal

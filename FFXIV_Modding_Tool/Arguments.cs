@@ -7,7 +7,7 @@ using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
 using xivModdingFramework.Helpers;
 
-namespace FFXIV_TexTools_CLI.Commandline
+namespace FFXIV_Modding_Tool.Commandline
 {
     public class Arguments
     {
@@ -278,7 +278,7 @@ Available arguments:
                     bool unsupportedSource = false;
                     foreach (Mod mod in modData.Mods)
                     {
-                        if (mod.source != "TexToolsCLI")
+                        if (mod.source != "FFMT")
                         {
                             unsupportedSource = true;
                             break;

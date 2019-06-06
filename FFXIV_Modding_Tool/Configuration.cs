@@ -2,7 +2,7 @@
 using System.IO;
 using Salaros.Configuration;
 
-namespace FFXIV_TexTools_CLI.Configuration
+namespace FFXIV_Modding_Tool.Configuration
 {
     public class Config
     {
