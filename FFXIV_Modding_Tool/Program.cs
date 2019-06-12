@@ -768,130 +768,149 @@ namespace FFXIV_Modding_Tool
         public void ProblemChecker()
         {
             var problemChecker = new ProblemChecker(_indexDirectory);
-            PrintMessage("Initializing problem check...");
+            List<string> problemsResolved = new List<string>();
+            List<string> problemsUnresolved = new List<string>();
+            PrintMessage("Initializing problem check");
             PrintMessage("Checking index dat values...");
             List<XivDataFile> _indexDatRepairList = CheckIndexDatCounts(problemChecker);
             if (_indexDatRepairList.Count > 0)
             {
-                PrintMessage("Problems found, attempting to repair...", 3);
                 if (!IndexLocked())
                 {
                     foreach (var xivDataFile in _indexDatRepairList)
                         problemChecker.RepairIndexDatCounts(xivDataFile);
-                    PrintMessage("Repairs complete!", 1);
-                    CheckIndexDatCounts(problemChecker);
+                    List<XivDataFile> unfixedIndexes = CheckIndexDatCounts(problemChecker);
+                    if (unfixedIndexes.Count > 0)
+                        problemsUnresolved.Add("Issues with dat files were found, a reset is recommended");
+                    else
+                        problemsResolved.Add("Index files needed repairs");
                 }
                 else
-                    PrintMessage("Cannot run repairs while the game is running.", 2);
+                    problemsUnresolved.Add("Can't repair index files while the game is running");
             }
 
             PrintMessage("Checking index backups...");
-            CheckBackups(problemChecker);
+            problemsUnresolved.AddRange(CheckBackups(problemChecker));
 
             PrintMessage("Checking dat file...");
-            CheckDat();
+            problemsUnresolved.AddRange(CheckDat());
 
             PrintMessage("Checking modlist...");
-            CheckMods();
+            problemsUnresolved.AddRange(CheckMods());
 
             PrintMessage("Checking LoD settings...");
-            CheckLoD();
+            Dictionary<string, bool> lodIssues = CheckLoD();
+            problemsResolved.AddRange((from issue in lodIssues where issue.Value select issue.Key).ToList());
+            problemsUnresolved.AddRange((from issue in lodIssues where !issue.Value select issue.Key).ToList());
+
+            if (problemsResolved.Count == 0 && problemsUnresolved.Count == 0)
+                PrintMessage("No problems found", 1);
+            if (problemsResolved.Count > 0)
+            {
+                PrintMessage($"\nThe following problems were found and resolved:", 1);
+                PrintMessage(string.Join("\n", problemsResolved.ToArray()));
+            }
+            if (problemsUnresolved.Count > 0)
+            {
+                Console.Write("\n");
+                PrintMessage("The following problems could not be resolved:", 2);
+                PrintMessage(string.Join("\n", problemsUnresolved.ToArray()));
+            }
         }
 
         List<XivDataFile> CheckIndexDatCounts(ProblemChecker problemChecker)
         {
             var filesToCheck = new XivDataFile[] { XivDataFile._0A_Exd, XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
-            List<XivDataFile> _indexDatRepairList = new List<XivDataFile>();
+            List<XivDataFile> _indexDatIssueList = new List<XivDataFile>();
             foreach (var file in filesToCheck)
             {
-                PrintMessage($"{file.GetDataFileName()} index files");
+                int atFile = Array.IndexOf(filesToCheck, file) + 1;
+                Console.Write($"\r{(int)(0.5f + ((100f * atFile) / filesToCheck.Length))}%");
                 try
                 {
                     if (problemChecker.CheckIndexDatCounts(file))
                     {
-                        _indexDatRepairList.Add(file);
-                        PrintMessage("Needs repair", 3);
+                        _indexDatIssueList.Add(file);
+                        continue;
                     }
-                    else
-                        PrintMessage("No issues found", 1);
-
                     if (problemChecker.CheckForLargeDats(file))
-                    {
-                        _indexDatRepairList.Add(file);
-                        PrintMessage("Extra dat files found, a reset is recommended", 3);
-                    }
-                    else
-                        PrintMessage("No extra dat files", 1);
+                        _indexDatIssueList.Add(file);
                 }
                 catch (Exception ex)
                 {
                     PrintMessage($"There was an issue checking index dat counts\n{ex.Message}", 2);
+                    return null;
                 }
             }
-            return _indexDatRepairList;
+            Console.Write("\n");
+            return _indexDatIssueList;
         }
 
-        void CheckBackups(ProblemChecker problemChecker)
+        List<string> CheckBackups(ProblemChecker problemChecker)
         {
             var filesToCheck = new XivDataFile[] { XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
+            List<string> problemsFound = new List<string>();
             foreach (var file in filesToCheck)
             {
-                PrintMessage($"{file.GetDataFileName()} index files");
+                int atFile = Array.IndexOf(filesToCheck, file) + 1;
+                Console.Write($"\r{(int)(0.5f + ((100f * atFile) / filesToCheck.Length))}%");
+                string fileName = file.GetDataFileName();
                 try
                 {
-                    var backupFile = new DirectoryInfo(Path.Combine(_backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index"));
-                    if (!File.Exists(backupFile.FullName))
+                    var backupFile = Path.Combine(_backupDirectory.FullName, $"{fileName}.win32.index");
+                    if (!File.Exists(backupFile))
                     {
-                        PrintMessage("No backup found", 3);
+                        problemsFound.Add($"Index backups for {fileName} not found");
                         continue;
                     }
                     if (!problemChecker.CheckForOutdatedBackups(file, _backupDirectory))
-                        PrintMessage("Out of date", 3);
-                    else
-                        PrintMessage("Up to date", 1);
+                        problemsFound.Add($"Index backups for {fileName} are out of date");
                 }
                 catch (Exception ex)
                 {
                     PrintMessage($"There was an issue checking the backed up index files\n{ex.Message}", 2);
+                    return null;
                 }
             }
+            Console.Write("\n");
+            return problemsFound;
         }
 
-        void CheckDat()
+        List<string> CheckDat()
         {
-            var fileInfo = new FileInfo(Path.Combine(_indexDirectory.FullName, $"{XivDataFile._06_Ui.GetDataFileName()}.win32.dat1"));
-            PrintMessage($"{XivDataFile._06_Ui.GetDataFileName()}.win32.dat1");
+            List<string> problemsFound = new List<string>();
+            string dataFileName = $"{XivDataFile._06_Ui.GetDataFileName()}.win32.dat1";
+            var fileInfo = new FileInfo(Path.Combine(_indexDirectory.FullName, dataFileName));
             if (fileInfo.Exists)
             {
                 if (fileInfo.Length < 10000000)
-                    PrintMessage("File is missing data", 3);
-                else
-                    PrintMessage("No issues found", 1);
+                    problemsFound.Add($"{dataFileName} is missing data");
             }
             else
-                PrintMessage("File could not be found", 2);
+                problemsFound.Add($"Game directory is missing {dataFileName}");
+            PrintMessage("100%");
+            return problemsFound;
         }
 
-        void CheckMods()
+        List<string> CheckMods()
         {
             var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
             var modlistJson = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath.FullName));
             var dat = new Dat(_indexDirectory);
-
+            List<string> problemsFound = new List<string>();
             if (modlistJson.modCount > 0)
             {
                 foreach (var mod in modlistJson.Mods)
                 {
-                    if (mod.name.Equals(string.Empty)) 
+                    int atMod = modlistJson.Mods.IndexOf(mod) + 1;
+                    Console.Write($"\r{(int)(0.5f + ((100f * atMod) / modlistJson.Mods.Count))}%");
+                    if (mod.name.Equals(string.Empty))
                         continue;
                     var fileName = Path.GetFileName(mod.fullPath);
-                    PrintMessage(fileName);
                     if (mod.data.originalOffset == 0)
-                        PrintMessage("Original offset was 0, you will be unable to revert to original, consider starting over", 3);
+                        problemsFound.Add($"{fileName} has an original offset of 0. You will need to reset to remove this mod");
                     else if (mod.data.modOffset == 0)
-                        PrintMessage("Mod offset was 0, disable it and reimport. (This option is not available yet, consider starting over)", 3);
-                    else
-                        PrintMessage("Correct offsets", 1);
+                        problemsFound.Add($"{fileName} has a mod offset of 0, disable it and reimport");
 
                     var fileType = 0;
                     try
@@ -904,22 +923,27 @@ namespace FFXIV_Modding_Tool
                     }
 
                     if (fileType != 2 && fileType != 3 && fileType != 4)
-                        PrintMessage($"Found unknown file type ({fileType}), offset is most likely corrupt", 3);
-                    else
-                        PrintMessage("Correct file type", 1);
+                        problemsFound.Add($"{fileName} has an unknown file type ({fileType}), offset is most likely corrupt");
                 }
             }
             else
+            {
                 PrintMessage("No entries found in the modlist, skipping", 3);
+                return null;
+            }
+            Console.Write("\n");
+            return problemsFound;
         }
 
-        void CheckLoD()
+        Dictionary<string, bool> CheckLoD()
         {
+            Dictionary<string, bool> problemsFound = new Dictionary<string, bool>();
             if (_configDirectory == null)
             {
                 PrintMessage("No config directory specified, skipping", 3);
-                return;
+                return null;
             }
+            Console.Write("\r0%");
             var problem = false;
             var DX11 = false;
             string ffxivCfg = Path.Combine(_configDirectory.FullName, "FFXIV.cfg");
@@ -927,6 +951,7 @@ namespace FFXIV_Modding_Tool
 
             if (_configDirectory.Exists)
             {
+                Console.Write("\r25%");
                 if (File.Exists(ffxivbootCfg))
                 {
                     var lines = File.ReadAllLines(ffxivbootCfg);
@@ -942,8 +967,8 @@ namespace FFXIV_Modding_Tool
                     }
                 }
                 else
-                    PrintMessage($"Could not find {ffxivbootCfg}", 3);
-
+                    problemsFound.Add($"Could not find {ffxivbootCfg}", false);
+                Console.Write("\r50%");
                 if (File.Exists(ffxivCfg))
                 {
                     var lines = File.ReadAllLines(ffxivCfg);
@@ -958,41 +983,40 @@ namespace FFXIV_Modding_Tool
                             {
                                 if (val.Equals("1"))
                                 {
-                                    PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} ON\nCertain mods have issues with LoD turned on, turning it off...", 3);
                                     tmpLine = lineNum;
                                     problem = true;
                                     break;
                                 }
-                                PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} OFF", 1);
                             }
                             else if (!DX11 && !line.Contains("DX11"))
                             {
                                 if (val.Equals("1"))
                                 {
-                                    PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} ON", 3);
                                     tmpLine = lineNum;
                                     problem = true;
                                     break;
                                 }
-                                PrintMessage($"{line.Substring(0, line.IndexOf("\t"))} OFF", 1);
                             }
                         }
                         lineNum++;
                     }
-
+                    Console.Write("\r75%");
                     if (problem)
                     {
                         var line = lines[tmpLine];
                         line = line.Substring(0, line.Length - 1) + 0;
                         lines[tmpLine] = line;
                         File.WriteAllLines(ffxivCfg, lines);
-                        PrintMessage("LoD turned off, rerunning check...");
-                        CheckLoD();
+                        problemsFound.Add("LoD turned off, as some mods have issues with it turned on", true);
                     }
                 }
                 else
-                    PrintMessage($"Could not find {ffxivCfg}", 3);
+                    problemsFound.Add($"Could not find {ffxivCfg}", false);
             }
+            else
+                problemsFound.Add($"{_configDirectory.FullName} does not exist", false);
+            Console.Write("\r100%\n");
+            return problemsFound;
         }
         #endregion
 
