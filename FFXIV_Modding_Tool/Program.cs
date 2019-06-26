@@ -423,7 +423,7 @@ namespace FFXIV_Modding_Tool
         void ReportProgress(double value)
         {
             float progress = (float)value * 100;
-            Console.Write($"\r{(int)progress}%...  ");
+            Console.Write($"\r{(int)progress}%");
         }
 
         XivRace GetRace(string modPath)
@@ -777,6 +777,7 @@ namespace FFXIV_Modding_Tool
                 {
                     foreach (var xivDataFile in _indexDatRepairList)
                         problemChecker.RepairIndexDatCounts(xivDataFile);
+                    PrintMessage("Rechecking index dat values...");
                     List<XivDataFile> unfixedIndexes = CheckIndexDatCounts(problemChecker);
                     if (unfixedIndexes.Count > 0)
                         problemsUnresolved.Add("Issues with dat files were found, a reset is recommended");
@@ -837,7 +838,7 @@ namespace FFXIV_Modding_Tool
                 catch (Exception ex)
                 {
                     PrintMessage($"There was an issue checking index dat counts\n{ex.Message}", 2);
-                    return null;
+                    return new List<XivDataFile>();
                 }
             }
             Console.Write("\n");
@@ -867,7 +868,7 @@ namespace FFXIV_Modding_Tool
                 catch (Exception ex)
                 {
                     PrintMessage($"There was an issue checking the backed up index files\n{ex.Message}", 2);
-                    return null;
+                    return new List<string>();
                 }
             }
             Console.Write("\n");
@@ -923,13 +924,10 @@ namespace FFXIV_Modding_Tool
                     if (fileType != 2 && fileType != 3 && fileType != 4)
                         problemsFound.Add($"{fileName} has an unknown file type ({fileType}), offset is most likely corrupt");
                 }
+                Console.Write("\n");
             }
             else
-            {
                 PrintMessage("No entries found in the modlist, skipping", 3);
-                return null;
-            }
-            Console.Write("\n");
             return problemsFound;
         }
 
@@ -939,7 +937,7 @@ namespace FFXIV_Modding_Tool
             if (_configDirectory == null)
             {
                 PrintMessage("No config directory specified, skipping", 3);
-                return null;
+                return new Dictionary<string, bool>();
             }
             Console.Write("\r0%");
             var problem = false;
