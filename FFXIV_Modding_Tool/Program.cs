@@ -370,24 +370,22 @@ namespace FFXIV_Modding_Tool
             else
             {
                 bool alreadyExists = false;
+                int modIndex = 0;
                 foreach (SimpleModPackEntries entry in ttmpDataList)
                 {
                     foreach (ModActiveStatus modState in modActiveStates)
                     {
-                        if (entry.JsonEntry.FullPath == modState.file && !modState.enabled)
+                        if (entry.JsonEntry.FullPath == modState.file)
                         {
-                            modState.enabled = true;
-                            alreadyExists = true;
-                            break;
-                        }
-                        if (entry.JsonEntry.FullPath == modState.file && modState.enabled)
-                        {
+                            modIndex = modActiveStates.IndexOf(modState);
                             alreadyExists = true;
                             break;
                         }
                     }
                     if (!alreadyExists)
                         modActiveStates.Add(new ModActiveStatus(entry));
+                    else
+                        modActiveStates[modIndex] = new ModActiveStatus(entry);
                 }
             }
             PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");

@@ -31,7 +31,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Magick.NET-Q8-AnyCPU">
-      <HintPath>..\packages\Magick.NET-Q8-AnyCPU.7.13.1\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
+      <HintPath>..\packages\Magick.NET-Q8-AnyCPU.7.14.0.1\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="Newtonsoft.Json">
@@ -49,7 +49,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="mscorlib" />
     <Reference Include="ConfigParser">
-      <HintPath>..\packages\Salaros.ConfigParser.0.3.2\lib\net45\ConfigParser.dll</HintPath>
+      <HintPath>..\packages\Salaros.ConfigParser.0.3.3\lib\net45\ConfigParser.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
