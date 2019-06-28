@@ -1,1 +1,1 @@
-<b>28.06.2019 - v0.4 Relased with Shadowbringers support! 🥳🎆🎆</b>
+<b>28.06.2019 - v0.4 Released with Shadowbringers support! 🥳🎆🎆</b>
