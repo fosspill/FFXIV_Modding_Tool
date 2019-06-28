@@ -229,7 +229,9 @@ Available arguments:
                         problemFound = true;
                         break;
                     }
-                    if (!problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory))
+                    var outdatedBackupsCheck = problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory);
+                    outdatedBackupsCheck.Wait();
+                    if (!outdatedBackupsCheck.Result)
                     {
                         main.PrintMessage($"One or more index files are out of date in {MainClass._backupDirectory.FullName}. Recreating or downloading them from the TexTools discord is recommended", 2);
                         problemFound = true;
@@ -257,7 +259,9 @@ Available arguments:
                     bool modifiedIndex = false;
                     foreach (var file in filesToCheck)
                     {
-                        if (problemChecker.CheckIndexDatCounts(file))
+                        var datCountCheck = problemChecker.CheckIndexDatCounts(file);
+                        datCountCheck.Wait();
+                        if (datCountCheck.Result)
                         {
                             modifiedIndex = true;
                             break;
