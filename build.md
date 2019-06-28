@@ -1,6 +1,9 @@
 # [How to build]({{ site.baseurl }}/build)
 
+## FFMT
 Open .sln file with monodevelop (or presumably Visual Studio) and build a release as you would.
 All dependencies should be gotten automatically, and references are available in the reference directory.
 
-Note: We depend on a custom patched version of xivmoddingframework until this pullrequest is accepted: https://github.com/liinko/xivModdingFramework/pull/15. A precompiled version is available in References
+## XIVModdingFramework
+A precompiled version is available in References.
+If you need to build the framework, ensure that C# Language Version is set to 7.2 in monodevelop.
