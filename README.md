@@ -10,6 +10,7 @@
 
 Depends on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)* by the one and only Liinko. 
 
+
 # Current Status: :ok_hand: READY FOR PUBLIC TESTING
 
 # Features!
