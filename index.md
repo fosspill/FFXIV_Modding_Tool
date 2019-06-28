@@ -4,6 +4,8 @@
 
 Welcome to the Github Page for the FFXIV_Modding_Tool project.
 
+**Tool is not compatible with TexTools yet, use one or the other - not both**
+
 {% include_relative news.md %}
 
 ----
