@@ -179,7 +179,8 @@ namespace FFXIV_Modding_Tool
                     if (ttmpPath.Extension == ".ttmp2")
                     {
                         var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                        GetModpackData(ttmpPath, ttmpData.ModPackJson, customImport);
+                        ttmpData.Wait();
+                        GetModpackData(ttmpPath, ttmpData.Result.ModPackJson, customImport);
                     }
                     else
                         GetModpackData(ttmpPath, null, customImport);
@@ -224,7 +225,7 @@ namespace FFXIV_Modding_Tool
                     var map = GetMap(modsJson.FullPath);
 
                     var active = false;
-                    var isActive = modding.IsModEnabled(modsJson.FullPath, false);
+                    var isActive = XivModStatus.Disabled;
 
                     if (isActive == XivModStatus.Enabled)
                         active = true;
@@ -274,7 +275,7 @@ namespace FFXIV_Modding_Tool
                     var map = GetMap(modsJson.FullPath);
 
                     var active = false;
-                    var isActive = modding.IsModEnabled(modsJson.FullPath, false);
+                    var isActive = XivModStatus.Disabled;
 
                     if (isActive == XivModStatus.Enabled)
                         active = true;
@@ -370,24 +371,22 @@ namespace FFXIV_Modding_Tool
             else
             {
                 bool alreadyExists = false;
+                int modIndex = 0;
                 foreach (SimpleModPackEntries entry in ttmpDataList)
                 {
                     foreach (ModActiveStatus modState in modActiveStates)
                     {
-                        if (entry.JsonEntry.FullPath == modState.file && !modState.enabled)
+                        if (entry.JsonEntry.FullPath == modState.file)
                         {
-                            modState.enabled = true;
-                            alreadyExists = true;
-                            break;
-                        }
-                        if (entry.JsonEntry.FullPath == modState.file && modState.enabled)
-                        {
+                            modIndex = modActiveStates.IndexOf(modState);
                             alreadyExists = true;
                             break;
                         }
                     }
                     if (!alreadyExists)
                         modActiveStates.Add(new ModActiveStatus(entry));
+                    else
+                        modActiveStates[modIndex] = new ModActiveStatus(entry);
                 }
             }
             PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
@@ -401,7 +400,7 @@ namespace FFXIV_Modding_Tool
             var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
             var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
             int totalModsImported = 0;
-            var progressIndicator = new Progress<double>(ReportProgress);
+            var progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
 
             try
             {
@@ -422,10 +421,10 @@ namespace FFXIV_Modding_Tool
             }
         }
 
-        void ReportProgress(double value)
+        void ReportProgress((int current, int total, string message) report)
         {
-            float progress = (float)value * 100;
-            Console.Write($"\r{(int)progress}%...  ");
+            var progress = ((double)report.current / (double)report.total) * 100;
+            Console.Write($"\r{(int)progress}%");
         }
 
         XivRace GetRace(string modPath)
@@ -702,7 +701,9 @@ namespace FFXIV_Modding_Tool
                     allFilesAvailable = false;
                     break;
                 }
-                if (!problemChecker.CheckForOutdatedBackups(indexFile.Value, _backupDirectory))
+                var outdatedBackupsCheck = problemChecker.CheckForOutdatedBackups(indexFile.Value, _backupDirectory);
+                outdatedBackupsCheck.Wait();
+                if (!outdatedBackupsCheck.Result)
                 {
                     PrintMessage($"{indexFile.Key} is out of date, aborting...", 3);
                     indexesUpToDate = false;
@@ -740,11 +741,12 @@ namespace FFXIV_Modding_Tool
                     foreach (var xivDataFile in (XivDataFile[])Enum.GetValues(typeof(XivDataFile)))
                     {
                         var datFiles = dat.GetModdedDatList(xivDataFile);
+                        datFiles.Wait();
 
-                        foreach (var datFile in datFiles)
+                        foreach (var datFile in datFiles.Result)
                             File.Delete(datFile);
 
-                        if (datFiles.Count > 0)
+                        if (datFiles.Result.Count > 0)
                             problemChecker.RepairIndexDatCounts(xivDataFile);
                     }
 
@@ -779,6 +781,7 @@ namespace FFXIV_Modding_Tool
                 {
                     foreach (var xivDataFile in _indexDatRepairList)
                         problemChecker.RepairIndexDatCounts(xivDataFile);
+                    PrintMessage("Rechecking index dat values...");
                     List<XivDataFile> unfixedIndexes = CheckIndexDatCounts(problemChecker);
                     if (unfixedIndexes.Count > 0)
                         problemsUnresolved.Add("Issues with dat files were found, a reset is recommended");
@@ -828,18 +831,22 @@ namespace FFXIV_Modding_Tool
                 Console.Write($"\r{(int)(0.5f + ((100f * atFile) / filesToCheck.Length))}%");
                 try
                 {
-                    if (problemChecker.CheckIndexDatCounts(file))
+                    var datCountsCheck = problemChecker.CheckIndexDatCounts(file);
+                    datCountsCheck.Wait();
+                    if (datCountsCheck.Result)
                     {
                         _indexDatIssueList.Add(file);
                         continue;
                     }
-                    if (problemChecker.CheckForLargeDats(file))
+                    var largeDatCheck = problemChecker.CheckForLargeDats(file);
+                    largeDatCheck.Wait();
+                    if (largeDatCheck.Result)
                         _indexDatIssueList.Add(file);
                 }
                 catch (Exception ex)
                 {
                     PrintMessage($"There was an issue checking index dat counts\n{ex.Message}", 2);
-                    return null;
+                    return new List<XivDataFile>();
                 }
             }
             Console.Write("\n");
@@ -863,13 +870,15 @@ namespace FFXIV_Modding_Tool
                         problemsFound.Add($"Index backups for {fileName} not found");
                         continue;
                     }
-                    if (!problemChecker.CheckForOutdatedBackups(file, _backupDirectory))
+                    var outdatedBackupsCheck = problemChecker.CheckForOutdatedBackups(file, _backupDirectory);
+                    outdatedBackupsCheck.Wait();
+                    if (!outdatedBackupsCheck.Result)
                         problemsFound.Add($"Index backups for {fileName} are out of date");
                 }
                 catch (Exception ex)
                 {
                     PrintMessage($"There was an issue checking the backed up index files\n{ex.Message}", 2);
-                    return null;
+                    return new List<string>();
                 }
             }
             Console.Write("\n");
@@ -925,13 +934,10 @@ namespace FFXIV_Modding_Tool
                     if (fileType != 2 && fileType != 3 && fileType != 4)
                         problemsFound.Add($"{fileName} has an unknown file type ({fileType}), offset is most likely corrupt");
                 }
+                Console.Write("\n");
             }
             else
-            {
                 PrintMessage("No entries found in the modlist, skipping", 3);
-                return null;
-            }
-            Console.Write("\n");
             return problemsFound;
         }
 
@@ -941,7 +947,7 @@ namespace FFXIV_Modding_Tool
             if (_configDirectory == null)
             {
                 PrintMessage("No config directory specified, skipping", 3);
-                return null;
+                return new Dictionary<string, bool>();
             }
             Console.Write("\r0%");
             var problem = false;

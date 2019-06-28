@@ -32,7 +32,7 @@ Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
-  -t, --ttmp               Full path to .ttmp(2) file (mods import only)
+  -t, --ttmp               Full path to .ttmp(2) file (modpack import only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack";
             string ttmpPath = "";
@@ -132,13 +132,11 @@ Available arguments:
                     else
                         main.PrintMessage("Enabling/disabling mods requires having your game directory set either through the config file or with -g specified", 2);
                     break;
-                case "ml":
-                    // function to list current mods
-                    break;
                 case "me":
                     if (MainClass._gameDirectory != null)
                     {
                         var modding = new Modding(MainClass._indexDirectory);
+                        main.PrintMessage("Enabling all mods...");
                         modding.ToggleAllMods(true);
                         main.PrintMessage("Successfully enabled all mods", 1);
                     }
@@ -149,6 +147,7 @@ Available arguments:
                     if (MainClass._gameDirectory != null)
                     {
                         var modding = new Modding(MainClass._indexDirectory);
+                        main.PrintMessage("Disabling all mods...");
                         modding.ToggleAllMods(false);
                         main.PrintMessage("Successfully disabled all mods", 1);
                     }
@@ -158,8 +157,6 @@ Available arguments:
                 case "mods":
                     if (secondAction == "refresh")
                         goto case "mr";
-                    if (secondAction == "list")
-                        goto case "ml";
                     if (secondAction == "enable")
                         goto case "me";
                     if (secondAction == "disable")
@@ -232,7 +229,9 @@ Available arguments:
                         problemFound = true;
                         break;
                     }
-                    if (!problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory))
+                    var outdatedBackupsCheck = problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory);
+                    outdatedBackupsCheck.Wait();
+                    if (!outdatedBackupsCheck.Result)
                     {
                         main.PrintMessage($"One or more index files are out of date in {MainClass._backupDirectory.FullName}. Recreating or downloading them from the TexTools discord is recommended", 2);
                         problemFound = true;
@@ -260,7 +259,9 @@ Available arguments:
                     bool modifiedIndex = false;
                     foreach (var file in filesToCheck)
                     {
-                        if (problemChecker.CheckIndexDatCounts(file))
+                        var datCountCheck = problemChecker.CheckIndexDatCounts(file);
+                        datCountCheck.Wait();
+                        if (datCountCheck.Result)
                         {
                             modifiedIndex = true;
                             break;

@@ -8,9 +8,10 @@
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Based on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)*.
+Depends on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)* by the one and only Liinko. 
 
-# Current Status: ![Working](https://placehold.it/15/00ff00/000000?text=+) `READY FOR PUBLIC TESTING.`
+
+# Current Status: :ok_hand: READY FOR PUBLIC TESTING
 
 # Features!
 List is sorted by priority
