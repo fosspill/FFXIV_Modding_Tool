@@ -16,8 +16,9 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public void ArgumentHandler(string[] args)
         {
-            string helpText = $"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}\n\n";
-            helpText = helpText + @"Available actions:
+            string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
+
+Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods

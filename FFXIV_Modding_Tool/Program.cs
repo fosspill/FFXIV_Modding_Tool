@@ -217,6 +217,32 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {
+                if (ttmpData.TTMPVersion.Contains("w"))
+                {
+                    PrintMessage("Starting wizard...");
+                    PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n{ttmpData.Description}\n");
+                    foreach (var page in ttmpData.ModPackPages)
+                    {
+                        foreach (var option in page.ModGroups)
+                        {
+                            PrintMessage($"{option.GroupName}\nChoices:");
+                            int maxChoice = option.OptionList.Count;
+                            List<string> choices = new List<string>();
+                            foreach (var choice in option.OptionList)
+                            {
+                                choices.Add($@"    {option.OptionList.IndexOf(choice)} - {choice.Name}
+                                    {choice.Description}");
+                            }
+                            PrintMessage(string.Join("\n", choices));
+                            if (option.SelectionType == "Multi")
+                                Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
+                            if (option.SelectionType == "Single")
+                                Console.Write("Choose one (eg: 0 1 2 3): ");
+                            string answer = Console.ReadLine();
+
+                        }
+                    }
+                }
                 foreach (var modsJson in ttmpData.SimpleModsList)
                 {
                     var race = GetRace(modsJson.FullPath);
