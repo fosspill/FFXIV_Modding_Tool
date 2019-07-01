@@ -212,6 +212,7 @@ namespace FFXIV_Modding_Tool
         {
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
+            List<ModsJson> modpackData = new List<ModsJson>();
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             TTMP _textoolsModpack = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
@@ -228,16 +229,37 @@ namespace FFXIV_Modding_Tool
                             PrintMessage($"{option.GroupName}\nChoices:");
                             List<string> choices = new List<string>();
                             foreach (var choice in option.OptionList)
-                            {
-                                choices.Add($@"    {option.OptionList.IndexOf(choice)} - {choice.Name}
-                                    {choice.Description}");
-                            }
+                                choices.Add($"    {option.OptionList.IndexOf(choice)} - {choice.Name}\n\t{choice.Description}");
                             PrintMessage(string.Join("\n", choices));
                             if (option.SelectionType == "Multi")
                             {
                                 Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
                                 string answers = Console.ReadLine();
                                 string[] answersArray = answers.Split();
+                                foreach (string answer in answersArray)
+                                {
+                                    if (answer == "*")
+                                    {
+                                        foreach (var choice in option.OptionList)
+                                            modpackData.AddRange(choice.ModsJsons);
+                                        break;
+                                    }
+                                    if (answer.Contains("-"))
+                                    {
+                                        string[] targets = answer.Split('-');
+                                        for (int i = Convert.ToInt32(targets[0]); i <= Convert.ToInt32(targets[1]); i++)
+                                            modpackData.AddRange(option.OptionList[i].ModsJsons);
+                                        continue;
+                                    }
+                                    int wantedIndex;
+                                    if (int.TryParse(answer, out wantedIndex))
+                                    {
+                                        if (wantedIndex < option.OptionList.Count)
+                                            modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
+                                    }
+                                    else
+                                        PrintMessage($"{answer} is not a valid choice", 2);
+                                }
                             }
                             if (option.SelectionType == "Single")
                             {
@@ -246,7 +268,10 @@ namespace FFXIV_Modding_Tool
                                 int wantedIndex;
                                 if (int.TryParse(answer, out wantedIndex))
                                 {
-
+                                    if (wantedIndex < option.OptionList.Count)
+                                        modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
+                                    else
+                                        PrintMessage($"There are only {option.OptionList.Count} choices, not {wantedIndex + 1}", 2);
                                 }
                                 else
                                     PrintMessage($"{answer} is not a valid choice", 2);
@@ -254,7 +279,10 @@ namespace FFXIV_Modding_Tool
                         }
                     }
                 }
-                foreach (var modsJson in ttmpData.SimpleModsList)
+                else
+                    modpackData = ttmpData.SimpleModsList;
+                //foreach (var modsJson in ttmpData.SimpleModsList)
+                foreach (var modsJson in modpackData)
                 {
                     var race = GetRace(modsJson.FullPath);
                     var number = GetNumber(modsJson.FullPath);
