@@ -31,7 +31,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Magick.NET-Q8-AnyCPU">
-      <HintPath>..\packages\Magick.NET-Q8-AnyCPU.7.14.0.1\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
+      <HintPath>..\packages\Magick.NET-Q8-AnyCPU.7.14.0.2\lib\net40\Magick.NET-Q8-AnyCPU.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="Newtonsoft.Json">
