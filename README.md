@@ -10,6 +10,8 @@
 
 Depends on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)* by the one and only Liinko. 
 
+Note: Current limitations if modpack requires wizard: https://github.com/fosspill/FFXIV_Modding_Tool/issues/63
+
 
 # Current Status: :ok_hand: READY FOR PUBLIC TESTING
 
