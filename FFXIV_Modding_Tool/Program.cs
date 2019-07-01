@@ -226,7 +226,6 @@ namespace FFXIV_Modding_Tool
                         foreach (var option in page.ModGroups)
                         {
                             PrintMessage($"{option.GroupName}\nChoices:");
-                            int maxChoice = option.OptionList.Count;
                             List<string> choices = new List<string>();
                             foreach (var choice in option.OptionList)
                             {
@@ -235,11 +234,23 @@ namespace FFXIV_Modding_Tool
                             }
                             PrintMessage(string.Join("\n", choices));
                             if (option.SelectionType == "Multi")
+                            {
                                 Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
+                                string answers = Console.ReadLine();
+                                string[] answersArray = answers.Split();
+                            }
                             if (option.SelectionType == "Single")
+                            {
                                 Console.Write("Choose one (eg: 0 1 2 3): ");
-                            string answer = Console.ReadLine();
+                                string answer = Console.ReadLine();
+                                int wantedIndex;
+                                if (int.TryParse(answer, out wantedIndex))
+                                {
 
+                                }
+                                else
+                                    PrintMessage($"{answer} is not a valid choice", 2);
+                            }
                         }
                     }
                 }
