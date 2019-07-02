@@ -6,6 +6,7 @@ using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
 using xivModdingFramework.Helpers;
+using System.Collections.Generic;
 
 namespace FFXIV_Modding_Tool.Commandline
 {
@@ -20,6 +21,7 @@ namespace FFXIV_Modding_Tool.Commandline
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
+  modpack info, mpinfo     Show info about a modpack, requires a .ttmp(2) to be specified
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
@@ -33,7 +35,7 @@ Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
-  -t, --ttmp               Full path to .ttmp(2) file (modpack import only)
+  -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack";
             string ttmpPath = "";
@@ -113,17 +115,23 @@ Available arguments:
                     else
                         main.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
                     break;
-                case "mpe":
-                    // function to export modpacks
-                    break;
                 case "mpinfo":
-                    // function to list info about modpack
+                    if (string.IsNullOrEmpty(ttmpPath))
+                        main.PrintMessage("Can't show info without a modpack to read. Specify one with -t", 2);
+                    else
+                    {
+                        Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
+                        main.PrintMessage($@"Name: {modpackInfo["name"]}
+Type: {modpackInfo["type"]}
+Author: {modpackInfo["author"]}
+Version: {modpackInfo["version"]}
+Description: {modpackInfo["description"]}
+Number of mods: {modpackInfo["modAmount"]}");
+                    }
                     break;
                 case "modpack":
                     if (secondAction == "import")
                         goto case "mpi";
-                    if (secondAction == "export")
-                        goto case "mpe";
                     if (secondAction == "info")
                         goto case "mpinfo";
                     break;

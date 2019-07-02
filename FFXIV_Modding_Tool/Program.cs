@@ -146,6 +146,46 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"{Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title} {version}\nGame version {ffxivVersion}");
         }
 
+        public Dictionary<string, string> GetModpackInfo(DirectoryInfo ttmpPath)
+        {
+            Dictionary<string, string> modpackInfo = new Dictionary<string, string>
+            {
+                ["name"] = Path.GetFileNameWithoutExtension(ttmpPath.FullName),
+                ["type"] = "Simple",
+                ["author"] = "N/A",
+                ["version"] = "N/A",
+                ["description"] = "N/A",
+                ["modAmount"] = "0"
+            };
+            if (ttmpPath.Extension == ".ttmp2")
+            {
+                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
+                var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                ttmpData.Wait();
+                var ttmpInfo = ttmpData.Result.ModPackJson;
+                modpackInfo["name"] = ttmpInfo.Name;
+                if (ttmpInfo.TTMPVersion.Contains("w"))
+                {
+                    modpackInfo["type"] = "Wizard";
+                    modpackInfo["description"] = ttmpInfo.Description;
+                    int modCount = 0;
+                    foreach (var page in ttmpInfo.ModPackPages)
+                    {
+                        foreach (var group in page.ModGroups)
+                            modCount += group.OptionList.Count;
+                    }
+                    modpackInfo["modAmount"] = modCount.ToString();
+                }
+                else
+                    modpackInfo["modAmount"] = ttmpInfo.SimpleModsList.Count.ToString();
+                modpackInfo["author"] = ttmpInfo.Author;
+                modpackInfo["version"] = ttmpInfo.Version;
+            }
+            else if (ttmpPath.Extension == ".ttmp")
+                modpackInfo["modAmount"] = GetOldModpackJson(ttmpPath).Count.ToString();
+            return modpackInfo;
+        }
+
         public bool IndexLocked()
         {
             var index = new Index(_indexDirectory);
@@ -288,21 +328,7 @@ namespace FFXIV_Modding_Tool
         List<SimpleModPackEntries> TTMPDataList(DirectoryInfo ttmpPath)
         {
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            var originalModPackData = new List<OriginalModPackJson>();
-            var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
-            ZipFile archive = new ZipFile(fs);
-            ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
-            {
-                using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
-                {
-                    string line;
-                    while ((line = streamReader.ReadLine()) != null)
-                    {
-                        if (!line.ToLower().Contains("version"))
-                            originalModPackData.Add(JsonConvert.DeserializeObject<OriginalModPackJson>(line));
-                    }
-                }
-            }
+            var originalModPackData = GetOldModpackJson(ttmpPath);
 
             foreach (var modsJson in originalModPackData)
             {
@@ -339,6 +365,26 @@ namespace FFXIV_Modding_Tool
                 });
             }
             return ttmpDataList;
+        }
+
+        List<OriginalModPackJson> GetOldModpackJson(DirectoryInfo ttmpPath)
+        {
+            List<OriginalModPackJson> originalModPackData = new List<OriginalModPackJson>();
+            var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
+            ZipFile archive = new ZipFile(fs);
+            ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
+            {
+                using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
+                {
+                    string line;
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        if (!line.ToLower().Contains("version"))
+                            originalModPackData.Add(JsonConvert.DeserializeObject<OriginalModPackJson>(line));
+                    }
+                }
+            }
+            return originalModPackData;
         }
 
         List<ModsJson> WizardDataExtraction(ModPackJson ttmpData)
