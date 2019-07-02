@@ -262,7 +262,7 @@ namespace FFXIV_Modding_Tool
                 {
                     PrintMessage("Starting wizard...");
                     customImport = false;
-                    ttmpDataList = TTMP2DataList(WizardDataExtraction(ttmpData), ttmpData);
+                    ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData);
                 }
                 else
                     ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData);
@@ -387,32 +387,59 @@ namespace FFXIV_Modding_Tool
             return originalModPackData;
         }
 
-        List<ModsJson> WizardDataExtraction(ModPackJson ttmpData)
+        List<ModsJson> WizardDataHandler(ModPackJson ttmpData)
         {
             List<ModsJson> modpackData = new List<ModsJson>();
             PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n{ttmpData.Description}\n");
             foreach (var page in ttmpData.ModPackPages)
             {
+                if (ttmpData.ModPackPages.Count > 1)
+                    PrintMessage($"Page {page.PageIndex}");
                 foreach (var option in page.ModGroups)
                 {
-                    PrintMessage($"{option.GroupName}\nChoices:");
-                    List<string> choices = new List<string>();
-                    foreach (var choice in option.OptionList)
-                        choices.Add($"    {option.OptionList.IndexOf(choice)} - {choice.Name}\n\t{choice.Description}");
-                    PrintMessage(string.Join("\n", choices));
-                    int maxChoices = option.OptionList.Count;
-                    if (option.SelectionType == "Multi")
+                    bool userDone = false;
+                    while (!userDone)
                     {
-                        Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
-                        List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices);
-                        foreach (int index in wantedIndexes)
-                            modpackData.AddRange(option.OptionList[index].ModsJsons);
-                    }
-                    if (option.SelectionType == "Single")
-                    {
-                        Console.Write("Choose one (eg: 0 1 2 3): ");
-                        int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices)[0];
-                        modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
+                        PrintMessage($"{option.GroupName}\nChoices:");
+                        List<string> choices = new List<string>();
+                        foreach (var choice in option.OptionList)
+                        {
+                            string description = "";
+                            if (!string.IsNullOrEmpty(choice.Description))
+                                description = $"\n\t{choice.Description}";
+                            choices.Add($"    {option.OptionList.IndexOf(choice)} - {choice.Name}{description}");
+                        }
+                        PrintMessage(string.Join("\n", choices));
+                        int maxChoices = option.OptionList.Count;
+                        if (option.SelectionType == "Multi")
+                        {
+                            Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
+                            List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices);
+                            List<string> pickedChoices = new List<string>();
+                            foreach (int index in wantedIndexes)
+                                pickedChoices.Add($"{index} - {option.OptionList[index].Name}");
+                            Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
+                            string answer = Console.ReadKey().KeyChar.ToString();
+                            if (answer == "y" || answer == "\n")
+                            {
+                                foreach (int index in wantedIndexes)
+                                    modpackData.AddRange(option.OptionList[index].ModsJsons);
+                                userDone = true;
+                            }
+                        }
+                        if (option.SelectionType == "Single")
+                        {
+                            Console.Write("Choose one (eg: 0 1 2 3): ");
+                            int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices)[0];
+                            Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
+                            string answer = Console.ReadKey().KeyChar.ToString();
+                            if (answer == "y" || answer == "\n")
+                            {
+                                modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
+                                userDone = true;
+                            }
+                        }
+                        Console.Write("\n");
                     }
                 }
             }
