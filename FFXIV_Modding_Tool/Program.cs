@@ -221,6 +221,7 @@ namespace FFXIV_Modding_Tool
                 if (ttmpData.TTMPVersion.Contains("w"))
                 {
                     PrintMessage("Starting wizard...");
+                    customImport = false;
                     ttmpDataList = TTMP2DataList(WizardDataExtraction(ttmpData), ttmpData);
                 }
                 else
