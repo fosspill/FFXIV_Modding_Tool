@@ -146,6 +146,46 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"{Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title} {version}\nGame version {ffxivVersion}");
         }
 
+        public Dictionary<string, string> GetModpackInfo(DirectoryInfo ttmpPath)
+        {
+            Dictionary<string, string> modpackInfo = new Dictionary<string, string>
+            {
+                ["name"] = Path.GetFileNameWithoutExtension(ttmpPath.FullName),
+                ["type"] = "Simple",
+                ["author"] = "N/A",
+                ["version"] = "N/A",
+                ["description"] = "N/A",
+                ["modAmount"] = "0"
+            };
+            if (ttmpPath.Extension == ".ttmp2")
+            {
+                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
+                var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                ttmpData.Wait();
+                var ttmpInfo = ttmpData.Result.ModPackJson;
+                modpackInfo["name"] = ttmpInfo.Name;
+                if (ttmpInfo.TTMPVersion.Contains("w"))
+                {
+                    modpackInfo["type"] = "Wizard";
+                    modpackInfo["description"] = ttmpInfo.Description;
+                    int modCount = 0;
+                    foreach (var page in ttmpInfo.ModPackPages)
+                    {
+                        foreach (var group in page.ModGroups)
+                            modCount += group.OptionList.Count;
+                    }
+                    modpackInfo["modAmount"] = modCount.ToString();
+                }
+                else
+                    modpackInfo["modAmount"] = ttmpInfo.SimpleModsList.Count.ToString();
+                modpackInfo["author"] = ttmpInfo.Author;
+                modpackInfo["version"] = ttmpInfo.Version;
+            }
+            else if (ttmpPath.Extension == ".ttmp")
+                modpackInfo["modAmount"] = GetOldModpackJson(ttmpPath).Count.ToString();
+            return modpackInfo;
+        }
+
         public bool IndexLocked()
         {
             var index = new Index(_indexDirectory);
@@ -180,10 +220,10 @@ namespace FFXIV_Modding_Tool
                     {
                         var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
                         ttmpData.Wait();
-                        GetModpackData(ttmpPath, ttmpData.Result.ModPackJson, customImport);
+                        ModpackDataHandler(ttmpPath, ttmpData.Result.ModPackJson, customImport);
                     }
                     else
-                        GetModpackData(ttmpPath, null, customImport);
+                        ModpackDataHandler(ttmpPath, null, customImport);
                 }
                 catch
                 {
@@ -195,7 +235,7 @@ namespace FFXIV_Modding_Tool
                 if (!importError)
                 {
                     PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
-                    GetModpackData(ttmpPath, null, customImport);
+                    ModpackDataHandler(ttmpPath, null, customImport);
                 }
                 else
                 {
@@ -208,7 +248,7 @@ namespace FFXIV_Modding_Tool
             return;
         }
 
-        void GetModpackData(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool customImport)
+        void ModpackDataHandler(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool customImport)
         {
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
@@ -217,182 +257,296 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
             {
-                foreach (var modsJson in ttmpData.SimpleModsList)
+                ttmpName = ttmpData.Name;
+                if (ttmpData.TTMPVersion.Contains("w"))
                 {
-                    var race = GetRace(modsJson.FullPath);
-                    var number = GetNumber(modsJson.FullPath);
-                    var type = GetType(modsJson.FullPath);
-                    var map = GetMap(modsJson.FullPath);
-
-                    var active = false;
-                    var isActive = XivModStatus.Disabled;
-
-                    if (isActive == XivModStatus.Enabled)
-                        active = true;
-
-                    if (string.IsNullOrEmpty(ttmpName))
-                        ttmpName = ttmpData.Name;
-
-                    modsJson.ModPackEntry = new ModPack
-                    { name = ttmpName, author = ttmpData.Author, version = ttmpData.Version };
-
-                    ttmpDataList.Add(new SimpleModPackEntries
-                    {
-                        Name = modsJson.Name,
-                        Category = modsJson.Category,
-                        Race = race.ToString(),
-                        Part = type,
-                        Num = number,
-                        Map = map,
-                        Active = active,
-                        JsonEntry = modsJson,
-                    });
+                    PrintMessage("Starting wizard...");
+                    customImport = false;
+                    ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData);
                 }
+                else
+                    ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData);
             }
             else
             {
-                var originalModPackData = new List<OriginalModPackJson>();
-                var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
-                ZipFile archive = new ZipFile(fs);
-                ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
-                {
-                    using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
-                    {
-                        string line;
-                        while ((line = streamReader.ReadLine()) != null)
-                        {
-                            if (!line.ToLower().Contains("version"))
-                                originalModPackData.Add(JsonConvert.DeserializeObject<OriginalModPackJson>(line));
-                        }
-                    }
-                }
-
-                foreach (var modsJson in originalModPackData)
-                {
-                    var race = GetRace(modsJson.FullPath);
-                    var number = GetNumber(modsJson.FullPath);
-                    var type = GetType(modsJson.FullPath);
-                    var map = GetMap(modsJson.FullPath);
-
-                    var active = false;
-                    var isActive = XivModStatus.Disabled;
-
-                    if (isActive == XivModStatus.Enabled)
-                        active = true;
-
-                    if (string.IsNullOrEmpty(ttmpName))
-                        ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-
-                    ttmpDataList.Add(new SimpleModPackEntries
-                    {
-                        Name = modsJson.Name,
-                        Category = modsJson.Category,
-                        Race = race.ToString(),
-                        Part = type,
-                        Num = number,
-                        Map = map,
-                        Active = active,
-                        JsonEntry = new ModsJson
-                        {
-                            Name = modsJson.Name,
-                            Category = modsJson.Category,
-                            FullPath = modsJson.FullPath,
-                            DatFile = modsJson.DatFile,
-                            ModOffset = modsJson.ModOffset,
-                            ModSize = modsJson.ModSize,
-                            ModPackEntry = new ModPack { name = ttmpName, author = "N/A", version = "1.0.0" }
-                        }
-                    });
-                }
+                ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
+                ttmpDataList = TTMPDataList(ttmpPath);
             }
             ttmpDataList.Sort();
             PrintMessage("Data extraction successfull.");
             int originalModCount = ttmpDataList.Count;
             string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
-            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
             if (customImport)
             {
-                string modpackConfDirectory = Path.Combine(_projectconfDirectory.FullName, "ModPacks");
-                List<ModpackImportConfigEntry> desiredModImports = new List<ModpackImportConfigEntry>();
-                if (!Directory.Exists(modpackConfDirectory))
-                    Directory.CreateDirectory(modpackConfDirectory);
-                string modpackConfFile = Path.Combine(modpackConfDirectory, $"{ttmpName}.cfg");
-                if (!File.Exists(modpackConfFile))
-                {
-                    foreach (SimpleModPackEntries entry in ttmpDataList)
-                        desiredModImports.Add(new ModpackImportConfigEntry(entry));
-                    File.WriteAllText(modpackConfFile, JsonConvert.SerializeObject(desiredModImports, Formatting.Indented));
-                    PrintMessage($"{modpackConfFile} created. Edit the file and run this command again to import the desired mods from the modpack", 1);
+                var undesiredModImports = CheckCustomModpackImport(ttmpName, ttmpDataList);
+                if (undesiredModImports == null)
                     return;
-                }
-                desiredModImports = JsonConvert.DeserializeObject<List<ModpackImportConfigEntry>>(File.ReadAllText(modpackConfFile));
-                List<SimpleModPackEntries> undesiredModImports = new List<SimpleModPackEntries>();
-                if (desiredModImports.Count != ttmpDataList.Count)
-                    PrintMessage("The config file doesn't seem to contain the same mods as the modpack. Please delete the file if you want to generate an up-to-date version.", 3);
-                foreach (ModpackImportConfigEntry modToCheck in desiredModImports)
-                {
-                    if (!modToCheck.import)
-                    {
-                        foreach (SimpleModPackEntries entry in ttmpDataList)
-                        {
-                            if (entry.JsonEntry.FullPath == modToCheck.file)
-                            {
-                                undesiredModImports.Add(entry);
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        bool alreadyExists = false;
-                        foreach (ModActiveStatus modState in modActiveStates)
-                        {
-                            if (modToCheck.file == modState.file && !modState.enabled)
-                            {
-                                modState.enabled = true;
-                                alreadyExists = true;
-                                break;
-                            }
-                            if (modToCheck.file == modState.file && modState.enabled)
-                            {
-                                alreadyExists = true;
-                                break;
-                            }
-                        }
-                        if (!alreadyExists)
-                            modActiveStates.Add(new ModActiveStatus(ttmpName, modToCheck));
-                    }
-                }
                 foreach (SimpleModPackEntries entry in undesiredModImports)
                     ttmpDataList.Remove(entry);
             }
-            else
-            {
-                bool alreadyExists = false;
-                int modIndex = 0;
-                foreach (SimpleModPackEntries entry in ttmpDataList)
-                {
-                    foreach (ModActiveStatus modState in modActiveStates)
-                    {
-                        if (entry.JsonEntry.FullPath == modState.file)
-                        {
-                            modIndex = modActiveStates.IndexOf(modState);
-                            alreadyExists = true;
-                            break;
-                        }
-                    }
-                    if (!alreadyExists)
-                        modActiveStates.Add(new ModActiveStatus(entry));
-                    else
-                        modActiveStates[modIndex] = new ModActiveStatus(entry);
-                }
-            }
+            List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList);
             PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
             ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
             File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
             PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
+        }
+
+        List<SimpleModPackEntries> TTMP2DataList(List<ModsJson> modsJsons, ModPackJson ttmpData)
+        {
+            List <SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
+            foreach (var modsJson in modsJsons)
+            {
+                var race = GetRace(modsJson.FullPath);
+                var number = GetNumber(modsJson.FullPath);
+                var type = GetType(modsJson.FullPath);
+                var map = GetMap(modsJson.FullPath);
+
+                var active = false;
+                var isActive = XivModStatus.Disabled;
+
+                if (isActive == XivModStatus.Enabled)
+                    active = true;
+
+                modsJson.ModPackEntry = new ModPack
+                { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version };
+
+                ttmpDataList.Add(new SimpleModPackEntries
+                {
+                    Name = modsJson.Name,
+                    Category = modsJson.Category,
+                    Race = race.ToString(),
+                    Part = type,
+                    Num = number,
+                    Map = map,
+                    Active = active,
+                    JsonEntry = modsJson,
+                });
+            }
+            return ttmpDataList;
+        }
+
+        List<SimpleModPackEntries> TTMPDataList(DirectoryInfo ttmpPath)
+        {
+            List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
+            var originalModPackData = GetOldModpackJson(ttmpPath);
+
+            foreach (var modsJson in originalModPackData)
+            {
+                var race = GetRace(modsJson.FullPath);
+                var number = GetNumber(modsJson.FullPath);
+                var type = GetType(modsJson.FullPath);
+                var map = GetMap(modsJson.FullPath);
+
+                var active = false;
+                var isActive = XivModStatus.Disabled;
+
+                if (isActive == XivModStatus.Enabled)
+                    active = true;
+
+                ttmpDataList.Add(new SimpleModPackEntries
+                {
+                    Name = modsJson.Name,
+                    Category = modsJson.Category,
+                    Race = race.ToString(),
+                    Part = type,
+                    Num = number,
+                    Map = map,
+                    Active = active,
+                    JsonEntry = new ModsJson
+                    {
+                        Name = modsJson.Name,
+                        Category = modsJson.Category,
+                        FullPath = modsJson.FullPath,
+                        DatFile = modsJson.DatFile,
+                        ModOffset = modsJson.ModOffset,
+                        ModSize = modsJson.ModSize,
+                        ModPackEntry = new ModPack { name = Path.GetFileNameWithoutExtension(ttmpPath.FullName), author = "N/A", version = "1.0.0" }
+                    }
+                });
+            }
+            return ttmpDataList;
+        }
+
+        List<OriginalModPackJson> GetOldModpackJson(DirectoryInfo ttmpPath)
+        {
+            List<OriginalModPackJson> originalModPackData = new List<OriginalModPackJson>();
+            var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
+            ZipFile archive = new ZipFile(fs);
+            ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
+            {
+                using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
+                {
+                    string line;
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        if (!line.ToLower().Contains("version"))
+                            originalModPackData.Add(JsonConvert.DeserializeObject<OriginalModPackJson>(line));
+                    }
+                }
+            }
+            return originalModPackData;
+        }
+
+        List<ModsJson> WizardDataHandler(ModPackJson ttmpData)
+        {
+            List<ModsJson> modpackData = new List<ModsJson>();
+            PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n{ttmpData.Description}\n");
+            foreach (var page in ttmpData.ModPackPages)
+            {
+                if (ttmpData.ModPackPages.Count > 1)
+                    PrintMessage($"Page {page.PageIndex}");
+                foreach (var option in page.ModGroups)
+                {
+                    bool userDone = false;
+                    while (!userDone)
+                    {
+                        PrintMessage($"{option.GroupName}\nChoices:");
+                        List<string> choices = new List<string>();
+                        foreach (var choice in option.OptionList)
+                        {
+                            string description = "";
+                            if (!string.IsNullOrEmpty(choice.Description))
+                                description = $"\n\t{choice.Description}";
+                            choices.Add($"    {option.OptionList.IndexOf(choice)} - {choice.Name}{description}");
+                        }
+                        PrintMessage(string.Join("\n", choices));
+                        int maxChoices = option.OptionList.Count;
+                        if (option.SelectionType == "Multi")
+                        {
+                            Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
+                            List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices);
+                            List<string> pickedChoices = new List<string>();
+                            foreach (int index in wantedIndexes)
+                                pickedChoices.Add($"{index} - {option.OptionList[index].Name}");
+                            Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
+                            string answer = Console.ReadKey().KeyChar.ToString();
+                            if (answer == "y" || answer == "\n")
+                            {
+                                foreach (int index in wantedIndexes)
+                                    modpackData.AddRange(option.OptionList[index].ModsJsons);
+                                userDone = true;
+                            }
+                        }
+                        if (option.SelectionType == "Single")
+                        {
+                            Console.Write("Choose one (eg: 0 1 2 3): ");
+                            int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices)[0];
+                            Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
+                            string answer = Console.ReadKey().KeyChar.ToString();
+                            if (answer == "y" || answer == "\n")
+                            {
+                                modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
+                                userDone = true;
+                            }
+                        }
+                        Console.Write("\n");
+                    }
+                }
+            }
+            return modpackData;
+        }
+
+        List<int> WizardUserInputValidation(string input, int totalChoices)
+        {
+            List<int> desiredIndexes = new List<int>();
+            string[] answers = input.Split();
+            foreach (string answer in answers)
+            {
+                if (answer == "*")
+                {
+                    desiredIndexes = Enumerable.Range(0, totalChoices).ToList();
+                    break;
+                }
+                if (answer.Contains("-"))
+                {
+                    try
+                    {
+                        int[] targets = answer.Split('-').Select(int.Parse).ToArray();
+                        desiredIndexes.AddRange(Enumerable.Range(targets[0], targets[1] - targets[0] + 1));
+                    }
+                    catch
+                    {
+                        PrintMessage($"{answer} is not a valid range of choices", 2);
+                    }
+                    continue;
+                }
+                int wantedIndex;
+                if (int.TryParse(answer, out wantedIndex))
+                {
+                    if (wantedIndex < totalChoices)
+                    {
+                        if (!desiredIndexes.Contains(wantedIndex))
+                            desiredIndexes.Add(wantedIndex);
+                    }
+                    else
+                        PrintMessage($"There are only {totalChoices} choices, not {wantedIndex + 1}", 2);
+                }
+                else
+                    PrintMessage($"{answer} is not a valid choice", 2);
+            }
+            return desiredIndexes;
+        }
+
+        public List<SimpleModPackEntries> CheckCustomModpackImport(string ttmpName, List<SimpleModPackEntries> ttmpDataList)
+        {
+            string modpackConfDirectory = Path.Combine(_projectconfDirectory.FullName, "ModPacks");
+            List<ModpackImportConfigEntry> desiredModImports = new List<ModpackImportConfigEntry>();
+            if (!Directory.Exists(modpackConfDirectory))
+                Directory.CreateDirectory(modpackConfDirectory);
+            string modpackConfFile = Path.Combine(modpackConfDirectory, $"{ttmpName}.cfg");
+            if (!File.Exists(modpackConfFile))
+            {
+                foreach (SimpleModPackEntries entry in ttmpDataList)
+                    desiredModImports.Add(new ModpackImportConfigEntry(entry));
+                File.WriteAllText(modpackConfFile, JsonConvert.SerializeObject(desiredModImports, Formatting.Indented));
+                PrintMessage($"{modpackConfFile} created. Edit the file and run this command again to import the desired mods from the modpack", 1);
+                return null;
+            }
+            desiredModImports = JsonConvert.DeserializeObject<List<ModpackImportConfigEntry>>(File.ReadAllText(modpackConfFile));
+            List<SimpleModPackEntries> undesiredModImports = new List<SimpleModPackEntries>();
+            if (desiredModImports.Count != ttmpDataList.Count)
+                PrintMessage("The config file doesn't seem to contain the same mods as the modpack. Please delete the file if you want to generate an up-to-date version.", 3);
+            foreach (ModpackImportConfigEntry modToCheck in desiredModImports)
+            {
+                if (!modToCheck.import)
+                {
+                    foreach (SimpleModPackEntries entry in ttmpDataList)
+                    {
+                        if (entry.JsonEntry.FullPath == modToCheck.file)
+                        {
+                            undesiredModImports.Add(entry);
+                            break;
+                        }
+                    }
+                }
+            }
+            return undesiredModImports;
+        }
+
+        public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<SimpleModPackEntries> ttmpDataList)
+        {
+            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
+            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
+                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
+            bool alreadyExists = false;
+            int modIndex = 0;
+            foreach (SimpleModPackEntries entry in ttmpDataList)
+            {
+                foreach (ModActiveStatus modState in modActiveStates)
+                {
+                    if (entry.JsonEntry.FullPath == modState.file)
+                    {
+                        modIndex = modActiveStates.IndexOf(modState);
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+                if (!alreadyExists)
+                    modActiveStates.Add(new ModActiveStatus(entry));
+                else
+                    modActiveStates[modIndex] = new ModActiveStatus(entry);
+            }
+            return modActiveStates;
         }
 
         void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
@@ -1066,7 +1220,7 @@ namespace FFXIV_Modding_Tool
         static void Main(string[] args)
         {
             _projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
-            Config config = new Config(_projectconfDirectory);
+            Config config = new Config();
             Arguments arguments = new Arguments();
             config.ReadConfig();
             arguments.ArgumentHandler(args);

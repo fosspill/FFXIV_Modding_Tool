@@ -6,12 +6,7 @@ namespace FFXIV_Modding_Tool.Configuration
 {
     public class Config
     {
-        public DirectoryInfo _projectconfDirectory;
-
-        public Config(DirectoryInfo projectconfDirectory)
-        {
-            _projectconfDirectory = projectconfDirectory;
-        }
+        public DirectoryInfo _projectconfDirectory = MainClass._projectconfDirectory;
 
         public void ReadConfig()
         {
