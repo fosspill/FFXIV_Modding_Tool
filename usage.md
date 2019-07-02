@@ -7,6 +7,7 @@ Usage: FFMT.exe [action] {arguments}
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
+  modpack info, mpinfo     Show info about a modpack, requires a .ttmp(2) to be specified
   mods list, ml            List all currently installed mods
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
@@ -21,7 +22,7 @@ Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
-  -t, --ttmp               Full path to .ttmp(2) file (mods import only)
+  -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
 
 ```
