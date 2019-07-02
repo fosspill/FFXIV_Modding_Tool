@@ -457,7 +457,9 @@ namespace FFXIV_Modding_Tool
                 if (int.TryParse(answer, out wantedIndex))
                 {
                     if (wantedIndex < totalChoices)
-                        desiredIndexes.Add(wantedIndex);
+                        if (!desiredIndexes.Contains(wantedIdex)){
+                            desiredIndexes.Add(wantedIndex);
+                        }
                     else
                         PrintMessage($"There are only {totalChoices} choices, not {wantedIndex + 1}", 2);
                 }
