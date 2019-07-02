@@ -231,50 +231,19 @@ namespace FFXIV_Modding_Tool
                             foreach (var choice in option.OptionList)
                                 choices.Add($"    {option.OptionList.IndexOf(choice)} - {choice.Name}\n\t{choice.Description}");
                             PrintMessage(string.Join("\n", choices));
+                            int maxChoices = option.OptionList.Count;
                             if (option.SelectionType == "Multi")
                             {
                                 Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
-                                string answers = Console.ReadLine();
-                                string[] answersArray = answers.Split();
-                                foreach (string answer in answersArray)
-                                {
-                                    if (answer == "*")
-                                    {
-                                        foreach (var choice in option.OptionList)
-                                            modpackData.AddRange(choice.ModsJsons);
-                                        break;
-                                    }
-                                    if (answer.Contains("-"))
-                                    {
-                                        string[] targets = answer.Split('-');
-                                        for (int i = Convert.ToInt32(targets[0]); i <= Convert.ToInt32(targets[1]); i++)
-                                            modpackData.AddRange(option.OptionList[i].ModsJsons);
-                                        continue;
-                                    }
-                                    int wantedIndex;
-                                    if (int.TryParse(answer, out wantedIndex))
-                                    {
-                                        if (wantedIndex < option.OptionList.Count)
-                                            modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
-                                    }
-                                    else
-                                        PrintMessage($"{answer} is not a valid choice", 2);
-                                }
+                                List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices);
+                                foreach (int index in wantedIndexes)
+                                    modpackData.AddRange(option.OptionList[index].ModsJsons);
                             }
                             if (option.SelectionType == "Single")
                             {
                                 Console.Write("Choose one (eg: 0 1 2 3): ");
-                                string answer = Console.ReadLine();
-                                int wantedIndex;
-                                if (int.TryParse(answer, out wantedIndex))
-                                {
-                                    if (wantedIndex < option.OptionList.Count)
-                                        modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
-                                    else
-                                        PrintMessage($"There are only {option.OptionList.Count} choices, not {wantedIndex + 1}", 2);
-                                }
-                                else
-                                    PrintMessage($"{answer} is not a valid choice", 2);
+                                int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices)[0];
+                                modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
                             }
                         }
                     }
@@ -458,6 +427,44 @@ namespace FFXIV_Modding_Tool
             ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
             File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
             PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
+        }
+
+        List<int> WizardUserInputValidation(string input, int totalChoices)
+        {
+            List<int> desiredIndexes = new List<int>();
+            string[] answers = input.Split();
+            foreach (string answer in answers)
+            {
+                if (answer == "*")
+                {
+                    desiredIndexes = Enumerable.Range(0, totalChoices).ToList();
+                    break;
+                }
+                if (answer.Contains("-"))
+                {
+                    try
+                    {
+                        int[] targets = answer.Split('-').Select(int.Parse).ToArray();
+                        desiredIndexes.AddRange(Enumerable.Range(targets[0], targets[1] - targets[0] + 1));
+                    }
+                    catch
+                    {
+                        PrintMessage($"{answer} is not a valid range of choices", 2);
+                    }
+                    continue;
+                }
+                int wantedIndex;
+                if (int.TryParse(answer, out wantedIndex))
+                {
+                    if (wantedIndex < totalChoices)
+                        desiredIndexes.Add(wantedIndex);
+                    else
+                        PrintMessage($"There are only {totalChoices} choices, not {wantedIndex + 1}", 2);
+                }
+                else
+                    PrintMessage($"{answer} is not a valid choice", 2);
+            }
+            return desiredIndexes;
         }
 
         void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
