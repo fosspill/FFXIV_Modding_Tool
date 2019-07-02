@@ -92,24 +92,64 @@ Depending on the chosen step before patching, you now either:
 <summary>
   <b>Importing a modpack 👈</b>
 </summary>
+  
+There are two main types of modpacks: Simple and Wizard.
 
+Simple requires no user interaction, but you can customize your import if you'd like.
+Wizard does require user interaction.
+
+#### Find the type
+
+Firstly, figure out what kind of modpack this is:
+
+```
+> ./FFMT-LINUX mpinfo -t /path/to/modpack.ttmp2
+Type: Simple
+Author: 80cent
+Version: 1.1
+Description: N/A
+Number of mods: 9001
+```
+
+#### Importing
 
 Importing a full modpack
 ```
 > ./FFMT-LINUX mpi -t /path/to/modpack.ttmp2
 ```
-Selectively importing mods from a modpack
+#### Simple Modpack Custom Import
+
+Selectively importing mods from a simple modpack
 ```
 > ./FFMT-LINUX mpi -t /path/to/modpack.ttmp2 --custom
 > nano ~/.config/FFMT/ModPacks/modpack.cfg
 > ./FFMT-LINUX mpi -t /path/to/modpack.ttmp2 --custom
 ```
 
+#### Wizard Modpack import
+
+Follow the on-screen prompts. Example:
+```
+Choices:
+    1 - Gryffindor
+         Description
+    2 - Slytherin
+         Description
+    3 - Ravenclaw
+         Description
+    4 - HuFflEpuFf
+         Description
+         
+  Choose one or multiple (eg: 1 2 3, 0-3, *)
+  > 1-3
+```
+
+- Choices are separated by spaces.
+- \* selects all.
+- Ranges can be combined (eg: 1-3 5-6, to skip choice 4)
+
+
 </details>
-
-
-
-
 
 <details>
 <summary>
