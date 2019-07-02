@@ -26,7 +26,7 @@ List is sorted by priority
 
 ## How to Install, Build and Use:
 
-http://fosspill.github.io/FFXIV_Modding_Tool
+https://ffmt.pwd.cat
 
 
 
