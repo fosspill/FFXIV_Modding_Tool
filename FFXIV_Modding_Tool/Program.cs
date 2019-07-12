@@ -456,7 +456,7 @@ namespace FFXIV_Modding_Tool
                     PrintMessage("Mods:");
                     List<string> mods = new List<string>();
                     foreach (var item in items)
-                        mods.Add($"    {items.IndexOf(item)} - {item.Name}");
+                        mods.Add($"    {items.IndexOf(item)} - {item.Name}, {item.Map}, {item.Race}");
                     PrintMessage(string.Join("\n", mods));
                     Console.Write("Choose mods you wish to import (eg: 1 2 3, 0-3, *): ");
                     List<int> wantedMods = WizardUserInputValidation(Console.ReadLine(), items.Count);
