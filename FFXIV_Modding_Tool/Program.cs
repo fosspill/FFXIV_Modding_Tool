@@ -465,6 +465,9 @@ namespace FFXIV_Modding_Tool
             for (int i = 0; i < ttmpDataList.Count; i = i + 50)
             {
                 var items = ttmpDataList.Skip(i).Take(50).ToList();
+                if (ttmpDataList.Count > 50)
+                    PrintMessage($"{i}-{items.Count} ({ttmpDataList.Count} total)");
+                PrintMessage("Mods:");
                 List<string> choices = new List<string>();
                 foreach (var item in items)
                     choices.Add($"    {items.IndexOf(item)} - {item.Name}");
