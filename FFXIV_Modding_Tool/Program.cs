@@ -314,24 +314,7 @@ namespace FFXIV_Modding_Tool
                 });
             }
             if (!useWizard && !importAll)
-            {
-                bool userPicked = false;
-                while (!userPicked)
-                {
-                    PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
-                    string answer = Console.ReadKey().KeyChar.ToString();
-                    if (answer == "y")
-                    {
-                        useWizard = true;
-                        userPicked = true;
-                    }
-                    else if (answer == "n")
-                    {
-                        importAll = true;
-                        userPicked = true;
-                    }
-                }
-            }
+                useWizard = PromptWizardUsage();
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
@@ -381,24 +364,7 @@ namespace FFXIV_Modding_Tool
                 });
             }
             if (!useWizard && !importAll)
-            {
-                bool userPicked = false;
-                while (!userPicked)
-                {
-                    PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
-                    string answer = Console.ReadKey().KeyChar.ToString();
-                    if (answer == "y")
-                    {
-                        useWizard = true;
-                        userPicked = true;
-                    }
-                    else if (answer == "n")
-                    {
-                        importAll = true;
-                        userPicked = true;
-                    }
-                }
-            }
+                useWizard = PromptWizardUsage();
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
@@ -425,6 +391,28 @@ namespace FFXIV_Modding_Tool
                 }
             }
             return originalModPackData;
+        }
+
+        bool PromptWizardUsage()
+        {
+            bool userPicked = false;
+            bool answer = false;
+            while (!userPicked)
+            {
+                PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
+                string reply = Console.ReadKey().KeyChar.ToString();
+                if (reply == "y")
+                {
+                    answer = true;
+                    userPicked = true;
+                }
+                else if (reply == "n")
+                {
+                    answer = false;
+                    userPicked = true;
+                }
+            }
+            return answer;
         }
 
         List<ModsJson> WizardDataHandler(ModPackJson ttmpData)
