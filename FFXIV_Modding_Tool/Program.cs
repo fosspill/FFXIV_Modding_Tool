@@ -467,12 +467,28 @@ namespace FFXIV_Modding_Tool
                 var items = ttmpDataList.Skip(i).Take(50).ToList();
                 if (ttmpDataList.Count > 50)
                     PrintMessage($"{i}-{items.Count} ({ttmpDataList.Count} total)");
-                PrintMessage("Mods:");
-                List<string> choices = new List<string>();
-                foreach (var item in items)
-                    choices.Add($"    {items.IndexOf(item)} - {item.Name}");
-                PrintMessage(string.Join("\n", choices));
-
+                bool userDone = false;
+                while (!userDone)
+                {
+                    PrintMessage("Mods:");
+                    List<string> mods = new List<string>();
+                    foreach (var item in items)
+                        mods.Add($"    {items.IndexOf(item)} - {item.Name}");
+                    PrintMessage(string.Join("\n", mods));
+                    Console.Write("Choose mods you wish to import (eg: 1 2 3, 0-3, *): ");
+                    List<int> wantedMods = WizardUserInputValidation(Console.ReadLine(), items.Count);
+                    List<string> pickedMods = new List<string>();
+                    foreach (int index in wantedMods)
+                        pickedMods.Add(mods[index]);
+                    Console.Write($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct? Y/n ");
+                    string answer = Console.ReadKey().KeyChar.ToString();
+                    if (answer == "y" || answer == "\n")
+                    {
+                        foreach (int index in wantedMods)
+                            desiredMods.Add(items[index]);
+                        userDone = true;
+                    }
+                }
             }
             return desiredMods;
         }
