@@ -194,7 +194,7 @@ namespace FFXIV_Modding_Tool
         }
 
         #region Importing Functions
-        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool customImport, bool skipProblemCheck)
+        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool useWizard, bool importAll, bool skipProblemCheck)
         {
             var importError = false;
             try
@@ -220,10 +220,10 @@ namespace FFXIV_Modding_Tool
                     {
                         var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
                         ttmpData.Wait();
-                        ModpackDataHandler(ttmpPath, ttmpData.Result.ModPackJson, customImport);
+                        ModpackDataHandler(ttmpPath, ttmpData.Result.ModPackJson, useWizard, importAll);
                     }
                     else
-                        ModpackDataHandler(ttmpPath, null, customImport);
+                        ModpackDataHandler(ttmpPath, null, useWizard, importAll);
                 }
                 catch
                 {
@@ -235,7 +235,7 @@ namespace FFXIV_Modding_Tool
                 if (!importError)
                 {
                     PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
-                    ModpackDataHandler(ttmpPath, null, customImport);
+                    ModpackDataHandler(ttmpPath, null, useWizard, importAll);
                 }
                 else
                 {
@@ -248,7 +248,7 @@ namespace FFXIV_Modding_Tool
             return;
         }
 
-        void ModpackDataHandler(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool customImport)
+        void ModpackDataHandler(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
@@ -261,11 +261,10 @@ namespace FFXIV_Modding_Tool
                 if (ttmpData.TTMPVersion.Contains("w"))
                 {
                     PrintMessage("Starting wizard...");
-                    customImport = false;
-                    ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData);
+                    ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData, false, true);
                 }
                 else
-                    ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData);
+                    ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData, useWizard, importAll);
             }
             else
             {
@@ -276,14 +275,6 @@ namespace FFXIV_Modding_Tool
             PrintMessage("Data extraction successfull.");
             int originalModCount = ttmpDataList.Count;
             string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-            if (customImport)
-            {
-                var undesiredModImports = CheckCustomModpackImport(ttmpName, ttmpDataList);
-                if (undesiredModImports == null)
-                    return;
-                foreach (SimpleModPackEntries entry in undesiredModImports)
-                    ttmpDataList.Remove(entry);
-            }
             List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList);
             PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
             ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
@@ -291,7 +282,7 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
         }
 
-        List<SimpleModPackEntries> TTMP2DataList(List<ModsJson> modsJsons, ModPackJson ttmpData)
+        List<SimpleModPackEntries> TTMP2DataList(List<ModsJson> modsJsons, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
             List <SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             foreach (var modsJson in modsJsons)
@@ -322,6 +313,28 @@ namespace FFXIV_Modding_Tool
                     JsonEntry = modsJson,
                 });
             }
+            if (!useWizard && !importAll)
+            {
+                PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
+                bool userPicked = false;
+                while (!userPicked)
+                {
+                    PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
+                    string answer = Console.ReadKey().KeyChar.ToString();
+                    if (answer == "y")
+                    {
+                        useWizard = true;
+                        userPicked = true;
+                    }
+                    else if (answer == "n")
+                    {
+                        importAll = true;
+                        userPicked = true;
+                    }
+                }
+            }
+            if (useWizard)
+                return SimpleDataHandler(ttmpDataList);
             return ttmpDataList;
         }
 
@@ -446,6 +459,21 @@ namespace FFXIV_Modding_Tool
             return modpackData;
         }
 
+        List<SimpleModPackEntries> SimpleDataHandler(List<SimpleModPackEntries> ttmpDataList)
+        {
+            List<SimpleModPackEntries> desiredMods = new List<SimpleModPackEntries>();
+            for (int i = 0; i < ttmpDataList.Count; i = i + 50)
+            {
+                var items = ttmpDataList.Skip(i).Take(50).ToList();
+                List<string> choices = new List<string>();
+                foreach (var item in items)
+                    choices.Add($"    {items.IndexOf(item)} - {item.Name}");
+                PrintMessage(string.Join("\n", choices));
+
+            }
+            return desiredMods;
+        }
+
         List<int> WizardUserInputValidation(string input, int totalChoices)
         {
             List<int> desiredIndexes = new List<int>();
@@ -485,42 +513,6 @@ namespace FFXIV_Modding_Tool
                     PrintMessage($"{answer} is not a valid choice", 2);
             }
             return desiredIndexes;
-        }
-
-        public List<SimpleModPackEntries> CheckCustomModpackImport(string ttmpName, List<SimpleModPackEntries> ttmpDataList)
-        {
-            string modpackConfDirectory = Path.Combine(_projectconfDirectory.FullName, "ModPacks");
-            List<ModpackImportConfigEntry> desiredModImports = new List<ModpackImportConfigEntry>();
-            if (!Directory.Exists(modpackConfDirectory))
-                Directory.CreateDirectory(modpackConfDirectory);
-            string modpackConfFile = Path.Combine(modpackConfDirectory, $"{ttmpName}.cfg");
-            if (!File.Exists(modpackConfFile))
-            {
-                foreach (SimpleModPackEntries entry in ttmpDataList)
-                    desiredModImports.Add(new ModpackImportConfigEntry(entry));
-                File.WriteAllText(modpackConfFile, JsonConvert.SerializeObject(desiredModImports, Formatting.Indented));
-                PrintMessage($"{modpackConfFile} created. Edit the file and run this command again to import the desired mods from the modpack", 1);
-                return null;
-            }
-            desiredModImports = JsonConvert.DeserializeObject<List<ModpackImportConfigEntry>>(File.ReadAllText(modpackConfFile));
-            List<SimpleModPackEntries> undesiredModImports = new List<SimpleModPackEntries>();
-            if (desiredModImports.Count != ttmpDataList.Count)
-                PrintMessage("The config file doesn't seem to contain the same mods as the modpack. Please delete the file if you want to generate an up-to-date version.", 3);
-            foreach (ModpackImportConfigEntry modToCheck in desiredModImports)
-            {
-                if (!modToCheck.import)
-                {
-                    foreach (SimpleModPackEntries entry in ttmpDataList)
-                    {
-                        if (entry.JsonEntry.FullPath == modToCheck.file)
-                        {
-                            undesiredModImports.Add(entry);
-                            break;
-                        }
-                    }
-                }
-            }
-            return undesiredModImports;
         }
 
         public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<SimpleModPackEntries> ttmpDataList)
