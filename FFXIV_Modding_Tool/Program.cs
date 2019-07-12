@@ -44,28 +44,6 @@ namespace FFXIV_Modding_Tool
         public static DirectoryInfo _modpackDirectory;
         public static DirectoryInfo _projectconfDirectory;
 
-        public class ModpackImportConfigEntry
-        {
-            public string name { get; set; }
-            public string map { get; set; }
-            public string part { get; set; }
-            public string race { get; set; }
-            public string file { get; set; }
-            public bool import { get; set; }
-
-            public ModpackImportConfigEntry() { }
-
-            public ModpackImportConfigEntry(SimpleModPackEntries entry)
-            {
-                name = entry.Name;
-                map = entry.Map;
-                part = entry.Part;
-                race = entry.Race;
-                file = entry.JsonEntry.FullPath;
-                import = true;
-            }
-        }
-
         public class ModActiveStatus
         {
             public string modpack { get; set; }
@@ -88,19 +66,7 @@ namespace FFXIV_Modding_Tool
                 file = entry.JsonEntry.FullPath;
                 enabled = true;
             }
-
-            public ModActiveStatus(string ttmpName, ModpackImportConfigEntry entry)
-            {
-                modpack = ttmpName;
-                name = entry.name;
-                map = entry.map;
-                part = entry.part;
-                race = entry.race;
-                file = entry.file;
-                enabled = true;
-            }
         }
-        public ModpackImportConfigEntry modpackImportConfigEntry;
         public ModActiveStatus modpackActiveStatus;
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
