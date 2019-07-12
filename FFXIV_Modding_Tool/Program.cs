@@ -483,7 +483,7 @@ namespace FFXIV_Modding_Tool
             {
                 var items = ttmpDataList.Skip(i).Take(50).ToList();
                 if (ttmpDataList.Count > 50)
-                    PrintMessage($"{i}-{items.Count} ({ttmpDataList.Count} total)");
+                    PrintMessage($"{i}-{i + items.Count} ({ttmpDataList.Count} total)");
                 bool userDone = false;
                 while (!userDone)
                 {
