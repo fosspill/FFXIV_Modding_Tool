@@ -36,10 +36,12 @@ Available arguments:
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
-  -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
+  -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
+  -a, --all                Import all mods in a modpack immediately (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack";
             string ttmpPath = "";
-            bool customImport = false;
+            bool useWizard = false;
+            bool importAll = false;
             bool skipProblemCheck = false;
             if (args.Length == 0)
             {
@@ -80,9 +82,13 @@ Available arguments:
                             if (!nextArg.StartsWith("-"))
                                 ttmpPath = nextArg;
                             continue;
-                        case "C":
-                        case "custom":
-                            customImport = true;
+                        case "w":
+                        case "wizard":
+                            useWizard = true;
+                            continue;
+                        case "a":
+                        case "all":
+                            importAll = true;
                             continue;
                         case "npc":
                         case "noproblemcheck":
@@ -111,7 +117,15 @@ Available arguments:
                     if (PreviouslyModifiedGame())
                         return;
                     if (MainClass._gameDirectory != null)
-                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport, skipProblemCheck);
+                    {
+                        if (useWizard && importAll)
+                        {
+                            main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
+                            useWizard = false;
+                            importAll = false;
+                        }
+                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck);
+                    }
                     else
                         main.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
                     break;
