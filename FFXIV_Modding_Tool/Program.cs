@@ -315,7 +315,6 @@ namespace FFXIV_Modding_Tool
             }
             if (!useWizard && !importAll)
             {
-                PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
                 bool userPicked = false;
                 while (!userPicked)
                 {
@@ -334,7 +333,10 @@ namespace FFXIV_Modding_Tool
                 }
             }
             if (useWizard)
+            {
+                PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
                 return SimpleDataHandler(ttmpDataList);
+            }
             return ttmpDataList;
         }
 
@@ -380,7 +382,6 @@ namespace FFXIV_Modding_Tool
             }
             if (!useWizard && !importAll)
             {
-                PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
                 bool userPicked = false;
                 while (!userPicked)
                 {
@@ -399,7 +400,10 @@ namespace FFXIV_Modding_Tool
                 }
             }
             if (useWizard)
+            {
+                PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
                 return SimpleDataHandler(ttmpDataList);
+            }
             return ttmpDataList;
         }
 
