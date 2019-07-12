@@ -269,7 +269,7 @@ namespace FFXIV_Modding_Tool
             else
             {
                 ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-                ttmpDataList = TTMPDataList(ttmpPath);
+                ttmpDataList = TTMPDataList(ttmpPath, useWizard, importAll);
             }
             ttmpDataList.Sort();
             PrintMessage("Data extraction successfull.");
@@ -338,10 +338,11 @@ namespace FFXIV_Modding_Tool
             return ttmpDataList;
         }
 
-        List<SimpleModPackEntries> TTMPDataList(DirectoryInfo ttmpPath)
+        List<SimpleModPackEntries> TTMPDataList(DirectoryInfo ttmpPath, bool useWizard, bool importAll)
         {
             List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
             var originalModPackData = GetOldModpackJson(ttmpPath);
+            string ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
 
             foreach (var modsJson in originalModPackData)
             {
@@ -373,10 +374,32 @@ namespace FFXIV_Modding_Tool
                         DatFile = modsJson.DatFile,
                         ModOffset = modsJson.ModOffset,
                         ModSize = modsJson.ModSize,
-                        ModPackEntry = new ModPack { name = Path.GetFileNameWithoutExtension(ttmpPath.FullName), author = "N/A", version = "1.0.0" }
+                        ModPackEntry = new ModPack { name = ttmpName, author = "N/A", version = "1.0.0" }
                     }
                 });
             }
+            if (!useWizard && !importAll)
+            {
+                PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
+                bool userPicked = false;
+                while (!userPicked)
+                {
+                    PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
+                    string answer = Console.ReadKey().KeyChar.ToString();
+                    if (answer == "y")
+                    {
+                        useWizard = true;
+                        userPicked = true;
+                    }
+                    else if (answer == "n")
+                    {
+                        importAll = true;
+                        userPicked = true;
+                    }
+                }
+            }
+            if (useWizard)
+                return SimpleDataHandler(ttmpDataList);
             return ttmpDataList;
         }
 
