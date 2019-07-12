@@ -471,6 +471,7 @@ namespace FFXIV_Modding_Tool
                             desiredMods.Add(items[index]);
                         userDone = true;
                     }
+                    Console.Write("\n");
                 }
             }
             return desiredMods;
