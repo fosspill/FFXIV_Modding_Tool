@@ -314,7 +314,7 @@ namespace FFXIV_Modding_Tool
                 });
             }
             if (!useWizard && !importAll)
-                useWizard = PromptWizardUsage();
+                useWizard = PromptWizardUsage(ttmpDataList.Count);
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
@@ -364,7 +364,7 @@ namespace FFXIV_Modding_Tool
                 });
             }
             if (!useWizard && !importAll)
-                useWizard = PromptWizardUsage();
+                useWizard = PromptWizardUsage(ttmpDataList.Count);
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
@@ -393,8 +393,10 @@ namespace FFXIV_Modding_Tool
             return originalModPackData;
         }
 
-        bool PromptWizardUsage()
+        bool PromptWizardUsage(int modCount)
         {
+            if (modCount > 250)
+                PrintMessage($"This modpack contains {modCount} mods, using the wizard could be a tedious process", 3);
             bool userPicked = false;
             bool answer = false;
             while (!userPicked)
