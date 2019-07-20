@@ -23,6 +23,7 @@ List is sorted by priority
 - [ ] [Export specific textures / models](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/6)
 - [x] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
 - [ ] [ModPack creation](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/8)
+- [ ] [TexTools interchangeability](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/67)
 
 ## How to Install, Build and Use:
 
