@@ -8,7 +8,7 @@ namespace FFXIV_Modding_Tool.Configuration
     {
         public DirectoryInfo _projectconfDirectory = MainClass._projectconfDirectory;
 
-        public void ReadConfig()
+        public bool ReadConfig()
         {
             MainClass main = new MainClass();
             if (!Directory.Exists(_projectconfDirectory.FullName))
@@ -48,17 +48,37 @@ ConfigDirectory",
             {
                 MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
                 MainClass._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
+                if (!MainClass._indexDirectory.Exists || MainClass._indexDirectory.GetFiles("*.index").Length == 0)
+                {
+                    main.PrintMessage($"{gameDirectory} is not a valid game directory", 2);
+                    return false;
+                }
             }
             else
                 main.PrintMessage("No game install directory saved", 3);
             if (!string.IsNullOrEmpty(backupDirectory))
+            {
                 MainClass._backupDirectory = new DirectoryInfo(backupDirectory);
+                if (!MainClass._backupDirectory.Exists)
+                {
+                    main.PrintMessage($"{backupDirectory} does not exist", 2);
+                    return false;
+                }
+            }
             else
                 main.PrintMessage("No index backup directory saved", 3);
             if (!string.IsNullOrEmpty(configDirectory))
+            {
                 MainClass._configDirectory = new DirectoryInfo(configDirectory);
+                if (!MainClass._configDirectory.Exists || MainClass._configDirectory.GetFiles("FFXIV*.cfg").Length == 0)
+                {
+                    main.PrintMessage($"{configDirectory} is not a valid game config directory", 2);
+                    return false;
+                }
+            }
             else
                 main.PrintMessage("No game config directory saved", 3);
+            return true;
         }
     }
 }
