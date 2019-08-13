@@ -46,34 +46,43 @@ ConfigDirectory",
             string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
             if (!string.IsNullOrEmpty(gameDirectory))
             {
-                MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
-                MainClass._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
-                if (!MainClass._indexDirectory.Exists || MainClass._indexDirectory.GetFiles("*.index").Length == 0)
+                if (MainClass._gameDirectory == null)
                 {
-                    main.PrintMessage($"{gameDirectory} is not a valid game directory", 2);
-                    return false;
+                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
+                    MainClass._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
+                    if (!MainClass._indexDirectory.Exists || MainClass._indexDirectory.GetFiles("*.index").Length == 0)
+                    {
+                        main.PrintMessage($"{gameDirectory} is not a valid game directory", 2);
+                        return false;
+                    }
                 }
             }
             else
                 main.PrintMessage("No game install directory saved", 3);
             if (!string.IsNullOrEmpty(backupDirectory))
             {
-                MainClass._backupDirectory = new DirectoryInfo(backupDirectory);
-                if (!MainClass._backupDirectory.Exists)
+                if (MainClass._backupDirectory == null)
                 {
-                    main.PrintMessage($"{backupDirectory} does not exist", 2);
-                    return false;
+                    MainClass._backupDirectory = new DirectoryInfo(backupDirectory);
+                    if (!MainClass._backupDirectory.Exists)
+                    {
+                        main.PrintMessage($"{backupDirectory} does not exist", 2);
+                        return false;
+                    }
                 }
             }
             else
                 main.PrintMessage("No index backup directory saved", 3);
             if (!string.IsNullOrEmpty(configDirectory))
             {
-                MainClass._configDirectory = new DirectoryInfo(configDirectory);
-                if (!MainClass._configDirectory.Exists || MainClass._configDirectory.GetFiles("FFXIV*.cfg").Length == 0)
+                if (MainClass._configDirectory == null)
                 {
-                    main.PrintMessage($"{configDirectory} is not a valid game config directory", 2);
-                    return false;
+                    MainClass._configDirectory = new DirectoryInfo(configDirectory);
+                    if (!MainClass._configDirectory.Exists || MainClass._configDirectory.GetFiles("FFXIV*.cfg").Length == 0)
+                    {
+                        main.PrintMessage($"{configDirectory} is not a valid game config directory", 2);
+                        return false;
+                    }
                 }
             }
             else
