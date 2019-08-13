@@ -41,7 +41,6 @@ Available arguments:
 
         public void ArgumentHandler(string[] args)
         {
-
             if (args.Length == 0)
             {
                 main.PrintMessage(helpText);
