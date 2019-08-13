@@ -66,7 +66,7 @@ Available arguments:
                                 MainClass._indexDirectory = new DirectoryInfo(Path.Combine(nextArg, "game", "sqpack", "ffxiv"));
                                 if (!main.ValidGameDirectory())
                                 {
-                                    main.PrintMessage($"{nextArg} is not a valid game directory. Falling back to config file", 3);
+                                    main.PrintMessage($"Invalid game directory: {nextArg}\nFalling back to config file", 3);
                                     MainClass._gameDirectory = null;
                                     MainClass._indexDirectory = null;
                                 }
@@ -79,7 +79,7 @@ Available arguments:
                                 MainClass._configDirectory = new DirectoryInfo(nextArg);
                                 if (!main.ValidGameConfigDirectory())
                                 {
-                                    main.PrintMessage($"{nextArg} is not a valid game config directory. Falling back to config file", 3);
+                                    main.PrintMessage($"Invalid game config directory: {nextArg}\nFalling back to config file", 3);
                                     MainClass._configDirectory = null;
                                 }
                             }
@@ -91,7 +91,7 @@ Available arguments:
                                 MainClass._backupDirectory = new DirectoryInfo(nextArg);
                                 if (!main.ValidBackupDirectory())
                                 {
-                                    main.PrintMessage($"{nextArg} does not exist. Falling back to config file", 3);
+                                    main.PrintMessage($"Directory does not exist: {nextArg}\nFalling back to config file", 3);
                                     MainClass._backupDirectory = null;
                                 }
                             }
