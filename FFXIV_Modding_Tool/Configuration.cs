@@ -19,13 +19,20 @@ namespace FFXIV_Modding_Tool.Configuration
 # All paths can be written with or without escaping
 
 # Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
+# Example locations:
+#   MacOS: /Users/<USER_NAME>/Library/Application Support/FINAL FANTASY XIV ONLINE/Bottles/published_Final_Fantasy/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
+#   Linux: /path/to/WINEBOTTLE/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
+#   Windows: C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn
 GameDirectory
 
 # Full path to directory with your index backups, this can be any directory where you wish to store your backups
 BackupDirectory
 
 # Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
-# This is usually located in 'My Documents/My Games', in your wine prefix if not on Windows
+# Example locations:
+#   MacOS: /Users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
+#   Linux: /path/to/WINEBOTTLE/drive_c/users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
+#   Windows: C:\users\<USER_NAME>\My Documents\My Games\FINAL FANTASY XIV - A Realm Reborn
 ConfigDirectory",
                 new ConfigParserSettings
                 {
