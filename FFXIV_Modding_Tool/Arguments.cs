@@ -64,17 +64,37 @@ Available arguments:
                             {
                                 MainClass._gameDirectory = new DirectoryInfo(Path.Combine(nextArg, "game"));
                                 MainClass._indexDirectory = new DirectoryInfo(Path.Combine(nextArg, "game", "sqpack", "ffxiv"));
+                                if (!main.ValidGameDirectory())
+                                {
+                                    main.PrintMessage($"{nextArg} is not a valid game directory. Falling back to config file", 3);
+                                    MainClass._gameDirectory = null;
+                                    MainClass._indexDirectory = null;
+                                }
                             }
                             continue;
                         case "c":
                         case "configdirectory":
                             if (!nextArg.StartsWith("-"))
+                            {
                                 MainClass._configDirectory = new DirectoryInfo(nextArg);
+                                if (!main.ValidGameConfigDirectory())
+                                {
+                                    main.PrintMessage($"{nextArg} is not a valid game config directory. Falling back to config file", 3);
+                                    MainClass._configDirectory = null;
+                                }
+                            }
                             continue;
                         case "b":
                         case "backupdirectory":
                             if (!nextArg.StartsWith("-"))
+                            {
                                 MainClass._backupDirectory = new DirectoryInfo(nextArg);
+                                if (!main.ValidBackupDirectory())
+                                {
+                                    main.PrintMessage($"{nextArg} does not exist. Falling back to config file", 3);
+                                    MainClass._backupDirectory = null;
+                                }
+                            }
                             continue;
                         case "t":
                         case "ttmp":
