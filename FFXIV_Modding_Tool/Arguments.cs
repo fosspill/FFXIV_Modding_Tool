@@ -14,10 +14,10 @@ namespace FFXIV_Modding_Tool.Commandline
     {
         public Arguments(){}
         MainClass main = new MainClass();
-
-        public void ArgumentHandler(string[] args)
-        {
-            string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
+        string ttmpPath = "";
+        bool customImport = false;
+        bool skipProblemCheck = false;
+        string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
@@ -38,9 +38,10 @@ Available arguments:
   -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack";
-            string ttmpPath = "";
-            bool customImport = false;
-            bool skipProblemCheck = false;
+
+        public void ArgumentHandler(string[] args)
+        {
+
             if (args.Length == 0)
             {
                 main.PrintMessage(helpText);
@@ -94,7 +95,10 @@ Available arguments:
                     }
                 }
             }
+        }
 
+        public void ActionHandler(string[] args)
+        { 
             string secondAction = "";
             if (args.Count() > 1)
                 secondAction = args[1];
