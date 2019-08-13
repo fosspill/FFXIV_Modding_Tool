@@ -130,6 +130,27 @@ namespace FFXIV_Modding_Tool
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        public bool ValidGameDirectory()
+        {
+            if (!_indexDirectory.Exists || _indexDirectory.GetFiles("*.index").Length == 0)
+                return false;
+            return true;
+        }
+
+        public bool ValidBackupDirectory()
+        {
+            if (!_backupDirectory.Exists)
+                return false;
+            return true;
+        }
+
+        public bool ValidGameConfigDirectory()
+        {
+            if (!_configDirectory.Exists || _configDirectory.GetFiles("FFXIV*.cfg").Length == 0)
+                return false;
+            return true;
+        }
+
         public void CheckVersions()
         {
             string ffxivVersion = "Not detected";

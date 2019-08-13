@@ -50,7 +50,7 @@ ConfigDirectory",
                 {
                     MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
                     MainClass._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
-                    if (!MainClass._indexDirectory.Exists || MainClass._indexDirectory.GetFiles("*.index").Length == 0)
+                    if (!main.ValidGameDirectory())
                     {
                         main.PrintMessage($"{gameDirectory} is not a valid game directory", 2);
                         return false;
@@ -64,7 +64,7 @@ ConfigDirectory",
                 if (MainClass._backupDirectory == null)
                 {
                     MainClass._backupDirectory = new DirectoryInfo(backupDirectory);
-                    if (!MainClass._backupDirectory.Exists)
+                    if (!main.ValidBackupDirectory())
                     {
                         main.PrintMessage($"{backupDirectory} does not exist", 2);
                         return false;
@@ -78,7 +78,7 @@ ConfigDirectory",
                 if (MainClass._configDirectory == null)
                 {
                     MainClass._configDirectory = new DirectoryInfo(configDirectory);
-                    if (!MainClass._configDirectory.Exists || MainClass._configDirectory.GetFiles("FFXIV*.cfg").Length == 0)
+                    if (!main.ValidGameConfigDirectory())
                     {
                         main.PrintMessage($"{configDirectory} is not a valid game config directory", 2);
                         return false;
