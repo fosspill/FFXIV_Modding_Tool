@@ -36,6 +36,13 @@ namespace FFXIV_Modding_Tool.Validation
             }
         }
 
+        public bool ValidateTTMPFile(string ttmpPath)
+        {
+            if (File.Exists(ttmpPath) && (ttmpPath.EndsWith(".ttmp") || ttmpPath.EndsWith(".ttmp2")))
+                return true;
+            return false;
+        }
+
         public bool ValidateBackups()
         {
             main.PrintMessage("Checking backups before proceeding...");
