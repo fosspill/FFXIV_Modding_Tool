@@ -74,7 +74,6 @@ namespace FFXIV_Modding_Tool
         */
         public void PrintMessage(string message, int importance = 0)
         {
-            Console.ForegroundColor = ConsoleColor.White;
             switch (importance)
             {
                 case 1:
@@ -93,7 +92,7 @@ namespace FFXIV_Modding_Tool
                     break;
             }
             Console.WriteLine(message);
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ResetColor();
         }
 
         public void CheckVersions()
