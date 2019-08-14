@@ -6,15 +6,12 @@ namespace FFXIV_Modding_Tool.Configuration
 {
     public class Config
     {
-        public DirectoryInfo _projectconfDirectory = MainClass._projectconfDirectory;
+        string configFile = Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg");
 
-        public bool ReadConfig()
+        public void CreateDefaultConfig()
         {
-            MainClass main = new MainClass();
-            if (!Directory.Exists(_projectconfDirectory.FullName))
-                Directory.CreateDirectory(_projectconfDirectory.FullName);
-            string configFile = Path.Combine(_projectconfDirectory.FullName, "config.cfg");
-            var configFileFromPath = new ConfigParser(configFile);
+            if (!Directory.Exists(MainClass._projectconfDirectory.FullName))
+                Directory.CreateDirectory(MainClass._projectconfDirectory.FullName);
             var configFileFromString = new ConfigParser(@"[Directories]
 # All paths can be written with or without escaping
 
@@ -39,8 +36,14 @@ ConfigDirectory",
                     MultiLineValues = MultiLineValues.Simple | MultiLineValues.AllowValuelessKeys | MultiLineValues.QuoteDelimitedValues,
                     Culture = new CultureInfo("en-US")
                 });
-            if (!File.Exists(configFile) || string.IsNullOrEmpty(File.ReadAllText(configFile)))
-                configFileFromString.Save(configFile);
+            configFileFromString.Save(configFile);
+        }
+
+        public bool ReadConfig()
+        {
+            MainClass main = new MainClass();
+            var configFileFromPath = new ConfigParser(configFile);
+
             string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
             string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
             string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
