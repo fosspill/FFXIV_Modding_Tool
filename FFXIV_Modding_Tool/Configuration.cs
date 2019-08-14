@@ -6,7 +6,7 @@ namespace FFXIV_Modding_Tool.Configuration
 {
     public class Config
     {
-        string configFile = Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg");
+        public static string configFile = Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg");
 
         public void CreateDefaultConfig()
         {
