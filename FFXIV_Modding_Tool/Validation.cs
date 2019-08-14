@@ -118,17 +118,19 @@ namespace FFXIV_Modding_Tool.Validation
                 {
                     var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath));
                     bool unsupportedSource = false;
+                    string unknownSource = "";
                     foreach (Mod mod in modData.Mods)
                     {
                         if (mod.source != "FFXIV_Modding_Tool")
                         {
+                            unknownSource = mod.source;
                             unsupportedSource = true;
                             break;
                         }
                     }
                     if (unsupportedSource)
                     {
-                        main.PrintMessage("Found a mod applied by an unknown application, game stability cannot be guaranteed", 3);
+                        main.PrintMessage($"Found a mod applied by an unknown application, game stability cannot be guaranteed: {unknownSource}", 3);
                         keepGoing = PromptContinuation();
                     }
                 }
