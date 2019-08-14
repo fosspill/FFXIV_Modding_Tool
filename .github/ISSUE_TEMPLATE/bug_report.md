@@ -20,7 +20,7 @@ A clear and concise description of what you expected to happen.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Linux]
- - FFXIV_TexTools_CLI Version: [e.g. v0.3]
+ - FFMT Version: [e.g. v0.3]
 
 **Additional context**
 Add any other context about the problem here.
