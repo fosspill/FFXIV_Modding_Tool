@@ -47,6 +47,14 @@ namespace FFXIV_Modding_Tool.Commandline
                     string arg = cmdArg.Split('-').Last();
                     switch (arg)
                     {
+                        case "h":
+                        case "help":
+                            requestedAction = "h";
+                            continue;
+                        case "v":
+                        case "version":
+                            requestedAction = "v";
+                            continue;
                         case "g":
                         case "gamedirectory":
                             if (!nextArg.StartsWith("-"))
