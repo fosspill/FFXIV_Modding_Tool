@@ -7,6 +7,7 @@ namespace FFXIV_Modding_Tool.Configuration
     public class Config
     {
         public static string configFile = Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg");
+        MainClass main = new MainClass();
 
         public void CreateDefaultConfig()
         {
@@ -37,11 +38,11 @@ ConfigDirectory",
                     Culture = new CultureInfo("en-US")
                 });
             configFileFromString.Save(configFile);
+            main.PrintMessage($"Config file saved to {configFile}", 1);
         }
 
         public string ReadConfig(string target)
         {
-            MainClass main = new MainClass();
             var configFileFromPath = new ConfigParser(configFile);
             string targetDirectory = configFileFromPath.GetValue("Directories", target);
             if (!string.IsNullOrEmpty(targetDirectory))
