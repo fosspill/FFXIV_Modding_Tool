@@ -271,6 +271,8 @@ namespace FFXIV_Modding_Tool.Commandline
                     SendHelpText();
                     break;
                 case "v":
+                    if (MainClass._gameDirectory == null)
+                        MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
                     main.CheckVersions();
                     break;
                 case "mpi":
