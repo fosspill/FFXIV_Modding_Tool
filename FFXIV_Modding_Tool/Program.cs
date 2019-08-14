@@ -367,7 +367,7 @@ namespace FFXIV_Modding_Tool
             while (!userPicked)
             {
                 PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
-                string reply = Console.ReadKey().KeyChar.ToString();
+                string reply = Console.ReadKey().KeyChar.ToString().ToLower();
                 if (reply == "y")
                 {
                     answer = true;

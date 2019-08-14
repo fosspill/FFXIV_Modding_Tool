@@ -139,7 +139,7 @@ namespace FFXIV_Modding_Tool.Validation
         bool PromptContinuation()
         {
             main.PrintMessage("Continue anyway? y/N");
-            string answer = Console.ReadKey().KeyChar.ToString();
+            string answer = Console.ReadKey().KeyChar.ToString().ToLower();
             if (answer == "y")
             {
                 Console.Write("\n");
