@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace FFXIV_Modding_Tool
+namespace FFXIV_Modding_Tool.Validation
 {
     public class Validation
     {
