@@ -48,7 +48,7 @@ ConfigDirectory",
             if (!string.IsNullOrEmpty(targetDirectory))
                 return targetDirectory;
             else
-                return null;
+                return "";
         }
     }
 }
