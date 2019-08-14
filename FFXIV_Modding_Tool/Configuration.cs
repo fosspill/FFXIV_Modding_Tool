@@ -39,58 +39,18 @@ ConfigDirectory",
             configFileFromString.Save(configFile);
         }
 
-        public bool ReadConfig()
+        public string ReadConfig(string target)
         {
             MainClass main = new MainClass();
             var configFileFromPath = new ConfigParser(configFile);
-
-            string gameDirectory = configFileFromPath.GetValue("Directories", "GameDirectory");
-            string backupDirectory = configFileFromPath.GetValue("Directories", "BackupDirectory");
-            string configDirectory = configFileFromPath.GetValue("Directories", "ConfigDirectory");
-            if (!string.IsNullOrEmpty(gameDirectory))
-            {
-                if (MainClass._gameDirectory == null)
-                {
-                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game"));
-                    MainClass._indexDirectory = new DirectoryInfo(Path.Combine(gameDirectory, "game", "sqpack", "ffxiv"));
-                    if (!main.ValidGameDirectory())
-                    {
-                        main.PrintMessage($"Invalid game directory: {gameDirectory}", 2);
-                        return false;
-                    }
-                }
-            }
+            string targetDirectory = configFileFromPath.GetValue("Directories", target);
+            if (!string.IsNullOrEmpty(targetDirectory))
+                return targetDirectory;
             else
-                main.PrintMessage("No game install directory saved", 3);
-            if (!string.IsNullOrEmpty(backupDirectory))
             {
-                if (MainClass._backupDirectory == null)
-                {
-                    MainClass._backupDirectory = new DirectoryInfo(backupDirectory);
-                    if (!main.ValidBackupDirectory())
-                    {
-                        main.PrintMessage($"Directory does not exist: {backupDirectory}", 2);
-                        return false;
-                    }
-                }
+                main.PrintMessage($"{target} is empty", 2);
+                return null;
             }
-            else
-                main.PrintMessage("No index backup directory saved", 3);
-            if (!string.IsNullOrEmpty(configDirectory))
-            {
-                if (MainClass._configDirectory == null)
-                {
-                    MainClass._configDirectory = new DirectoryInfo(configDirectory);
-                    if (!main.ValidGameConfigDirectory())
-                    {
-                        main.PrintMessage($"Invalid game config directory: {configDirectory}", 2);
-                        return false;
-                    }
-                }
-            }
-            else
-                main.PrintMessage("No game config directory saved", 3);
-            return true;
         }
     }
 }
