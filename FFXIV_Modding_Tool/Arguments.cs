@@ -303,7 +303,9 @@ Available arguments:
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
   -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
-  -npc, --noproblemcheck   Skip the problem check after importing a modpack";
+  -npc, --noproblemcheck   Skip the problem check after importing a modpack
+  -v, --version            Display current application and game version
+  -h, --help               Display this text";
             main.PrintMessage(helpText);
         }
     }
