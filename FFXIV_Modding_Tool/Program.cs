@@ -1223,8 +1223,6 @@ namespace FFXIV_Modding_Tool
             Config config = new Config();
             Arguments arguments = new Arguments();
             arguments.ArgumentHandler(args);
-            if (config.ReadConfig())
-                arguments.ActionHandler(args);
         }
     }
 }
