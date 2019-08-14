@@ -84,7 +84,7 @@ namespace FFXIV_Modding_Tool.Validation
                 keepGoing = PromptContinuation();
             else
                 main.PrintMessage("All backups present and up to date", 1);
-            return !keepGoing;
+            return keepGoing;
         }
 
         public bool ValidateIndexFiles()
@@ -133,7 +133,7 @@ namespace FFXIV_Modding_Tool.Validation
                     }
                 }
             }
-            return !keepGoing;
+            return keepGoing;
         }
 
         bool PromptContinuation()
