@@ -168,39 +168,21 @@ namespace FFXIV_Modding_Tool.Commandline
             List<string> requiresUpdatedBackups = new List<string> { "mpi", "mr", "me", "md", "r" };
             List<string> requiresValidIndexes = new List<string> { "mpi", "b" };
             List<string> requiresTTMPFile = new List<string> { "mpi", "mpinfo" };
+
             if (requiresGameDirectory.Contains(requestedAction))
             {
-                if (MainClass._indexDirectory == null)
-                {
-                    string configGameDirectory = config.ReadConfig("GameDirectory");
-                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(configGameDirectory, "game"));
-                    MainClass._indexDirectory = new DirectoryInfo(Path.Combine(configGameDirectory, "game", "sqpack", "ffxiv"));
-                }
-                if (MainClass._indexDirectory == null || !validation.ValidateDirectory(MainClass._indexDirectory, "GameDirectory"))
-                {
-                    main.PrintMessage("Invalid game directory", 2);
+                if (!CheckGameDirectory())
                     return false;
-                }
             }
             if (requiresBackupDirectory.Contains(requestedAction))
             {
-                if (MainClass._backupDirectory == null)
-                    MainClass._backupDirectory = new DirectoryInfo(config.ReadConfig("BackupDirectory"));
-                if (MainClass._backupDirectory == null || !validation.ValidateDirectory(MainClass._backupDirectory, "BackupDirectory"))
-                {
-                    main.PrintMessage("Invalid backup directory", 2);
+                if (!CheckBackupDirectory())
                     return false;
-                }
             }
             if (requiresConfigDirectory.Contains(requestedAction))
             {
-                if (MainClass._configDirectory == null)
-                    MainClass._configDirectory = new DirectoryInfo(config.ReadConfig("ConfigDirectory"));
-                if (MainClass._configDirectory == null || !validation.ValidateDirectory(MainClass._configDirectory, "ConfigDirectory"))
-                {
-                    main.PrintMessage("Invalid game config directory", 2);
+                if (!CheckConfigDirectory())
                     return false;
-                }
             }
             if (requiresUpdatedBackups.Contains(requestedAction))
             {
@@ -214,16 +196,63 @@ namespace FFXIV_Modding_Tool.Commandline
             }
             if (requiresTTMPFile.Contains(requestedAction))
             {
-                if (string.IsNullOrEmpty(ttmpPath))
-                {
-                    main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
+                if (!CheckTTMPFile())
                     return false;
-                }
-                if (!validation.ValidateTTMPFile(ttmpPath))
-                {
-                    main.PrintMessage("Invalid ttmp file", 2);
-                    return false;
-                }
+            }
+            return true;
+        }
+
+        bool CheckGameDirectory()
+        {
+            if (MainClass._indexDirectory == null)
+            {
+                string configGameDirectory = config.ReadConfig("GameDirectory");
+                MainClass._gameDirectory = new DirectoryInfo(Path.Combine(configGameDirectory, "game"));
+                MainClass._indexDirectory = new DirectoryInfo(Path.Combine(configGameDirectory, "game", "sqpack", "ffxiv"));
+            }
+            if (MainClass._indexDirectory == null || !validation.ValidateDirectory(MainClass._indexDirectory, "GameDirectory"))
+            {
+                main.PrintMessage("Invalid game directory", 2);
+                return false;
+            }
+            return true;
+        }
+
+        bool CheckBackupDirectory()
+        {
+            if (MainClass._backupDirectory == null)
+                MainClass._backupDirectory = new DirectoryInfo(config.ReadConfig("BackupDirectory"));
+            if (MainClass._backupDirectory == null || !validation.ValidateDirectory(MainClass._backupDirectory, "BackupDirectory"))
+            {
+                main.PrintMessage("Invalid backup directory", 2);
+                return false;
+            }
+            return true;
+        }
+
+        bool CheckConfigDirectory()
+        {
+            if (MainClass._configDirectory == null)
+                MainClass._configDirectory = new DirectoryInfo(config.ReadConfig("ConfigDirectory"));
+            if (MainClass._configDirectory == null || !validation.ValidateDirectory(MainClass._configDirectory, "ConfigDirectory"))
+            {
+                main.PrintMessage("Invalid game config directory", 2);
+                return false;
+            }
+            return true;
+        }
+
+        bool CheckTTMPFile()
+        {
+            if (string.IsNullOrEmpty(ttmpPath))
+            {
+                main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
+                return false;
+            }
+            if (!validation.ValidateTTMPFile(ttmpPath))
+            {
+                main.PrintMessage("Invalid ttmp file", 2);
+                return false;
             }
             return true;
         }
