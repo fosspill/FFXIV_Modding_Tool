@@ -3,9 +3,9 @@ using System.IO;
 
 namespace FFXIV_Modding_Tool.Validation
 {
-    public class Validation
+    public class Validators
     {
-        public Validation()
+        public Validators()
         {
         }
 
