@@ -57,6 +57,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Arguments.cs" />
+    <Compile Include="Validation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

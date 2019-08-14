@@ -1,12 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
-using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
-using xivModdingFramework.Mods.DataContainers;
-using xivModdingFramework.Helpers;
 using System.Collections.Generic;
+using FFXIV_Modding_Tool.Configuration;
+using FFXIV_Modding_Tool.Validation;
 
 namespace FFXIV_Modding_Tool.Commandline
 {
@@ -14,38 +12,30 @@ namespace FFXIV_Modding_Tool.Commandline
     {
         public Arguments(){}
         MainClass main = new MainClass();
+        Config config = new Config();
+        Validators validation = new Validators();
+        string ttmpPath = "";
+        bool customImport = false;
+        bool skipProblemCheck = false;
+        string requestedAction = "";
 
         public void ArgumentHandler(string[] args)
         {
-            string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
-
-Available actions:
-  modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
-  modpack info, mpinfo     Show info about a modpack, requires a .ttmp(2) to be specified
-  mods enable, me          Enable all installed mods
-  mods disable, md         Disable all installed mods
-  mods refresh, mr         Enable/disable mods as specified in modlist.cfg
-  backup, b                Backup clean index files for use in resetting the game
-  reset, r                 Reset game to clean state
-  problemcheck, pc         Check if there are any problems with the game, mod or backup files
-  version, v               Display current application and game version
-  help, h                  Display this text
-
-Available arguments:
-  -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
-  -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
-  -b, --backupdirectory    Full path to directory with your index backups
-  -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
-  -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
-  -npc, --noproblemcheck   Skip the problem check after importing a modpack";
-            string ttmpPath = "";
-            bool customImport = false;
-            bool skipProblemCheck = false;
+            if (!File.Exists(Config.configFile) || string.IsNullOrEmpty(File.ReadAllText(Config.configFile)))
+                config.CreateDefaultConfig();
             if (args.Length == 0)
             {
-                main.PrintMessage(helpText);
+                SendHelpText();
                 return;
             }
+            ReadArguments(args);
+            ReadAction(args);
+            if (ActionRequirementsChecker())
+                ActionHandler();
+        }
+
+        public void ReadArguments(string[] args)
+        { 
             foreach (string cmdArg in args)
             {
                 string nextArg = "";
@@ -57,6 +47,14 @@ Available arguments:
                     string arg = cmdArg.Split('-').Last();
                     switch (arg)
                     {
+                        case "h":
+                        case "help":
+                            requestedAction = "h";
+                            continue;
+                        case "v":
+                        case "version":
+                            requestedAction = "v";
+                            continue;
                         case "g":
                         case "gamedirectory":
                             if (!nextArg.StartsWith("-"))
@@ -94,228 +92,250 @@ Available arguments:
                     }
                 }
             }
+        }
 
+        public void ReadAction(string[] args)
+        { 
             string secondAction = "";
             if (args.Count() > 1)
                 secondAction = args[1];
-            switch (args[0])
+            if (string.IsNullOrEmpty(requestedAction))
             {
+                switch (args[0])
+                {
+                    case "mpi":
+                        requestedAction = "mpi";
+                        break;
+                    case "mpinfo":
+                        requestedAction = "mpinfo";
+                        break;
+                    case "modpack":
+                        if (secondAction == "import")
+                            goto case "mpi";
+                        if (secondAction == "info")
+                            goto case "mpinfo";
+                        break;
+                    case "mr":
+                        requestedAction = "mr";
+                        break;
+                    case "me":
+                        requestedAction = "me";
+                        break;
+                    case "md":
+                        requestedAction = "md";
+                        break;
+                    case "mods":
+                        if (secondAction == "refresh")
+                            goto case "mr";
+                        if (secondAction == "enable")
+                            goto case "me";
+                        if (secondAction == "disable")
+                            goto case "md";
+                        break;
+                    case "backup":
+                    case "b":
+                        requestedAction = "b";
+                        break;
+                    case "reset":
+                    case "r":
+                        requestedAction = "r";
+                        break;
+                    case "problemcheck":
+                    case "pc":
+                        requestedAction = "pc";
+                        break;
+                    case "version":
+                    case "v":
+                        requestedAction = "v";
+                        break;
+                    case "help":
+                    case "h":
+                        requestedAction = "h";
+                        break;
+                    default:
+                        main.PrintMessage($"Unknown action: {args[0]}");
+                        requestedAction = "h";
+                        break;
+                }
+            }
+        }
+
+        public bool ActionRequirementsChecker()
+        {
+            List<string> requiresGameDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
+            List<string> requiresBackupDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
+            List<string> requiresConfigDirectory = new List<string> { "mpi", "pc" };
+            List<string> requiresUpdatedBackups = new List<string> { "mpi", "mr", "me", "md", "r" };
+            List<string> requiresValidIndexes = new List<string> { "mpi", "b" };
+            List<string> requiresTTMPFile = new List<string> { "mpi", "mpinfo" };
+
+            if (requiresGameDirectory.Contains(requestedAction))
+            {
+                if (!CheckGameDirectory())
+                    return false;
+            }
+            if (requiresBackupDirectory.Contains(requestedAction))
+            {
+                if (!CheckBackupDirectory())
+                    return false;
+            }
+            if (requiresConfigDirectory.Contains(requestedAction))
+            {
+                if (!CheckConfigDirectory())
+                    return false;
+            }
+            if (requiresUpdatedBackups.Contains(requestedAction))
+            {
+                if (!validation.ValidateBackups())
+                    return false;
+            }
+            if (requiresValidIndexes.Contains(requestedAction))
+            {
+                if (!validation.ValidateIndexFiles())
+                    return false;
+            }
+            if (requiresTTMPFile.Contains(requestedAction))
+            {
+                if (!CheckTTMPFile())
+                    return false;
+            }
+            return true;
+        }
+
+        bool CheckGameDirectory()
+        {
+            if (MainClass._indexDirectory == null)
+            {
+                string configGameDirectory = config.ReadConfig("GameDirectory");
+                MainClass._gameDirectory = new DirectoryInfo(Path.Combine(configGameDirectory, "game"));
+                MainClass._indexDirectory = new DirectoryInfo(Path.Combine(configGameDirectory, "game", "sqpack", "ffxiv"));
+            }
+            if (MainClass._indexDirectory == null || !validation.ValidateDirectory(MainClass._indexDirectory, "GameDirectory"))
+            {
+                main.PrintMessage("Invalid game directory", 2);
+                return false;
+            }
+            return true;
+        }
+
+        bool CheckBackupDirectory()
+        {
+            if (MainClass._backupDirectory == null)
+                MainClass._backupDirectory = new DirectoryInfo(config.ReadConfig("BackupDirectory"));
+            if (MainClass._backupDirectory == null || !validation.ValidateDirectory(MainClass._backupDirectory, "BackupDirectory"))
+            {
+                main.PrintMessage("Invalid backup directory", 2);
+                return false;
+            }
+            return true;
+        }
+
+        bool CheckConfigDirectory()
+        {
+            if (MainClass._configDirectory == null)
+                MainClass._configDirectory = new DirectoryInfo(config.ReadConfig("ConfigDirectory"));
+            if (MainClass._configDirectory == null || !validation.ValidateDirectory(MainClass._configDirectory, "ConfigDirectory"))
+            {
+                main.PrintMessage("Invalid game config directory", 2);
+                return false;
+            }
+            return true;
+        }
+
+        bool CheckTTMPFile()
+        {
+            if (string.IsNullOrEmpty(ttmpPath))
+            {
+                main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
+                return false;
+            }
+            if (!validation.ValidateTTMPFile(ttmpPath))
+            {
+                main.PrintMessage("Invalid ttmp file", 2);
+                return false;
+            }
+            return true;
+        }
+
+        public void ActionHandler()
+        {
+            Modding modding;
+            switch (requestedAction)
+            {
+                case "h":
+                    SendHelpText();
+                    break;
+                case "v":
+                    main.CheckVersions();
+                    break;
                 case "mpi":
-                    if (string.IsNullOrEmpty(ttmpPath))
-                    {
-                        main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
-                        return;
-                    }
-                    if (BackupsMissingOrOutdated())
-                        return;
-                    if (PreviouslyModifiedGame())
-                        return;
-                    if (MainClass._gameDirectory != null)
-                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport, skipProblemCheck);
-                    else
-                        main.PrintMessage("Importing requires having your game directory set either through the config file or with -g specified", 2);
+                    main.ImportModpackHandler(new DirectoryInfo(ttmpPath), customImport, skipProblemCheck);
                     break;
                 case "mpinfo":
-                    if (string.IsNullOrEmpty(ttmpPath))
-                        main.PrintMessage("Can't show info without a modpack to read. Specify one with -t", 2);
-                    else
-                    {
-                        Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
-                        main.PrintMessage($@"Name: {modpackInfo["name"]}
+                    Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
+                    main.PrintMessage($@"Name: {modpackInfo["name"]}
 Type: {modpackInfo["type"]}
 Author: {modpackInfo["author"]}
 Version: {modpackInfo["version"]}
 Description: {modpackInfo["description"]}
 Number of mods: {modpackInfo["modAmount"]}");
-                    }
-                    break;
-                case "modpack":
-                    if (secondAction == "import")
-                        goto case "mpi";
-                    if (secondAction == "info")
-                        goto case "mpinfo";
                     break;
                 case "mr":
-                    if (MainClass._gameDirectory != null)
-                        main.SetModActiveStates();
-                    else
-                        main.PrintMessage("Enabling/disabling mods requires having your game directory set either through the config file or with -g specified", 2);
+                    main.SetModActiveStates();
                     break;
                 case "me":
-                    if (MainClass._gameDirectory != null)
-                    {
-                        var modding = new Modding(MainClass._indexDirectory);
-                        main.PrintMessage("Enabling all mods...");
-                        modding.ToggleAllMods(true);
-                        main.PrintMessage("Successfully enabled all mods", 1);
-                    }
-                    else
-                        main.PrintMessage("Enabling mods requires having your game directory set either through the config file or with -g specified", 2);
+                    modding = new Modding(MainClass._indexDirectory);
+                    main.PrintMessage("Enabling all mods...");
+                    modding.ToggleAllMods(true);
+                    main.PrintMessage("Successfully enabled all mods", 1);
                     break;
                 case "md":
-                    if (MainClass._gameDirectory != null)
-                    {
-                        var modding = new Modding(MainClass._indexDirectory);
-                        main.PrintMessage("Disabling all mods...");
-                        modding.ToggleAllMods(false);
-                        main.PrintMessage("Successfully disabled all mods", 1);
-                    }
-                    else
-                        main.PrintMessage("Disabling mods requires having your game directory set either through the config file or with -g specified", 2);
+                    modding = new Modding(MainClass._indexDirectory);
+                    main.PrintMessage("Disabling all mods...");
+                    modding.ToggleAllMods(false);
+                    main.PrintMessage("Successfully disabled all mods", 1);
                     break;
-                case "mods":
-                    if (secondAction == "refresh")
-                        goto case "mr";
-                    if (secondAction == "enable")
-                        goto case "me";
-                    if (secondAction == "disable")
-                        goto case "md";
-                    break;
-                case "backup":
                 case "b":
-                    if (PreviouslyModifiedGame())
-                        return;
-                    if (MainClass._gameDirectory != null && MainClass._backupDirectory != null)
-                        main.BackupIndexes();
-                    else
-                        main.PrintMessage("Backing up index files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
+                    main.BackupIndexes();
                     break;
-                case "reset":
                 case "r":
-                    if (MainClass._gameDirectory != null && MainClass._backupDirectory != null)
-                        main.ResetMods();
-                    else
-                        main.PrintMessage("Resetting game files requires having both your game and backup directories set through the config file or with -g and -b specified", 2);
+                    main.ResetMods();
                     break;
-                case "problemcheck":
                 case "pc":
-                    if (PreviouslyModifiedGame())
-                        return;
-                    if (MainClass._gameDirectory != null && MainClass._backupDirectory != null && MainClass._configDirectory != null)
-                        main.ProblemChecker();
-                    else
-                        main.PrintMessage("Checking for problems requires having your game, backup and config directories set through the config file or with -g, -b and -c specified", 2);
-                    break;
-                case "version":
-                case "v":
-                    main.CheckVersions();
-                    break;
-                case "help":
-                case "h":
-                    main.PrintMessage(helpText);
+                    main.ProblemChecker();
                     break;
                 default:
-                    main.PrintMessage($"Unknown action: {args[0]}");
-                    main.PrintMessage(helpText);
+                    SendHelpText();
                     break;
             }
         }
 
-        bool BackupsMissingOrOutdated()
+        public void SendHelpText()
         {
-            main.PrintMessage("Checking backups before proceeding...");
-            bool keepGoing = true;
-            bool problemFound = false;
-            if (MainClass._backupDirectory == null)
-            {
-                main.PrintMessage($"No backup directory specified, can't check the status of backups.\nYou are strongly recommended to add a backup directory in {Path.Combine(MainClass._projectconfDirectory.FullName, "config.cfg")} and running the 'backup' command before proceeding", 2);
-                problemFound = true;
-            }
-            else if (MainClass._gameDirectory == null)
-            {
-                main.PrintMessage("No game directory specified, can't check if backups are up to date", 2);
-                problemFound = true;
-            }
-            else
-            {
-                var filesToCheck = new XivDataFile[] { XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
-                ProblemChecker problemChecker = new ProblemChecker(MainClass._indexDirectory);
-                foreach (var file in filesToCheck)
-                {
-                    if (!File.Exists(Path.Combine(MainClass._backupDirectory.FullName, $"{file.GetDataFileName()}.win32.index")))
-                    {
-                        main.PrintMessage($"One or more index files could not be found in {MainClass._backupDirectory.FullName}. Creating new ones or downloading them from the TexTools discord is recommended", 2);
-                        problemFound = true;
-                        break;
-                    }
-                    var outdatedBackupsCheck = problemChecker.CheckForOutdatedBackups(file, MainClass._backupDirectory);
-                    outdatedBackupsCheck.Wait();
-                    if (!outdatedBackupsCheck.Result)
-                    {
-                        main.PrintMessage($"One or more index files are out of date in {MainClass._backupDirectory.FullName}. Recreating or downloading them from the TexTools discord is recommended", 2);
-                        problemFound = true;
-                        break;
-                    }
-                }
-            }
-            if (problemFound)
-                keepGoing = PromptContinuation();
-            else
-                main.PrintMessage("All backups present and up to date", 1);
-            return !keepGoing;
-        }
+            string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
 
-        bool PreviouslyModifiedGame()
-        {
-            bool keepGoing = true;
-            if (MainClass._gameDirectory != null)
-            {
-                string modlistPath = Path.Combine(MainClass._gameDirectory.FullName, "XivMods.json");
-                if (!File.Exists(modlistPath))
-                {
-                    ProblemChecker problemChecker = new ProblemChecker(MainClass._indexDirectory);
-                    var filesToCheck = new XivDataFile[] { XivDataFile._0A_Exd, XivDataFile._01_Bgcommon, XivDataFile._04_Chara, XivDataFile._06_Ui };
-                    bool modifiedIndex = false;
-                    foreach (var file in filesToCheck)
-                    {
-                        var datCountCheck = problemChecker.CheckIndexDatCounts(file);
-                        datCountCheck.Wait();
-                        if (datCountCheck.Result)
-                        {
-                            modifiedIndex = true;
-                            break;
-                        }
-                    }
-                    if (modifiedIndex)
-                    {
-                        main.PrintMessage("HERE BE DRAGONS\nPreviously modified game files found\nUse the originally used tool to start over, or reinstall the game before using this tool", 2);
-                        keepGoing = PromptContinuation();
-                    }
-                }
-                else
-                {
-                    var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath));
-                    bool unsupportedSource = false;
-                    foreach (Mod mod in modData.Mods)
-                    {
-                        if (mod.source != "FFXIV_Modding_Tool")
-                        {
-                            unsupportedSource = true;
-                            break;
-                        }
-                    }
-                    if (unsupportedSource)
-                    {
-                        main.PrintMessage("Found a mod applied by an unknown application, game stability cannot be guaranteed", 3);
-                        keepGoing = PromptContinuation();
-                    }
-                }
-            }
-            return !keepGoing;
-        }
+Available actions:
+  modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
+  modpack info, mpinfo     Show info about a modpack, requires a .ttmp(2) to be specified
+  mods enable, me          Enable all installed mods
+  mods disable, md         Disable all installed mods
+  mods refresh, mr         Enable/disable mods as specified in modlist.cfg
+  backup, b                Backup clean index files for use in resetting the game
+  reset, r                 Reset game to clean state
+  problemcheck, pc         Check if there are any problems with the game, mod or backup files
+  version, v               Display current application and game version
+  help, h                  Display this text
 
-        bool PromptContinuation()
-        {
-            main.PrintMessage("Continue anyway? y/N");
-            string answer = Console.ReadKey().KeyChar.ToString();
-            if (answer == "y")
-            {
-                Console.Write("\n");
-                return true;
-            }
-            if (answer != "\n")
-                Console.Write("\n");
-            return false;
+Available arguments:
+  -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
+  -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
+  -b, --backupdirectory    Full path to directory with your index backups
+  -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
+  -C, --custom             Use a modpack's config file to selectively import mods from the pack (modpack import only)
+  -npc, --noproblemcheck   Skip the problem check after importing a modpack
+  -v, --version            Display current application and game version
+  -h, --help               Display this text";
+            main.PrintMessage(helpText);
         }
     }
 }
