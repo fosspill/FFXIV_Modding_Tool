@@ -99,61 +99,64 @@ namespace FFXIV_Modding_Tool.Commandline
             string secondAction = "";
             if (args.Count() > 1)
                 secondAction = args[1];
-            switch (args[0])
+            if (string.IsNullOrEmpty(requestedAction))
             {
-                case "mpi":
-                    requestedAction = "mpi";
-                    break;
-                case "mpinfo":
-                    requestedAction = "mpinfo";
-                    break;
-                case "modpack":
-                    if (secondAction == "import")
-                        goto case "mpi";
-                    if (secondAction == "info")
-                        goto case "mpinfo";
-                    break;
-                case "mr":
-                    requestedAction = "mr";
-                    break;
-                case "me":
-                    requestedAction = "me";
-                    break;
-                case "md":
-                    requestedAction = "md";
-                    break;
-                case "mods":
-                    if (secondAction == "refresh")
-                        goto case "mr";
-                    if (secondAction == "enable")
-                        goto case "me";
-                    if (secondAction == "disable")
-                        goto case "md";
-                    break;
-                case "backup":
-                case "b":
-                    requestedAction = "b";
-                    break;
-                case "reset":
-                case "r":
-                    requestedAction = "r";
-                    break;
-                case "problemcheck":
-                case "pc":
-                    requestedAction = "pc";
-                    break;
-                case "version":
-                case "v":
-                    requestedAction = "v";
-                    break;
-                case "help":
-                case "h":
-                    requestedAction = "h";
-                    break;
-                default:
-                    main.PrintMessage($"Unknown action: {args[0]}");
-                    requestedAction = "h";
-                    break;
+                switch (args[0])
+                {
+                    case "mpi":
+                        requestedAction = "mpi";
+                        break;
+                    case "mpinfo":
+                        requestedAction = "mpinfo";
+                        break;
+                    case "modpack":
+                        if (secondAction == "import")
+                            goto case "mpi";
+                        if (secondAction == "info")
+                            goto case "mpinfo";
+                        break;
+                    case "mr":
+                        requestedAction = "mr";
+                        break;
+                    case "me":
+                        requestedAction = "me";
+                        break;
+                    case "md":
+                        requestedAction = "md";
+                        break;
+                    case "mods":
+                        if (secondAction == "refresh")
+                            goto case "mr";
+                        if (secondAction == "enable")
+                            goto case "me";
+                        if (secondAction == "disable")
+                            goto case "md";
+                        break;
+                    case "backup":
+                    case "b":
+                        requestedAction = "b";
+                        break;
+                    case "reset":
+                    case "r":
+                        requestedAction = "r";
+                        break;
+                    case "problemcheck":
+                    case "pc":
+                        requestedAction = "pc";
+                        break;
+                    case "version":
+                    case "v":
+                        requestedAction = "v";
+                        break;
+                    case "help":
+                    case "h":
+                        requestedAction = "h";
+                        break;
+                    default:
+                        main.PrintMessage($"Unknown action: {args[0]}");
+                        requestedAction = "h";
+                        break;
+                }
             }
         }
 
