@@ -9,25 +9,28 @@ namespace FFXIV_Modding_Tool.Validation
         {
         }
 
-        public bool ValidGameDirectory(DirectoryInfo directory)
-        {
-            if (!directory.Exists || directory.GetFiles("*.index").Length == 0)
-                return false;
-            return true;
-        }
-
-        public bool ValidBackupDirectory(DirectoryInfo directory)
+        public bool ValidateDirectory(DirectoryInfo directory, string directoryType)
         {
             if (!directory.Exists)
                 return false;
-            return true;
-        }
-
-        public bool ValidGameConfigDirectory(DirectoryInfo directory)
-        {
-            if (!directory.Exists || directory.GetFiles("FFXIV*.cfg").Length == 0)
-                return false;
-            return true;
+            else
+            {
+                switch (directoryType)
+                {
+                    case "BackupDirectory":
+                        return true;
+                    case "GameDirectory":
+                        if (directory.GetFiles("*.index").Length == 0)
+                            return false;
+                        return true;
+                    case "ConfigDirectory":
+                        if (directory.GetFiles("FFXIV*.cfg").Length == 0)
+                            return false;
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
     }
 }
