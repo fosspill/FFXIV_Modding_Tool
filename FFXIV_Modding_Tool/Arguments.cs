@@ -15,7 +15,8 @@ namespace FFXIV_Modding_Tool.Commandline
         Config config = new Config();
         Validators validation = new Validators();
         string ttmpPath = "";
-        bool customImport = false;
+        bool useWizard = false;
+        bool importAll = false;
         bool skipProblemCheck = false;
         string requestedAction = "";
 
