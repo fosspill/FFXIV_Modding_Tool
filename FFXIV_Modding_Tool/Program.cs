@@ -1217,7 +1217,6 @@ namespace FFXIV_Modding_Tool
             _projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
             Config config = new Config();
             Arguments arguments = new Arguments();
-            config.ReadConfig();
             arguments.ArgumentHandler(args);
         }
     }
