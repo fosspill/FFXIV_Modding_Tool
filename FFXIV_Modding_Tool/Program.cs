@@ -88,7 +88,7 @@ namespace FFXIV_Modding_Tool
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     break;
                 default:
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ResetColor();
                     break;
             }
             Console.WriteLine(message);
