@@ -1174,6 +1174,27 @@ namespace FFXIV_Modding_Tool
         }
         #endregion
 
+        public void ToggleModStates(bool enable)
+        {
+            string modstate = "";
+            if (enable)
+                modstate = "on";
+            else
+                modstate = "off";
+            var modding = new Modding(_indexDirectory);
+            PrintMessage($"Turning {modstate} all mods...");
+            try
+            {
+                var toggle = modding.ToggleAllMods(enable);
+                toggle.Wait();
+                PrintMessage($"Successfully turned {modstate} all mods", 1);
+            }
+            catch (Exception e)
+            {
+                PrintMessage($"There was an issue turning {modstate} mods:\n{e}", 2);
+            }
+        }
+
         public void SetModActiveStates()
         {
             Modding modding = new Modding(_indexDirectory);

@@ -264,7 +264,6 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public void ActionHandler()
         {
-            Modding modding;
             switch (requestedAction)
             {
                 case "h":
@@ -297,16 +296,10 @@ Number of mods: {modpackInfo["modAmount"]}");
                     main.SetModActiveStates();
                     break;
                 case "me":
-                    modding = new Modding(MainClass._indexDirectory);
-                    main.PrintMessage("Enabling all mods...");
-                    modding.ToggleAllMods(true);
-                    main.PrintMessage("Successfully enabled all mods", 1);
+                    main.ToggleModStates(true);
                     break;
                 case "md":
-                    modding = new Modding(MainClass._indexDirectory);
-                    main.PrintMessage("Disabling all mods...");
-                    modding.ToggleAllMods(false);
-                    main.PrintMessage("Successfully disabled all mods", 1);
+                    main.ToggleModStates(false);
                     break;
                 case "b":
                     main.BackupIndexes();
