@@ -237,7 +237,7 @@ namespace FFXIV_Modding_Tool
                 ttmpDataList = TTMPDataList(ttmpPath, useWizard, importAll);
             }
             ttmpDataList.Sort();
-            PrintMessage("Data extraction successfull.");
+            PrintMessage("Data extraction successful.");
             int originalModCount = ttmpDataList.Count;
             string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
             List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList);
@@ -378,6 +378,7 @@ namespace FFXIV_Modding_Tool
                     answer = false;
                     userPicked = true;
                 }
+                PrintMessage("\n");
             }
             return answer;
         }
