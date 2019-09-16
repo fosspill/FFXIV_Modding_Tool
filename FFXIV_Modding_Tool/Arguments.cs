@@ -19,6 +19,7 @@ namespace FFXIV_Modding_Tool.Commandline
         bool importAll = false;
         bool skipProblemCheck = false;
         string requestedAction = "";
+        string wantedItem = "";
 
         public void ArgumentHandler(string[] args)
         {
@@ -79,6 +80,11 @@ namespace FFXIV_Modding_Tool.Commandline
                             if (!nextArg.StartsWith("-"))
                                 ttmpPath = nextArg;
                             continue;
+                        case "n":
+                        case "name":
+                            if (!nextArg.StartsWith("-"))
+                                wantedItem = nextArg;
+                            continue;
                         case "w":
                         case "wizard":
                             useWizard = true;
@@ -129,6 +135,12 @@ namespace FFXIV_Modding_Tool.Commandline
                     case "md":
                         requestedAction = "md";
                         break;
+                    case "mex":
+                        requestedAction = "mex";
+                        break;
+                    case "mi":
+                        requestedAction = "mi";
+                        break;
                     case "mods":
                         if (secondAction == "refresh")
                             goto case "mr";
@@ -136,6 +148,12 @@ namespace FFXIV_Modding_Tool.Commandline
                             goto case "me";
                         if (secondAction == "disable")
                             goto case "md";
+                        break;
+                    case "mod":
+                        if (secondAction == "export")
+                            goto case "mex";
+                        if (secondAction == "import")
+                            goto case "mi";
                         break;
                     case "backup":
                     case "b":
@@ -301,6 +319,10 @@ Number of mods: {modpackInfo["modAmount"]}");
                 case "md":
                     main.ToggleModStates(false);
                     break;
+                case "mex":
+                    main.ExportRequestHandler(wantedItem);
+                    break;
+                case "mi":
                 case "b":
                     main.BackupIndexes();
                     break;
@@ -326,6 +348,7 @@ Available actions:
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
+  mod export, mex          Export the textures and/or model of an item
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
@@ -337,6 +360,7 @@ Available arguments:
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
+  -n, --name               Name of item to import/export (mod import/export only)
   -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
   -a, --all                Import all mods in a modpack immediately (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack
