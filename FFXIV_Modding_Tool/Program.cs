@@ -28,7 +28,6 @@ using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
-using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -1235,7 +1234,6 @@ namespace FFXIV_Modding_Tool
         static void Main(string[] args)
         {
             _projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
-            Config config = new Config();
             Arguments arguments = new Arguments();
             arguments.ArgumentHandler(args);
         }
