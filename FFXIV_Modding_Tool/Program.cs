@@ -926,17 +926,17 @@ namespace FFXIV_Modding_Tool
 
         public Dictionary<string, List<string>> SearchForItem(string request)
         {
-            Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
             if (int.TryParse(request, out int result))
-                potentialItems = SearchById(result);
+                searchResults = SearchById(result);
             else
-                potentialItems = SearchByFullOrPartialName(request);
-            return potentialItems;
+                searchResults = SearchByFullOrPartialName(request);
+            return searchResults;
         }
 
         public Dictionary<string, List<string>> SearchByFullOrPartialName(string request)
         {
-            Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
             Config config = new Config();
             XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
             var gear = new Gear(_indexDirectory, gameLanguage);
@@ -961,25 +961,25 @@ namespace FFXIV_Modding_Tool
             Task.WaitAll(new Task[] { getGear, getCharacter, getMaps, getMapSymbols, getStatusEffects, getOnlineStatus, getWeather, getLoadingScreen, getActions, getHud, getMounts, getMinions, getSummons, getFurniture });
             List<XivUi> uiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
             foreach (var item in getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
+                searchResults[item.Category].Add(item.Name);
             foreach (var item in getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
+                searchResults[item.Category].Add(item.Name);
             foreach (var item in uiList.Where(uiElement => uiElement.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
+                searchResults[item.Category].Add(item.Name);
             foreach (var item in getMinions.Result.Where(minion => minion.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
+                searchResults[item.Category].Add(item.Name);
             foreach (var item in getMounts.Result.Where(mount => mount.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
+                searchResults[item.Category].Add(item.Name);
             foreach (var item in getSummons.Result.Where(summon => summon.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
+                searchResults[item.Category].Add(item.Name);
             foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
-                potentialItems[item.Category].Add(item.Name);
-            return potentialItems;
+                searchResults[item.Category].Add(item.Name);
+            return searchResults;
         }
 
         Dictionary<string, List<string>> SearchById(int request)
         {
-            Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
             Config config = new Config();
             XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
             var gear = new Gear(_indexDirectory, gameLanguage);
@@ -994,8 +994,8 @@ namespace FFXIV_Modding_Tool
             Task.WaitAll(new Task[] { getEquipment, getWeapons, getAccesories, getMonsters, getDemiHumans, getFurniture });
             List<SearchResults> searchResults = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
             foreach (var item in searchResults)
-                potentialItems[item.Slot].Add($"{request}, Body: {item.Body}, Variant: {item.Variant}");
-            return potentialItems;
+                searchResults[item.Slot].Add($"{request}, Body: {item.Body}, Variant: {item.Variant}");
+            return searchResults;
         }
         #endregion
 
