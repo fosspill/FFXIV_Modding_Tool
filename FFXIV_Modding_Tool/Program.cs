@@ -21,6 +21,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
 using xivModdingFramework.General.Enums;
+using xivModdingFramework.General.DataContainers;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
 using xivModdingFramework.Mods.Enums;
@@ -991,6 +992,9 @@ namespace FFXIV_Modding_Tool
             var housing = new Housing(_indexDirectory, gameLanguage);
             var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
             Task.WaitAll(new Task[] { getEquipment, getWeapons, getAccesories, getMonsters, getDemiHumans, getFurniture });
+            List<SearchResults> searchResults = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
+            foreach (var item in searchResults)
+                potentialItems[item.Slot].Add($"{request}, Body: {item.Body}, Variant: {item.Variant}");
             return potentialItems;
         }
         #endregion
