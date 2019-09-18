@@ -926,7 +926,10 @@ namespace FFXIV_Modding_Tool
         public Dictionary<string, List<string>> SearchForItem(string request)
         {
             Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
-            potentialItems = SearchByFullOrPartialName(request);
+            if (int.TryParse(request, out int result))
+                potentialItems = SearchById(result);
+            else
+                potentialItems = SearchByFullOrPartialName(request);
             return potentialItems;
         }
 
@@ -970,6 +973,24 @@ namespace FFXIV_Modding_Tool
                 potentialItems[item.Category].Add(item.Name);
             foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
                 potentialItems[item.Category].Add(item.Name);
+            return potentialItems;
+        }
+
+        Dictionary<string, List<string>> SearchById(int request)
+        {
+            Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
+            Config config = new Config();
+            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
+            var gear = new Gear(_indexDirectory, gameLanguage);
+            var getEquipment = gear.SearchGearByModelID(request, "Equipment");
+            var getWeapons = gear.SearchGearByModelID(request, "Weapon");
+            var getAccesories = gear.SearchGearByModelID(request, "Accessory");
+            var companion = new Companions(_indexDirectory, gameLanguage);
+            var getMonsters = companion.SearchMonstersByModelID(request, XivItemType.monster);
+            var getDemiHumans = companion.SearchMonstersByModelID(request, XivItemType.demihuman);
+            var housing = new Housing(_indexDirectory, gameLanguage);
+            var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
+            Task.WaitAll(new Task[] { getEquipment, getWeapons, getAccesories, getMonsters, getDemiHumans, getFurniture });
             return potentialItems;
         }
         #endregion
