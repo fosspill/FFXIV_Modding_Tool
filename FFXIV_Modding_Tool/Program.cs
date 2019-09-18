@@ -28,9 +28,13 @@ using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
+using xivModdingFramework.Items.Categories;
+using xivModdingFramework.Items.Enums;
+using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
+using xivModdingFramework.Items.DataContainers;
 
 namespace FFXIV_Modding_Tool
 {
@@ -910,6 +914,63 @@ namespace FFXIV_Modding_Tool
             {
                 PrintMessage($"Something went wrong during the reset process\n{ex.Message}", 2);
             }
+        }
+        #endregion
+
+        #region Export
+        public void ExportRequestHandler(string wantedItem)
+        {
+            Dictionary<string, List<string>> potentialItems = SearchForItem(wantedItem);
+        }
+
+        public Dictionary<string, List<string>> SearchForItem(string request)
+        {
+            Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
+            potentialItems = SearchByFullOrPartialName(request);
+            return potentialItems;
+        }
+
+        public Dictionary<string, List<string>> SearchByFullOrPartialName(string request)
+        {
+            Dictionary<string, List<string>> potentialItems = new Dictionary<string, List<string>>();
+            Config config = new Config();
+            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
+            var gear = new Gear(_indexDirectory, gameLanguage);
+            var getGear = gear.GetGearList();
+            var character = new Character(_indexDirectory, gameLanguage);
+            var getCharacter = character.GetCharacterList();
+            var ui = new UI(_indexDirectory, gameLanguage);
+            var getMaps = ui.GetMapList();
+            var getMapSymbols = ui.GetMapSymbolList();
+            var getStatusEffects = ui.GetStatusList();
+            var getOnlineStatus = ui.GetOnlineStatusList();
+            var getWeather = ui.GetWeatherList();
+            var getLoadingScreen = ui.GetLoadingImageList();
+            var getActions = ui.GetActionList();
+            var getHud = ui.GetUldList();
+            var companion = new Companions(_indexDirectory, gameLanguage);
+            var getMounts = companion.GetMountList();
+            var getMinions = companion.GetMinionList();
+            var getSummons = companion.GetPetList();
+            var furniture = new Housing(_indexDirectory, gameLanguage);
+            var getFurniture = furniture.GetFurnitureList();
+            Task.WaitAll(new Task[] { getGear, getCharacter, getMaps, getMapSymbols, getStatusEffects, getOnlineStatus, getWeather, getLoadingScreen, getActions, getHud, getMounts, getMinions, getSummons, getFurniture });
+            List<XivUi> uiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
+            foreach (var item in getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            foreach (var item in getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            foreach (var item in uiList.Where(uiElement => uiElement.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            foreach (var item in getMinions.Result.Where(minion => minion.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            foreach (var item in getMounts.Result.Where(mount => mount.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            foreach (var item in getSummons.Result.Where(summon => summon.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
+                potentialItems[item.Category].Add(item.Name);
+            return potentialItems;
         }
         #endregion
 
