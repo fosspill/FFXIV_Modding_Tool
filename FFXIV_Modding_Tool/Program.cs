@@ -31,7 +31,6 @@ using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
 using xivModdingFramework.Items.Categories;
 using xivModdingFramework.Items.Enums;
-using xivModdingFramework.Resources;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
 using ICSharpCode.SharpZipLib.Zip;
