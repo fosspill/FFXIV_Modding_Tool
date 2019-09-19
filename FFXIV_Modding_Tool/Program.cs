@@ -991,19 +991,19 @@ namespace FFXIV_Modding_Tool
             List<XivUi> uiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
             PrintMessage("After concatting uiList");
             foreach (var item in getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in uiList.Where(uiElement => uiElement.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getMinions.Result.Where(minion => minion.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getMounts.Result.Where(mount => mount.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getSummons.Result.Where(summon => summon.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
-                searchResults[item.Category].Add(item.Name);
+                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             PrintMessage("After all foreach loops for items");
             return searchResults;
         }
@@ -1033,8 +1033,17 @@ namespace FFXIV_Modding_Tool
             List<SearchResults> allSearchResults = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
             PrintMessage("After concatting searchresults");
             foreach (var item in allSearchResults)
-                searchResults[item.Slot].Add($"{request}, Body: {item.Body}, Variant: {item.Variant}");
+                searchResults = AddSearchResult(searchResults, item.Slot, $"{request}, Body: {item.Body}, Variant: {item.Variant}");
             PrintMessage("After foreach loop for results");
+            return searchResults;
+        }
+
+        Dictionary<string, List<string>> AddSearchResult(Dictionary<string, List<string>> searchResults, string category, string entry)
+        {
+            if (!searchResults.ContainsKey(category))
+                searchResults.Add(category, new List<string>{ entry });
+            else
+                searchResults[category].Add(entry);
             return searchResults;
         }
         #endregion
