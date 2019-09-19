@@ -920,11 +920,22 @@ namespace FFXIV_Modding_Tool
         #endregion
 
         #region Export
+        /// <summary>
+        /// Handles the export request by calling on the appropriate functions that will get the user their desired exports
+        /// </summary>
+        /// <param name="wantedItem">The desired model to export</param>
         public void ExportRequestHandler(string wantedItem)
         {
             Dictionary<string, List<string>> potentialItems = SearchForItem(wantedItem);
         }
+        #endregion
 
+        #region Search
+        /// <summary>
+        /// Handles the search request by calling on the appropriate functions based on if the request is a (partial) name or model id
+        /// </summary>
+        /// <param name="request">The model being searched for</param>
+        /// <returns>A dictionary with the search results, sorted by their categories</returns>
         public Dictionary<string, List<string>> SearchForItem(string request)
         {
             Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
@@ -935,6 +946,11 @@ namespace FFXIV_Modding_Tool
             return searchResults;
         }
 
+        /// <summary>
+        /// Gets all the in game items and searches for the requested item
+        /// </summary>
+        /// <param name="request">The (partial) name of the item being searched for</param>
+        /// <returns>A dictionary with the search results, sorted by their categories</returns>
         public Dictionary<string, List<string>> SearchByFullOrPartialName(string request)
         {
             Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
@@ -991,6 +1007,11 @@ namespace FFXIV_Modding_Tool
             return searchResults;
         }
 
+        /// <summary>
+        /// Searches the game files for the model being requested
+        /// </summary>
+        /// <param name="request">The model id being searched for</param>
+        /// <returns>A dictionary with the search results, sorted by their categories</returns>
         Dictionary<string, List<string>> SearchById(int request)
         {
             Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
@@ -1017,6 +1038,16 @@ namespace FFXIV_Modding_Tool
             return searchResults;
         }
 
+        /// <summary>
+        /// Adds the latest search result to the dictionary
+        /// </summary>
+        /// <remarks>
+        /// Has to check if a key already exists or not, as items can't be added to a nonexistant list
+        /// </remarks>
+        /// <param name="searchResults">Dictionary to add a search result to</param>
+        /// <param name="category">The dictionary key to check</param>
+        /// <param name="entry">The entry to add to the appropriate search result list</param>
+        /// <returns>The given dictionary with the latest search result added</returns>
         Dictionary<string, List<string>> AddSearchResult(Dictionary<string, List<string>> searchResults, string category, string entry)
         {
             category = $"[{category}]";
