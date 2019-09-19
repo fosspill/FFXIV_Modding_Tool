@@ -923,28 +923,15 @@ namespace FFXIV_Modding_Tool
         public void ExportRequestHandler(string wantedItem)
         {
             Dictionary<string, List<string>> potentialItems = SearchForItem(wantedItem);
-            PrintMessage("Items received");
-            foreach (KeyValuePair<string, List<string>> itemGroup in potentialItems)
-            {
-                PrintMessage(itemGroup.Key);
-                foreach (string itemName in itemGroup.Value)
-                    PrintMessage(itemName);
-            }
         }
 
         public Dictionary<string, List<string>> SearchForItem(string request)
         {
             Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
             if (int.TryParse(request, out int result))
-            {
-                PrintMessage("id search request detected");
                 searchResults = SearchById(result);
-            }
             else
-            {
-                PrintMessage("name search request detected");
                 searchResults = SearchByFullOrPartialName(request);
-            }
             return searchResults;
         }
 
@@ -953,7 +940,6 @@ namespace FFXIV_Modding_Tool
             Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
             Config config = new Config();
             XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
-            PrintMessage("Before awaiting game file reading");
             var gear = new Gear(_indexDirectory, gameLanguage);
             var getGear = gear.GetGearList();
             getGear.Wait();
@@ -987,9 +973,7 @@ namespace FFXIV_Modding_Tool
             var furniture = new Housing(_indexDirectory, gameLanguage);
             var getFurniture = furniture.GetFurnitureList();
             getFurniture.Wait();
-            PrintMessage("After awaiting game file reading");
             List<XivUi> uiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
-            PrintMessage("After concatting uiList");
             foreach (var item in getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)))
                 searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)))
@@ -1004,7 +988,6 @@ namespace FFXIV_Modding_Tool
                 searchResults = AddSearchResult(searchResults, item.Category, item.Name);
             foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
                 searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            PrintMessage("After all foreach loops for items");
             return searchResults;
         }
 
@@ -1013,7 +996,6 @@ namespace FFXIV_Modding_Tool
             Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
             Config config = new Config();
             XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
-            PrintMessage("Before awaiting game file searching");
             var gear = new Gear(_indexDirectory, gameLanguage);
             var getEquipment = gear.SearchGearByModelID(request, "Equipment");
             getEquipment.Wait();
@@ -1029,12 +1011,9 @@ namespace FFXIV_Modding_Tool
             var housing = new Housing(_indexDirectory, gameLanguage);
             var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
             getFurniture.Wait();
-            PrintMessage("After awaiting game file searching");
             List<SearchResults> allSearchResults = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
-            PrintMessage("After concatting searchresults");
             foreach (var item in allSearchResults)
                 searchResults = AddSearchResult(searchResults, item.Slot, $"{request}, Body: {item.Body}, Variant: {item.Variant}");
-            PrintMessage("After foreach loop for results");
             return searchResults;
         }
 
