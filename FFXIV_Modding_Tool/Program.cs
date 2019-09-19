@@ -1040,6 +1040,7 @@ namespace FFXIV_Modding_Tool
 
         Dictionary<string, List<string>> AddSearchResult(Dictionary<string, List<string>> searchResults, string category, string entry)
         {
+            category = $"[{category}]";
             if (!searchResults.ContainsKey(category))
                 searchResults.Add(category, new List<string>{ entry });
             else
