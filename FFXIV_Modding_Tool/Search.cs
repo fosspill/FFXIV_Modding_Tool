@@ -25,21 +25,40 @@ namespace FFXIV_Modding_Tool.Search
             /// </summary>
             /// <param name="request">The model being searched for</param>
             /// <returns>A dictionary with the search results, sorted by their categories</returns>
-            void SearchForItem(string request)
+            Dictionary<string, List<string>> SearchForItem(string request)
             {
-                // Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
+                Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
                 if (int.TryParse(request, out int result))
+                {
                     SearchById(result);
+                    foreach (var item in modelIdList)
+                        searchResults = AddSearchResult(searchResults, item.Slot, $"{request}, Body: {item.Body}, Variant: {item.Variant}");
+                }
                 else
+                {
                     SearchByFullOrPartialName(request);
-                // return searchResults;
+                    foreach (var item in gearList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                    foreach (var item in characterList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                    foreach (var item in uiList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                    foreach (var item in minionList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                    foreach (var item in mountList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                    foreach (var item in summonList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                    foreach (var item in furnitureList)
+                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+            }
+            return searchResults;
             }
 
             /// <summary>
             /// Gets all the in game items and searches for the requested item
             /// </summary>
             /// <param name="request">The (partial) name of the item being searched for</param>
-            /// <returns>A dictionary with the search results, sorted by their categories</returns>
             void SearchByFullOrPartialName(string request)
             {
                 // Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
@@ -86,31 +105,14 @@ namespace FFXIV_Modding_Tool.Search
                 var getFurniture = furniture.GetFurnitureList();
                 getFurniture.Wait();
                 furnitureList.AddRange(getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)));
-                // foreach (var item in getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // foreach (var item in getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // foreach (var item in uiList.Where(uiElement => uiElement.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // foreach (var item in getMinions.Result.Where(minion => minion.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // foreach (var item in getMounts.Result.Where(mount => mount.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // foreach (var item in getSummons.Result.Where(summon => summon.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
-                //     searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-                // return searchResults;
             }
 
             /// <summary>
             /// Searches the game files for the model being requested
             /// </summary>
             /// <param name="request">The model id being searched for</param>
-            /// <returns>A dictionary with the search results, sorted by their categories</returns>
             void SearchById(int request)
             {
-                // Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
                 Config config = new Config();
                 XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
                 var gear = new Gear(MainClass._indexDirectory, gameLanguage);
@@ -129,9 +131,6 @@ namespace FFXIV_Modding_Tool.Search
                 var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
                 getFurniture.Wait();
                 modelIdList = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
-                // foreach (var item in allSearchResults)
-                //     searchResults = AddSearchResult(searchResults, item.Slot, $"{request}, Body: {item.Body}, Variant: {item.Variant}");
-                // return searchResults;
             }
 
             /// <summary>
