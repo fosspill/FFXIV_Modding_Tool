@@ -25,7 +25,7 @@ namespace FFXIV_Modding_Tool.Search
             /// </summary>
             /// <param name="request">The model being searched for</param>
             /// <returns>A dictionary with the search results, sorted by their categories</returns>
-            Dictionary<string, List<string>> SearchForItem(string request)
+            public Dictionary<string, List<string>> SearchForItem(string request)
             {
                 Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
                 if (int.TryParse(request, out int result))
