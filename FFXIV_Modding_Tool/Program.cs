@@ -21,7 +21,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
 using xivModdingFramework.General.Enums;
-using xivModdingFramework.General.DataContainers;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
 using xivModdingFramework.Mods.Enums;
@@ -29,13 +28,10 @@ using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
-using xivModdingFramework.Items.Categories;
-using xivModdingFramework.Items.Enums;
-using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
+using FFXIV_Modding_Tool.Search;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
-using xivModdingFramework.Items.DataContainers;
 
 namespace FFXIV_Modding_Tool
 {
@@ -925,136 +921,17 @@ namespace FFXIV_Modding_Tool
         /// <param name="wantedItem">The desired model to export</param>
         public void ExportRequestHandler(string wantedItem)
         {
-            Dictionary<string, List<string>> potentialItems = SearchForItem(wantedItem);
-        }
-        #endregion
-
-        #region Search
-        /// <summary>
-        /// Handles the search request by calling on the appropriate functions based on if the request is a (partial) name or model id
-        /// </summary>
-        /// <param name="request">The model being searched for</param>
-        /// <returns>A dictionary with the search results, sorted by their categories</returns>
-        public Dictionary<string, List<string>> SearchForItem(string request)
-        {
-            Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
-            if (int.TryParse(request, out int result))
-                searchResults = SearchById(result);
-            else
-                searchResults = SearchByFullOrPartialName(request);
-            return searchResults;
-        }
-
-        /// <summary>
-        /// Gets all the in game items and searches for the requested item
-        /// </summary>
-        /// <param name="request">The (partial) name of the item being searched for</param>
-        /// <returns>A dictionary with the search results, sorted by their categories</returns>
-        public Dictionary<string, List<string>> SearchByFullOrPartialName(string request)
-        {
-            Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
-            Config config = new Config();
-            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
-            var gear = new Gear(_indexDirectory, gameLanguage);
-            var getGear = gear.GetGearList();
-            getGear.Wait();
-            var character = new Character(_indexDirectory, gameLanguage);
-            var getCharacter = character.GetCharacterList();
-            getCharacter.Wait();
-            var ui = new UI(_indexDirectory, gameLanguage);
-            var getMaps = ui.GetMapList();
-            getMaps.Wait();
-            var getMapSymbols = ui.GetMapSymbolList();
-            getMapSymbols.Wait();
-            var getStatusEffects = ui.GetStatusList();
-            getStatusEffects.Wait();
-            var getOnlineStatus = ui.GetOnlineStatusList();
-            getOnlineStatus.Wait();
-            var getWeather = ui.GetWeatherList();
-            getWeather.Wait();
-            var getLoadingScreen = ui.GetLoadingImageList();
-            getLoadingScreen.Wait();
-            var getActions = ui.GetActionList();
-            getActions.Wait();
-            var getHud = ui.GetUldList();
-            getHud.Wait();
-            var companion = new Companions(_indexDirectory, gameLanguage);
-            var getMounts = companion.GetMountList();
-            getMounts.Wait();
-            var getMinions = companion.GetMinionList();
-            getMinions.Wait();
-            var getSummons = companion.GetPetList();
-            getSummons.Wait();
-            var furniture = new Housing(_indexDirectory, gameLanguage);
-            var getFurniture = furniture.GetFurnitureList();
-            getFurniture.Wait();
-            List<XivUi> uiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
-            foreach (var item in getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            foreach (var item in getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            foreach (var item in uiList.Where(uiElement => uiElement.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            foreach (var item in getMinions.Result.Where(minion => minion.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            foreach (var item in getMounts.Result.Where(mount => mount.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            foreach (var item in getSummons.Result.Where(summon => summon.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            foreach (var item in getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)))
-                searchResults = AddSearchResult(searchResults, item.Category, item.Name);
-            return searchResults;
-        }
-
-        /// <summary>
-        /// Searches the game files for the model being requested
-        /// </summary>
-        /// <param name="request">The model id being searched for</param>
-        /// <returns>A dictionary with the search results, sorted by their categories</returns>
-        Dictionary<string, List<string>> SearchById(int request)
-        {
-            Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
-            Config config = new Config();
-            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
-            var gear = new Gear(_indexDirectory, gameLanguage);
-            var getEquipment = gear.SearchGearByModelID(request, "Equipment");
-            getEquipment.Wait();
-            var getWeapons = gear.SearchGearByModelID(request, "Weapon");
-            getWeapons.Wait();
-            var getAccesories = gear.SearchGearByModelID(request, "Accessory");
-            getAccesories.Wait();
-            var companion = new Companions(_indexDirectory, gameLanguage);
-            var getMonsters = companion.SearchMonstersByModelID(request, XivItemType.monster);
-            getMonsters.Wait();
-            var getDemiHumans = companion.SearchMonstersByModelID(request, XivItemType.demihuman);
-            getDemiHumans.Wait();
-            var housing = new Housing(_indexDirectory, gameLanguage);
-            var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
-            getFurniture.Wait();
-            List<SearchResults> allSearchResults = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
-            foreach (var item in allSearchResults)
-                searchResults = AddSearchResult(searchResults, item.Slot, $"{request}, Body: {item.Body}, Variant: {item.Variant}");
-            return searchResults;
-        }
-
-        /// <summary>
-        /// Adds the latest search result to the dictionary
-        /// </summary>
-        /// <remarks>
-        /// Has to check if a key already exists or not, as items can't be added to a nonexistant list
-        /// </remarks>
-        /// <param name="searchResults">Dictionary to add a search result to</param>
-        /// <param name="category">The dictionary key to check</param>
-        /// <param name="entry">The entry to add to the appropriate search result list</param>
-        /// <returns>The given dictionary with the latest search result added</returns>
-        Dictionary<string, List<string>> AddSearchResult(Dictionary<string, List<string>> searchResults, string category, string entry)
-        {
-            category = $"[{category}]";
-            if (!searchResults.ContainsKey(category))
-                searchResults.Add(category, new List<string>{ entry });
-            else
-                searchResults[category].Add(entry);
-            return searchResults;
+            GameSearch gameSearch = new GameSearch();
+            Dictionary<string, List<string>> potentialItems = gameSearch.SearchForItem(wantedItem);
+            int totalChoices = 0;
+            foreach (List<string> itemList in potentialItems.Values)
+                totalChoices += itemList.Count();
+            if (totalChoices == 0)
+                PrintMessage($"No items were found for {wantedItem}", 2);
+            else if (totalChoices > 1)
+            {
+                
+            }
         }
         #endregion
 
