@@ -63,7 +63,6 @@ namespace FFXIV_Modding_Tool.Search
             /// <param name="request">The (partial) name of the item being searched for</param>
             void SearchByFullOrPartialName(string request)
             {
-                // Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
                 Config config = new Config();
                 XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
                 var gear = new Gear(MainClass._indexDirectory, gameLanguage);
