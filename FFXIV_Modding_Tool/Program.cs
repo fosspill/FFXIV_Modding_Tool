@@ -950,7 +950,7 @@ namespace FFXIV_Modding_Tool
                 foreach (KeyValuePair<string, List<string>> results in potentialItems)
                 {
                     if (wantedNumber >= results.Value.Count)
-                        i -= results.Value.Count;
+                        wantedNumber -= results.Value.Count;
                     else
                         {
                             chosenItem.Add(results.Key, results.Value[wantedNumber]);
