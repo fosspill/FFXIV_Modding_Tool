@@ -11,6 +11,7 @@ namespace FFXIV_Modding_Tool.Search
 {
     public class GameSearch
         {
+            MainClass main = new MainClass();
             List<XivGear> gearList { get; set; }
             List<XivCharacter> characterList { get; set; }
             List<XivUi> uiList { get; set; }
@@ -27,6 +28,7 @@ namespace FFXIV_Modding_Tool.Search
             /// <returns>A dictionary with the search results, sorted by their categories</returns>
             public Dictionary<string, List<string>> SearchForItem(string request)
             {
+                main.PrintMessage($"Searching for {request}...");
                 Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
                 if (int.TryParse(request, out int result))
                 {
