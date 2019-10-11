@@ -12,6 +12,7 @@ namespace FFXIV_Modding_Tool.Search
     public class GameSearch
         {
             MainClass main = new MainClass();
+            Config config = new Config();
             List<XivGear> gearList { get; set; }
             List<XivCharacter> characterList { get; set; }
             List<XivUi> uiList { get; set; }
@@ -63,7 +64,6 @@ namespace FFXIV_Modding_Tool.Search
             /// <param name="request">The (partial) name of the item being searched for</param>
             void SearchByFullOrPartialName(string request)
             {
-                Config config = new Config();
                 XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
                 var gear = new Gear(MainClass._indexDirectory, gameLanguage);
                 var getGear = gear.GetGearList();
@@ -114,7 +114,6 @@ namespace FFXIV_Modding_Tool.Search
             /// <param name="request">The model id being searched for</param>
             void SearchById(int request)
             {
-                Config config = new Config();
                 XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
                 var gear = new Gear(MainClass._indexDirectory, gameLanguage);
                 var getEquipment = gear.SearchGearByModelID(request, "Equipment");
