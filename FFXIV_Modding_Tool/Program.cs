@@ -927,10 +927,36 @@ namespace FFXIV_Modding_Tool
             foreach (List<string> itemList in potentialItems.Values)
                 totalChoices += itemList.Count();
             if (totalChoices == 0)
-                PrintMessage($"No items were found for {wantedItem}", 2);
-            else if (totalChoices > 1)
             {
-                
+                PrintMessage($"No items were found for {wantedItem}", 2);
+                return;
+            }
+            Dictionary<string, string> chosenItem = new Dictionary<string, string>();
+            if (totalChoices > 1)
+            {
+                int i = 0;
+                PrintMessage("Multiple items found:");
+                foreach(KeyValuePair<string, List<string>> result in potentialItems)
+                {
+                    PrintMessage(result.Key);
+                    foreach (string item in result.Value)
+                    {
+                        PrintMessage($"{i} - {item}");
+                        i++;
+                    }
+                }
+                Console.Write("Choose one (eg: 0 1 2 3): ");
+                int wantedNumber = WizardUserInputValidation(Console.ReadLine(), totalChoices)[0];
+                foreach (KeyValuePair<string, List<string>> results in potentialItems)
+                {
+                    if (wantedNumber >= results.Value.Count)
+                        i -= results.Value.Count;
+                    else
+                        {
+                            chosenItem.Add(results.Key, results.Value[wantedNumber]);
+                            break;
+                        }
+                }
             }
         }
         #endregion
