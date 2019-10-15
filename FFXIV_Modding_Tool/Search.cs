@@ -68,11 +68,11 @@ namespace FFXIV_Modding_Tool.Search
                 var gear = new Gear(MainClass._indexDirectory, gameLanguage);
                 var getGear = gear.GetGearList();
                 getGear.Wait();
-                gearList.AddRange(getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)));
+                gearList = getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)).ToList();
                 var character = new Character(MainClass._indexDirectory, gameLanguage);
                 var getCharacter = character.GetCharacterList();
                 getCharacter.Wait();
-                characterList.AddRange(getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)));
+                characterList = getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)).ToList();
                 var ui = new UI(MainClass._indexDirectory, gameLanguage);
                 var getMaps = ui.GetMapList();
                 getMaps.Wait();
@@ -91,21 +91,21 @@ namespace FFXIV_Modding_Tool.Search
                 var getHud = ui.GetUldList();
                 getHud.Wait();
                 List<XivUi> tmpuiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
-                uiList.AddRange(tmpuiList.Where(uiElement => uiElement.Name.Contains(request)));
+                uiList = tmpuiList.Where(uiElement => uiElement.Name.Contains(request)).ToList();
                 var companion = new Companions(MainClass._indexDirectory, gameLanguage);
                 var getMounts = companion.GetMountList();
                 getMounts.Wait();
-                mountList.AddRange(getMounts.Result.Where(mount => mount.Name.Contains(request)));
+                mountList = getMounts.Result.Where(mount => mount.Name.Contains(request)).ToList();
                 var getMinions = companion.GetMinionList();
                 getMinions.Wait();
-                minionList.AddRange(getMinions.Result.Where(minion => minion.Name.Contains(request)));
+                minionList = getMinions.Result.Where(minion => minion.Name.Contains(request)).ToList();
                 var getSummons = companion.GetPetList();
                 getSummons.Wait();
-                summonList.AddRange(getSummons.Result.Where(summon => summon.Name.Contains(request)));
+                summonList = getSummons.Result.Where(summon => summon.Name.Contains(request)).ToList();
                 var furniture = new Housing(MainClass._indexDirectory, gameLanguage);
                 var getFurniture = furniture.GetFurnitureList();
                 getFurniture.Wait();
-                furnitureList.AddRange(getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)));
+                furnitureList = getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)).ToList();
             }
 
             /// <summary>
