@@ -958,6 +958,8 @@ namespace FFXIV_Modding_Tool
                         }
                 }
             }
+            else
+                chosenItem.Add(potentialItems.First().Key, potentialItems.First().Value[0]);
         }
         #endregion
 
