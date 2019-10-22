@@ -20,7 +20,7 @@ namespace FFXIV_Modding_Tool.Search
         List<XivMinion> minionList { get; set; }
         List<XivPet> summonList { get; set; }
         List<XivFurniture> furnitureList { get; set; }
-        List<SearchResults> modelIdList { get; set; }
+        Dictionary<string, List<SearchResults>> modelIdList { get; set; }
         
         public class ItemInfo
         {
@@ -38,10 +38,12 @@ namespace FFXIV_Modding_Tool.Search
             public uint iconNumber { get; set; }
             public int uiIconNumber { get; set; }
             public string uiPath { get; set; }
-
-            public ItemInfo(SearchResults item, string modelId)
+            
+            public ItemInfo(){}
+            public ItemInfo(SearchResults item, string modelId, string category)
             {
                 name = modelId;
+                this.category = category;
                 slot = item.Slot;
                 body = item.Body;
                 variant = item.Variant;
@@ -130,8 +132,11 @@ namespace FFXIV_Modding_Tool.Search
             if (int.TryParse(request, out int result))
             {
                 SearchById(result);
-                foreach (var item in modelIdList)
-                    searchResults.Add(new ItemInfo(item, request));
+                foreach (var itemList in modelIdList)
+                {
+                    foreach (var item in itemList.Value)
+                        searchResults.Add(new ItemInfo(item, request, itemList.Key));
+                }
             }
             else
             {
@@ -210,23 +215,29 @@ namespace FFXIV_Modding_Tool.Search
         /// <param name="request">The model id being searched for</param>
         void SearchById(int request)
         {
+            modelIdList = new Dictionary<string, List<SearchResults>>();
             XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
             var gear = new Gear(MainClass._indexDirectory, gameLanguage);
             var getEquipment = gear.SearchGearByModelID(request, "Equipment");
             getEquipment.Wait();
+            modelIdList["Equipment"] = getEquipment.Result;
             var getWeapons = gear.SearchGearByModelID(request, "Weapon");
             getWeapons.Wait();
+            modelIdList["Weapon"] = getWeapons.Result;
             var getAccesories = gear.SearchGearByModelID(request, "Accessory");
             getAccesories.Wait();
+            modelIdList["Accesory"] = getAccesories.Result;
             var companion = new Companions(MainClass._indexDirectory, gameLanguage);
             var getMonsters = companion.SearchMonstersByModelID(request, XivItemType.monster);
             getMonsters.Wait();
+            modelIdList["Monster"] = getMonsters.Result;
             var getDemiHumans = companion.SearchMonstersByModelID(request, XivItemType.demihuman);
             getDemiHumans.Wait();
+            modelIdList["DemiHuman"] = getDemiHumans.Result;
             var housing = new Housing(MainClass._indexDirectory, gameLanguage);
             var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
             getFurniture.Wait();
-            modelIdList = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
+            modelIdList["Furniture"] = getFurniture.Result;
         }
     }
 }
