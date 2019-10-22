@@ -30,6 +30,7 @@ using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
 using FFXIV_Modding_Tool.Commandline;
 using FFXIV_Modding_Tool.Search;
+using FFXIV_Modding_Tool.Exporting;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
@@ -954,6 +955,8 @@ namespace FFXIV_Modding_Tool
             }
             else
                 chosenItem = potentialItems[0];
+            Export export = new Export();
+            export.GetExportInfo(chosenItem);
         }
         #endregion
 

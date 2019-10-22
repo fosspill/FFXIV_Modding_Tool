@@ -59,6 +59,7 @@
     <Compile Include="Arguments.cs" />
     <Compile Include="Validation.cs" />
     <Compile Include="Search.cs" />
+    <Compile Include="Export.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
