@@ -21,39 +21,135 @@ namespace FFXIV_Modding_Tool.Search
             List<XivPet> summonList { get; set; }
             List<XivFurniture> furnitureList { get; set; }
             List<SearchResults> modelIdList { get; set; }
+            
+            public class ItemInfo
+            {
+                public string name { get; set; }
+                public string slot { get; set; }
+                public string body { get; set; }
+                public int variant { get; set; }
+                public string category { get; set; }
+                public string itemCategory { get; set; }
+                public string itemSubCategory { get; set; }
+                public XivDataFile dataFile { get; set; }
+                public XivModelInfo primaryModelInfo { get; set; }
+                public XivModelInfo secondaryModelInfo { get; set; }
+                public int equipSlotCategory { get; set; }
+                public uint iconNumber { get; set; }
+                public int uiIconNumber { get; set; }
+                public string uiPath { get; set; }
+
+                public ItemInfo(SearchResults item, string modelId)
+                {
+                    name = modelId;
+                    slot = item.Slot;
+                    body = item.Body;
+                    variant = item.Variant;
+                }
+                public ItemInfo(XivGear item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    primaryModelInfo = item.ModelInfo;
+                    secondaryModelInfo = item.SecondaryModelInfo;
+                    equipSlotCategory = item.EquipSlotCategory;
+                    iconNumber = item.IconNumber;
+                }
+                public ItemInfo(XivCharacter item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    primaryModelInfo = item.ModelInfo;
+                }
+                public ItemInfo(XivUi item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    uiIconNumber = item.IconNumber;
+                    uiPath = item.UiPath;
+                }
+                public ItemInfo(XivMount item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    primaryModelInfo = item.ModelInfo;
+                }
+                public ItemInfo(XivMinion item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    primaryModelInfo = item.ModelInfo;
+                }
+                public ItemInfo(XivPet item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    primaryModelInfo = item.ModelInfo;
+                }
+                public ItemInfo(XivFurniture item)
+                {
+                    name = item.Name;
+                    category = item.Category;
+                    itemCategory = item.ItemCategory;
+                    itemSubCategory = item.ItemSubCategory;
+                    dataFile = item.DataFile;
+                    primaryModelInfo = item.ModelInfo;
+                    iconNumber = item.IconNumber;
+                }
+            }
+
+            public static ItemInfo itemInfo;
 
             /// <summary>
             /// Handles the search request by calling on the appropriate functions based on if the request is a (partial) name or model id
             /// </summary>
             /// <param name="request">The model being searched for</param>
-            /// <returns>A dictionary with the search results, sorted by their categories</returns>
-            public Dictionary<string, List<string>> SearchForItem(string request)
+            /// <returns>A list with the search results</returns>
+            public List<ItemInfo> SearchForItem(string request)
             {
                 main.PrintMessage($"Searching for {request}...");
-                Dictionary<string, List<string>> searchResults = new Dictionary<string, List<string>>();
+                List<ItemInfo> searchResults = new List<ItemInfo>();
                 if (int.TryParse(request, out int result))
                 {
                     SearchById(result);
                     foreach (var item in modelIdList)
-                        searchResults = AddSearchResult(searchResults, item.Slot, $"{request}, Body: {item.Body}, Variant: {item.Variant}");
+                        searchResults.Add(new ItemInfo(item, request));
                 }
                 else
                 {
                     SearchByFullOrPartialName(request);
                     foreach (var item in gearList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
                     foreach (var item in characterList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
                     foreach (var item in uiList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
                     foreach (var item in minionList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
                     foreach (var item in mountList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
                     foreach (var item in summonList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
                     foreach (var item in furnitureList)
-                        searchResults = AddSearchResult(searchResults, item.Category, item.Name);
+                        searchResults.Add(new ItemInfo(item));
             }
             return searchResults;
             }
@@ -131,26 +227,6 @@ namespace FFXIV_Modding_Tool.Search
                 var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
                 getFurniture.Wait();
                 modelIdList = getEquipment.Result.Concat(getWeapons.Result).Concat(getAccesories.Result).Concat(getMonsters.Result).Concat(getDemiHumans.Result).Concat(getFurniture.Result).ToList();
-            }
-
-            /// <summary>
-            /// Adds the latest search result to the dictionary
-            /// </summary>
-            /// <remarks>
-            /// Has to check if a key already exists or not, as items can't be added to a nonexistant list
-            /// </remarks>
-            /// <param name="searchResults">Dictionary to add a search result to</param>
-            /// <param name="category">The dictionary key to check</param>
-            /// <param name="entry">The entry to add to the appropriate search result list</param>
-            /// <returns>The given dictionary with the latest search result added</returns>
-            Dictionary<string, List<string>> AddSearchResult(Dictionary<string, List<string>> searchResults, string category, string entry)
-            {
-                category = $"[{category}]";
-                if (!searchResults.ContainsKey(category))
-                    searchResults.Add(category, new List<string>{ entry });
-                else
-                    searchResults[category].Add(entry);
-                return searchResults;
             }
         }
 }

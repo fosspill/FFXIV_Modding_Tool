@@ -922,44 +922,38 @@ namespace FFXIV_Modding_Tool
         public void ExportRequestHandler(string wantedItem)
         {
             GameSearch gameSearch = new GameSearch();
-            Dictionary<string, List<string>> potentialItems = gameSearch.SearchForItem(wantedItem);
-            int totalChoices = 0;
-            foreach (List<string> itemList in potentialItems.Values)
-                totalChoices += itemList.Count();
+            List<GameSearch.ItemInfo> potentialItems = gameSearch.SearchForItem(wantedItem);
+            int totalChoices = potentialItems.Count;
             if (totalChoices == 0)
             {
                 PrintMessage($"No items were found for {wantedItem}", 2);
                 return;
             }
-            Dictionary<string, string> chosenItem = new Dictionary<string, string>();
+            GameSearch.ItemInfo chosenItem;
             if (totalChoices > 1)
             {
-                int i = 0;
+                string previousCategory = "";
                 PrintMessage("Multiple items found:");
-                foreach(KeyValuePair<string, List<string>> result in potentialItems)
+                foreach(GameSearch.ItemInfo item in potentialItems)
                 {
-                    PrintMessage(result.Key);
-                    foreach (string item in result.Value)
+                    if (item.slot != null && item.slot != previousCategory)
                     {
-                        PrintMessage($"{i} - {item}");
-                        i++;
+                        PrintMessage($"[{item.slot}]");
+                        previousCategory = item.slot;
                     }
+                    else if (item.category != null && item.category != previousCategory)
+                    {
+                        PrintMessage($"[{item.category}]");
+                        previousCategory = item.category;
+                    }
+                    PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}");
                 }
                 Console.Write("Choose one (eg: 0 1 2 3): ");
                 int wantedNumber = WizardUserInputValidation(Console.ReadLine(), totalChoices)[0];
-                foreach (KeyValuePair<string, List<string>> results in potentialItems)
-                {
-                    if (wantedNumber >= results.Value.Count)
-                        wantedNumber -= results.Value.Count;
-                    else
-                        {
-                            chosenItem.Add(results.Key, results.Value[wantedNumber]);
-                            break;
-                        }
-                }
+                chosenItem = potentialItems[wantedNumber];
             }
             else
-                chosenItem.Add(potentialItems.First().Key, potentialItems.First().Value[0]);
+                chosenItem = potentialItems[0];
         }
         #endregion
 
