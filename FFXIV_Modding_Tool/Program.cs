@@ -937,17 +937,15 @@ namespace FFXIV_Modding_Tool
                 PrintMessage("Multiple items found:");
                 foreach(GameSearch.ItemInfo item in potentialItems)
                 {
-                    if (item.slot != null && item.slot != previousCategory)
-                    {
-                        PrintMessage($"[{item.slot}]");
-                        previousCategory = item.slot;
-                    }
-                    else if (item.category != null && item.category != previousCategory)
+                    if (item.category != previousCategory)
                     {
                         PrintMessage($"[{item.category}]");
                         previousCategory = item.category;
                     }
-                    PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}");
+                    if (item.slot != null)
+                        PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}, {item.slot}, Body: {item.body}, Variant: {item.variant}");
+                    else
+                        PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}");
                 }
                 Console.Write("Choose one (eg: 0 1 2 3): ");
                 int wantedNumber = WizardUserInputValidation(Console.ReadLine(), totalChoices)[0];
