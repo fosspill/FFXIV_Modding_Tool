@@ -134,12 +134,12 @@ namespace FFXIV_Modding_Tool.Exporting
                 {
                     Character character = new Character(MainClass._indexDirectory, gameLanguage);
                     var charaItem = new XivCharacter{
-                    Name = item.name,
-                    Category = item.category,
-                    ItemCategory = item.itemCategory,
-                    ItemSubCategory = item.itemSubCategory,
-                    DataFile = item.dataFile,
-                    ModelInfo = item.primaryModelInfo
+                        Name = item.name,
+                        Category = item.category,
+                        ItemCategory = item.itemCategory,
+                        ItemSubCategory = item.itemSubCategory,
+                        DataFile = item.dataFile,
+                        ModelInfo = item.primaryModelInfo
                     };
                     var charaRaceAndNumberDictionary = character.GetRacesAndNumbersForTextures(charaItem);
                     foreach (var racesAndNumber in charaRaceAndNumberDictionary.Result)
@@ -156,6 +156,45 @@ namespace FFXIV_Modding_Tool.Exporting
         List<XivRace> GetModelRaces(GameSearch.ItemInfo item)
         {
             List<XivRace> races = new List<XivRace>();
+            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
+            if (item.category.Equals("Gear"))
+            {
+                Gear gear = new Gear(MainClass._indexDirectory, gameLanguage);
+                var gearItem = new XivGear{
+                    Name = item.name,
+                    Category = item.category,
+                    ItemCategory = item.itemCategory,
+                    ItemSubCategory = item.itemSubCategory,
+                    DataFile = item.dataFile,
+                    ModelInfo = item.primaryModelInfo,
+                    SecondaryModelInfo = item.secondaryModelInfo,
+                    IconNumber = item.iconNumber,
+                    EquipSlotCategory = item.equipSlotCategory
+                };
+                var getRaces = gear.GetRacesForModels(gearItem, item.dataFile);
+                getRaces.Wait();
+                races.AddRange(getRaces.Result);
+            }
+            else if (item.category.Equals("Companions"))
+                races.Add(XivRace.DemiHuman);
+            else if (item.category.Equals("Character"))
+            {
+                Character character = new Character(MainClass._indexDirectory, gameLanguage);
+                var charaItem = new XivCharacter{
+                    Name = item.name,
+                    Category = item.category,
+                    ItemCategory = item.itemCategory,
+                    ItemSubCategory = item.itemSubCategory,
+                    DataFile = item.dataFile,
+                    ModelInfo = item.primaryModelInfo
+                    };
+                var getRaces = character.GetRacesAndNumbersForModels(charaItem);
+                getRaces.Wait();
+                foreach (var racesAndNumber in getRaces.Result)
+                    races.Add(racesAndNumber.Key);
+            }
+            else if (item.category.Equals("Housing"))
+                races.Add(XivRace.All_Races);
             return races;
         }
     }
