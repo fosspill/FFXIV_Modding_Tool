@@ -12,19 +12,25 @@ namespace FFXIV_Modding_Tool.Exporting
     {
         MainClass main = new MainClass();
         Config config = new Config();
+        
         public void GetExportInfo(GameSearch.ItemInfo item)
         {
             if (int.TryParse(item.name, out int modelId))
                 item = LoadModelData(modelId, item);
             Dictionary<string, List<XivRace>> availableRaces = new Dictionary<string, List<XivRace>>();
             main.PrintMessage("Retrieving racial data...");
-            availableRaces["Textures"] = GetTextureRaces(item);
-            availableRaces["Model"] = GetModelRaces(item);
+            availableRaces["[Textures]"] = GetTextureRaces(item);
+            availableRaces["[Model]"] = GetModelRaces(item);
             foreach (KeyValuePair<string, List<XivRace>> allRaces in availableRaces)
             {
                 main.PrintMessage(allRaces.Key);
-                foreach (XivRace race in allRaces.Value)
-                    main.PrintMessage(race.GetDisplayName());
+                if (allRaces.Value.Count == 0)
+                    main.PrintMessage("N/A");
+                else
+                {
+                    foreach (XivRace race in allRaces.Value)
+                        main.PrintMessage(race.GetDisplayName());
+                }
             }
         }
 
