@@ -13,6 +13,10 @@ namespace FFXIV_Modding_Tool.Exporting
         MainClass main = new MainClass();
         Config config = new Config();
         
+        /// <summary>
+        /// Retrieves information on what can be exported based on the user's chosen item
+        /// </summary>
+        /// <param name="item">The item the user wishes to export</param>
         public void GetExportInfo(GameSearch.ItemInfo item)
         {
             if (int.TryParse(item.name, out int modelId))
@@ -34,6 +38,12 @@ namespace FFXIV_Modding_Tool.Exporting
             }
         }
 
+        /// <summary>
+        /// Load the actual model data of an item that was searched for by its model id
+        /// </summary>
+        /// <param name="modelId">The model id of the requested item</param>
+        /// <param name="item">The requested item</param>
+        /// <returns></returns>
         GameSearch.ItemInfo LoadModelData(int modelId, GameSearch.ItemInfo item)
         {
             GameSearch.ItemInfo itemInfo = new GameSearch.ItemInfo();
@@ -108,6 +118,11 @@ namespace FFXIV_Modding_Tool.Exporting
             return itemInfo;
         }
 
+        /// <summary>
+        /// Retrieve all the races that have unique textures
+        /// </summary>
+        /// <param name="item">The item that textures are being requested of</param>
+        /// <returns>A list of races with unique textures</returns>
         List<XivRace> GetTextureRaces(GameSearch.ItemInfo item)
         {
             List<XivRace> races = new List<XivRace>();
@@ -159,6 +174,11 @@ namespace FFXIV_Modding_Tool.Exporting
             return races;
         }
 
+        /// <summary>
+        /// Retrieve all the races that have unique models
+        /// </summary>
+        /// <param name="item">The item that models are being requested of</param>
+        /// <returns>A list of races with unique models</returns>
         List<XivRace> GetModelRaces(GameSearch.ItemInfo item)
         {
             List<XivRace> races = new List<XivRace>();
