@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Collections.Generic;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Items.Enums;
 using xivModdingFramework.Items.Categories;
 using xivModdingFramework.Items.DataContainers;
+using xivModdingFramework.Textures.FileTypes;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Search;
 
@@ -23,11 +25,11 @@ namespace FFXIV_Modding_Tool.Exporting
                 item = LoadModelData(modelId, item);
             Dictionary<string, List<XivRace>> availableRaces = new Dictionary<string, List<XivRace>>();
             main.PrintMessage("Retrieving racial data...");
-            availableRaces["[Textures]"] = GetTextureRaces(item);
-            availableRaces["[Model]"] = GetModelRaces(item);
+            availableRaces["Textures"] = GetTextureRaces(item);
+            availableRaces["Model"] = GetModelRaces(item);
             foreach (KeyValuePair<string, List<XivRace>> allRaces in availableRaces)
             {
-                main.PrintMessage(allRaces.Key);
+                main.PrintMessage($"[{allRaces.Key}]");
                 if (allRaces.Value.Count == 0)
                     main.PrintMessage("N/A");
                 else
@@ -36,6 +38,7 @@ namespace FFXIV_Modding_Tool.Exporting
                         main.PrintMessage(race.GetDisplayName());
                 }
             }
+            GetTextures(item, availableRaces["Textures"][0]);
         }
 
         /// <summary>
@@ -222,6 +225,94 @@ namespace FFXIV_Modding_Tool.Exporting
             else if (item.category.Equals("Housing"))
                 races.Add(XivRace.All_Races);
             return races;
+        }
+
+        /// <summary>
+        /// Gets all the different types of textures an item has
+        /// </summary>
+        /// <param name="item">The item we want the textures of</param>
+        /// <param name="race">A race the item has textures for to use to retrieve texture data</param>
+        void GetTextures(GameSearch.ItemInfo item, XivRace race)
+        {
+            List<string> parts = getTextureParts(item, race);
+            foreach (string part in parts)
+                main.PrintMessage(part);
+        }
+
+        /// <summary>
+        /// Gets the texture parts for the given item
+        /// </summary>
+        /// <param name="item">The item we want the parts of</param>
+        /// <param name="race">A race the item has textures for to use to request texture parts</param>
+        /// <returns>A list with the different texture parts of the item</returns>
+        List<string> getTextureParts(GameSearch.ItemInfo item, XivRace race)
+        {
+            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
+            List<string> partList = new List<string>();
+            if (item.category.Equals("Character"))
+                {
+                    Character character = new Character(MainClass._indexDirectory, gameLanguage);
+                    var charaItem = new XivCharacter{
+                        Name = item.name,
+                        Category = item.category,
+                        ItemCategory = item.itemCategory,
+                        ItemSubCategory = item.itemSubCategory,
+                        DataFile = item.dataFile,
+                        ModelInfo = item.primaryModelInfo
+                    };
+                    if (item.itemCategory.Equals("Face_Paint") || item.itemCategory.Equals("Equip_Decals"))
+                    {
+                        var getPartList = character.GetDecalNums(charaItem);
+                        getPartList.Wait();
+                        partList = getPartList.Result.Select(part => part.ToString()).ToList();
+                        if (item.itemCategory.Equals("Equip_Decals"))
+                            partList.Add("_stigma");
+                    }
+                    else
+                    {
+                        var getRaces = character.GetRacesAndNumbersForModels(charaItem);
+                        getRaces.Wait();
+                        partList = getRaces.Result[race].Select(part => part.ToString()).ToList();
+                    }
+                }
+                else if ((item.itemCategory.Equals("Mounts") || item.itemCategory.Equals("Monster")) && item.primaryModelInfo.ModelType == XivItemType.demihuman)
+                {
+                    Companions companions = new Companions(MainClass._indexDirectory, gameLanguage);
+                    var mountItem = new XivMount{
+                        Name = item.name,
+                        Category = item.category,
+                        ItemCategory = item.itemCategory,
+                        ItemSubCategory = item.itemSubCategory,
+                        DataFile = item.dataFile,
+                        ModelInfo = item.primaryModelInfo
+                    };
+                    var equipParts = companions.GetDemiHumanMountTextureEquipPartList(mountItem);
+                    equipParts.Wait();
+                    foreach (var equipPart in equipParts.Result)
+                        partList.Add(equipPart.Key);
+                }
+                else if (item.category.Equals("Gear"))
+                {
+                    partList.Add("Primary");
+                    if (item.secondaryModelInfo != null && item.secondaryModelInfo.ModelID > 0)
+                        partList.Add("Secondary");
+                }
+                else
+                {
+                    Tex tex = new Tex(MainClass._indexDirectory, item.dataFile);
+                    var anItem = new XivGenericItemModel{
+                        Name = item.name,
+                        Category = item.category,
+                        ItemCategory = item.itemCategory,
+                        ItemSubCategory = item.itemSubCategory,
+                        DataFile = item.dataFile,
+                        ModelInfo = item.primaryModelInfo
+                    };
+                    var getParts = tex.GetTexturePartList(anItem, race, item.dataFile);
+                    getParts.Wait();
+                    partList = getParts.Result;
+                }
+            return partList;
         }
     }
 }
