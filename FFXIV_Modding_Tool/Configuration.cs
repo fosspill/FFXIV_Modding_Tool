@@ -31,7 +31,12 @@ BackupDirectory
 #   MacOS: /Users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
 #   Linux: /path/to/WINEBOTTLE/drive_c/users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
 #   Windows: C:\users\<USER_NAME>\My Documents\My Games\FINAL FANTASY XIV - A Realm Reborn
-ConfigDirectory",
+ConfigDirectory
+
+[Game]
+# Language that your game is set to
+# 'en' for English, 'ja' for Japanese, 'de' for German, 'fr' for French, 'ko' for Korean, 'chs' or 'zh' for Chinese
+Language=en",
                 new ConfigParserSettings
                 {
                     MultiLineValues = MultiLineValues.Simple | MultiLineValues.AllowValuelessKeys | MultiLineValues.QuoteDelimitedValues,
@@ -44,11 +49,14 @@ ConfigDirectory",
         public string ReadConfig(string target)
         {
             var configFileFromPath = new ConfigParser(configFile);
-            string targetDirectory = configFileFromPath.GetValue("Directories", target);
-            if (!string.IsNullOrEmpty(targetDirectory))
-                return targetDirectory;
+            string targetValue = "";
+            if (target.Contains("Directory"))
+                targetValue = configFileFromPath.GetValue("Directories", target);
             else
-                return "";
+                targetValue = configFileFromPath.GetValue("Game", target);
+            if (!string.IsNullOrEmpty(targetValue))
+                return targetValue;
+            return "";
         }
     }
 }

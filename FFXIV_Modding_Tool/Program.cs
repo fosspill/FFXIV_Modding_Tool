@@ -28,8 +28,9 @@ using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
-using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
+using FFXIV_Modding_Tool.Search;
+using FFXIV_Modding_Tool.Exporting;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
@@ -915,6 +916,49 @@ namespace FFXIV_Modding_Tool
         }
         #endregion
 
+        #region Export
+        /// <summary>
+        /// Handles the export request by calling on the appropriate functions that will get the user their desired exports
+        /// </summary>
+        /// <param name="wantedItem">The desired model to export</param>
+        public void ExportRequestHandler(string wantedItem)
+        {
+            GameSearch gameSearch = new GameSearch();
+            List<GameSearch.ItemInfo> potentialItems = gameSearch.SearchForItem(wantedItem);
+            int totalChoices = potentialItems.Count;
+            if (totalChoices == 0)
+            {
+                PrintMessage($"No items were found for {wantedItem}", 2);
+                return;
+            }
+            GameSearch.ItemInfo chosenItem;
+            if (totalChoices > 1)
+            {
+                string previousCategory = "";
+                PrintMessage("Multiple items found:");
+                foreach(GameSearch.ItemInfo item in potentialItems)
+                {
+                    if (item.category != previousCategory)
+                    {
+                        PrintMessage($"[{item.category}]");
+                        previousCategory = item.category;
+                    }
+                    if (item.slot != null)
+                        PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}, {item.slot}, Body: {item.body}, Variant: {item.variant}");
+                    else
+                        PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}");
+                }
+                Console.Write("Choose one (eg: 0 1 2 3): ");
+                int wantedNumber = WizardUserInputValidation(Console.ReadLine(), totalChoices)[0];
+                chosenItem = potentialItems[wantedNumber];
+            }
+            else
+                chosenItem = potentialItems[0];
+            Export export = new Export();
+            export.GetExportInfo(chosenItem);
+        }
+        #endregion
+
         #region Problem Checking
         public void ProblemChecker()
         {
@@ -1236,7 +1280,6 @@ namespace FFXIV_Modding_Tool
         static void Main(string[] args)
         {
             _projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
-            Config config = new Config();
             Arguments arguments = new Arguments();
             arguments.ArgumentHandler(args);
         }
