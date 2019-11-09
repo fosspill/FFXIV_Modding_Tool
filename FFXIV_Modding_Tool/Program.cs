@@ -360,11 +360,13 @@ namespace FFXIV_Modding_Tool
 
         bool PromptWizardUsage(int modCount)
         {
-            if (modCount > 250)
-                PrintMessage($"This modpack contains {modCount} mods, using the wizard could be a tedious process", 3);
             bool userPicked = false;
             bool answer = false;
-            while (!userPicked)
+            
+            if (modCount > 250)
+                PrintMessage($"This modpack contains {modCount} mods, using the wizard could be a tedious process", 3);
+
+            while (!userPicked && modcount > 1)
             {
                 PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
                 string reply = Console.ReadKey().KeyChar.ToString().ToLower();
