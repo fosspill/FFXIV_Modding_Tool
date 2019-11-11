@@ -121,7 +121,7 @@ namespace FFXIV_Modding_Tool.Validation
                     string unknownSource = "";
                     foreach (Mod mod in modData.Mods)
                     {
-                        if (mod.source != "FFXIV_Modding_Tool")
+                        if (mod.source != "FFXIV_Modding_Tool" && mod.source != "FilesAddedByTexTools")
                         {
                             unknownSource = mod.source;
                             unsupportedSource = true;
