@@ -81,7 +81,7 @@ namespace FFXIV_Modding_Tool.Validation
                 }
             }
             if (problemFound){
-                if (PromptContinuation("Would you like to back up now?")){
+                if (PromptContinuation("Would you like to back up now?", "y")){
                     main.BackupIndexes();
                     keepGoing = true;
                 } else {
@@ -158,7 +158,7 @@ namespace FFXIV_Modding_Tool.Validation
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
             if (answer == "\n"){
                 Console.Write("\n");
-                answer == default;
+                answer = default;
             }
             if (answer == "y")
             {
