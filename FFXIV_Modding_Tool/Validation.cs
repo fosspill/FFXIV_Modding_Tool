@@ -156,17 +156,17 @@ namespace FFXIV_Modding_Tool.Validation
             
             main.PrintMessage($"{message} {choicestring}", 1);
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
-            if (answer == "\n"){
-                Console.Write("\n");
+            if (answer == "\n")
                 answer = default;
-            }
             if (answer == "y")
             {
                 Console.Write("\n");
                 return true;
             }
-            else
+            else{
+                Console.Write("\n");
                 return false;
+            }
         }
     }
 }
