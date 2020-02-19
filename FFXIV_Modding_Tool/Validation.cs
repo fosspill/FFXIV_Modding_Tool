@@ -175,7 +175,6 @@ namespace FFXIV_Modding_Tool.Validation
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
             Console.Write("\n");
             return PromptContinuationReply(answer, defaultanswer);
-            
         }
     }
 }
