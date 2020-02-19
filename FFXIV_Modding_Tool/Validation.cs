@@ -144,18 +144,29 @@ namespace FFXIV_Modding_Tool.Validation
             return keepGoing;
         }
 
-        bool PromptContinuation(string message = "Would you like to continue?")
+        bool PromptContinuation(string message = "Would you like to continue?", string default = "n")
         {
-            main.PrintMessage($"{message} y/N", 1);
+            string choicestring;
+            if (default.ToLower() == "n")
+                choicestring = "y/N";
+            else if (default.ToLower() == "y")
+                choicestring = "Y/n";
+            else
+                choicestring = "y/n";
+            
+            main.PrintMessage($"{message} {choicestring}", 1);
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
+            if (answer == "\n"){
+                Console.Write("\n");
+                answer == default;
+            }
             if (answer == "y")
             {
                 Console.Write("\n");
                 return true;
             }
-            if (answer != "\n")
-                Console.Write("\n");
-            return false;
+            else
+                return false;
         }
     }
 }
