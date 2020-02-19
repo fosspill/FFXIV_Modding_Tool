@@ -144,7 +144,7 @@ namespace FFXIV_Modding_Tool.Validation
             return keepGoing;
         }
         
-        bool PromptContinuationReply(string answer, bool default = false){
+        bool PromptContinuationReply(string answer, bool defaultanswer = false){
               switch (answer.ToLower())
               {
                   case "y":
@@ -154,19 +154,19 @@ namespace FFXIV_Modding_Tool.Validation
                       return false;
                       break;
                   case "\n":
-                      return default;
+                      return defaultanswer;
                   default:
                       return false;
                       break;
               }
         }
 
-        bool PromptContinuation(string message = "Would you like to continue?", bool default = false)
+        bool PromptContinuation(string message = "Would you like to continue?", bool defaultanswer = false)
         {
             string choicestring;
-            if (!default)
+            if (!defaultanswer)
                 choicestring = "y/N";
-            else if (default)
+            else if (defaultanswer)
                 choicestring = "Y/n";
             else
                 choicestring = "y/n";
@@ -174,7 +174,7 @@ namespace FFXIV_Modding_Tool.Validation
             main.PrintMessage($"{message} {choicestring}", 1);
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
             Console.Write("\n");
-            return PromptContinuationReply(answer, default);
+            return PromptContinuationReply(answer, defaultanswer);
             
         }
     }
