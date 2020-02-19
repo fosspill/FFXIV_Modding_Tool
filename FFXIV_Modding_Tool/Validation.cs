@@ -144,7 +144,7 @@ namespace FFXIV_Modding_Tool.Validation
             return keepGoing;
         }
 
-        bool PromptContinuation(message="Would you like to continue?")
+        bool PromptContinuation(string message = "Would you like to continue?")
         {
             main.PrintMessage($"{message} y/N", 1);
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
