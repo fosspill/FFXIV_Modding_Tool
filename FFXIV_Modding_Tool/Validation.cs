@@ -80,12 +80,13 @@ namespace FFXIV_Modding_Tool.Validation
                     }
                 }
             }
-            if (problemFound)
+            if (problemFound){
                 if (PromptContinuation("Would you like to back up now?")){
                     BackupIndexes()
                 } else {
                 keepGoing = PromptContinuation();
                 }
+            }
             else
                 main.PrintMessage("All backups present and up to date", 1);
             return keepGoing;
