@@ -80,8 +80,14 @@ namespace FFXIV_Modding_Tool.Validation
                     }
                 }
             }
-            if (problemFound)
-                keepGoing = PromptContinuation();
+            if (problemFound){
+                if (PromptContinuation("Would you like to back up now?", true)){
+                    main.BackupIndexes();
+                    keepGoing = true;
+                } else {
+                    keepGoing = PromptContinuation();
+                }
+            }
             else
                 main.PrintMessage("All backups present and up to date", 1);
             return keepGoing;
@@ -137,19 +143,38 @@ namespace FFXIV_Modding_Tool.Validation
             }
             return keepGoing;
         }
+        
+        bool PromptContinuationReply(string answer, bool defaultanswer = false){
+              switch (answer.ToLower())
+              {
+                  case "y":
+                      return true;
+                      break;
+                  case "n":
+                      return false;
+                      break;
+                  case "\n":
+                      return defaultanswer;
+                  default:
+                      return false;
+                      break;
+              }
+        }
 
-        bool PromptContinuation()
+        bool PromptContinuation(string message = "Would you like to continue?", bool defaultanswer = false)
         {
-            main.PrintMessage("Continue anyway? y/N");
+            string choicestring;
+            if (!defaultanswer)
+                choicestring = "y/N";
+            else if (defaultanswer)
+                choicestring = "Y/n";
+            else
+                choicestring = "y/n";
+            
+            main.PrintMessage($"{message} {choicestring}", 1);
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
-            if (answer == "y")
-            {
-                Console.Write("\n");
-                return true;
-            }
-            if (answer != "\n")
-                Console.Write("\n");
-            return false;
+            Console.Write("\n");
+            return PromptContinuationReply(answer, defaultanswer);
         }
     }
 }
