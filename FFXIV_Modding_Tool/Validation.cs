@@ -147,9 +147,10 @@ namespace FFXIV_Modding_Tool.Validation
         bool PromptContinuation(string message = "Would you like to continue?", string default = "n")
         {
             string choicestring;
-            if (default.ToLower() == "n")
+            string defaultlower = default.ToLower()
+            if (defaultlower == "n")
                 choicestring = "y/N";
-            else if (default.ToLower() == "y")
+            else if (defaultlower == "y")
                 choicestring = "Y/n";
             else
                 choicestring = "y/n";
@@ -157,7 +158,7 @@ namespace FFXIV_Modding_Tool.Validation
             main.PrintMessage($"{message} {choicestring}", 1);
             string answer = Console.ReadKey().KeyChar.ToString().ToLower();
             if (answer == "\n")
-                answer = default;
+                answer = defaultlower;
             if (answer == "y")
             {
                 Console.Write("\n");
