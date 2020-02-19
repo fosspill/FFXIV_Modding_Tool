@@ -83,6 +83,7 @@ namespace FFXIV_Modding_Tool.Validation
             if (problemFound){
                 if (PromptContinuation("Would you like to back up now?")){
                     BackupIndexes()
+                    keepGoing = true;
                 } else {
                 keepGoing = PromptContinuation();
                 }
