@@ -33,7 +33,6 @@ namespace FFXIV_Modding_Tool.Commandline
             }
             SetupDicts();
             ReadArguments(args);
-            ReadAction(args);
         }
 
         public void SetupDicts()
@@ -85,11 +84,28 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
         { 
             foreach (string cmdArg in args)
             {
-                string nextArg = "";
-                int i = Array.IndexOf(args, cmdArg);
-                if (args.Length > 1 && i + 1 < args.Length)
-                    nextArg = args[i + 1];
+                if (cmdArg.StartsWith("-"))
+                {
+                    string nextArg = "";
+                    int i = Array.IndexOf(args, cmdArg);
+                    if (args.Length > 1 && i + 1 < args.Length)
+                        nextArg = args[i + 1];
+                    string arg = cmdArg.Split('-').Last();
+                    foreach(List<string> argumentList in argumentDict.Keys)
+                    {
+                        if (argumentList.Contains(arg))
+                            argumentDict[argumentList](nextArg);
+                    }
+                }
             }
+            string fullAction = "";
+            if (args.Count() > 1)
+                fullAction = $"{args[0]} {args[1]}";
+            foreach(List<string> actionList in actionDict.Keys)
+                {
+                    if (actionList.Contains(args[0]) || actionList.Contains(fullAction))
+                        actionDict[actionList]();
+                }
         }
 
         public bool ActionRequirementsChecker()
