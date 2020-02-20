@@ -104,11 +104,14 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
             foreach(List<string> actionList in actionDict.Keys)
                 {
                     if (actionList.Contains(args[0]) || actionList.Contains(fullAction))
-                        actionDict[actionList]();
+                    {
+                        if (ActionRequirementsChecker(actionList[0]))
+                            actionDict[actionList]();
+                    }
                 }
         }
 
-        public bool ActionRequirementsChecker()
+        public bool ActionRequirementsChecker(string requestedAction)
         {
             List<string> requiresGameDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
             List<string> requiresBackupDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
