@@ -56,6 +56,10 @@ namespace FFXIV_Modding_Tool.Commandline
                         case "version":
                             requestedAction = "v";
                             continue;
+                        case "s":
+                        case "setup":
+                            requestedAction = "s";
+                            continue;
                         case "g":
                         case "gamedirectory":
                             if (!nextArg.StartsWith("-"))
@@ -148,6 +152,10 @@ namespace FFXIV_Modding_Tool.Commandline
                     case "problemcheck":
                     case "pc":
                         requestedAction = "pc";
+                        break;
+                    case "setup":
+                    case: "s":
+                        requestedAction = "s";
                         break;
                     case "version":
                     case "v":
@@ -274,6 +282,9 @@ namespace FFXIV_Modding_Tool.Commandline
                         MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
                     main.CheckVersions();
                     break;
+                case "s":
+                    main.printMessage("This would trigger setup");
+                    break;
                 case "mpi":
                     if (useWizard && importAll)
                     {
@@ -329,6 +340,7 @@ Available actions:
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
+  setup, s                 Configuration guidance
   version, v               Display current application and game version
   help, h                  Display this text
 
