@@ -20,7 +20,7 @@ namespace FFXIV_Modding_Tool.Commandline
         bool skipProblemCheck = false;
         string requestedAction = "";
         Dictionary<List<string>, Action> actionDict = new Dictionary<List<string>, Action>();
-        Dictionary<List<string>, Action> argumentDict = new Dictionary<List<string>, Action>();
+        Dictionary<List<string>, Action<string>> argumentDict = new Dictionary<List<string>, Action<string>>();
 
         public void ArgumentHandler(string[] args)
         {
@@ -33,39 +33,52 @@ namespace FFXIV_Modding_Tool.Commandline
             }
             SetupDicts();
             ReadArguments(args);
-            if (ActionRequirementsChecker())
-                ActionHandler();
+            ReadAction(args);
         }
 
         public void SetupDicts()
         {
             actionDict = new Dictionary<List<string>, Action>{
-            {new List<string>{"mpi", "modpack import"}, new Action(() => { 
-                if (useWizard && importAll)
-                    {
-                        main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
-                        useWizard = false;
-                        importAll = false;
-                    }
-                    main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
-            {new List<string>{"mpinfo", "modpack info"}, new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
-                    main.PrintMessage($@"Name: {modpackInfo["name"]}
+                {new List<string>{"mpi", "modpack import"}, new Action(() => { 
+                    if (useWizard && importAll)
+                        {
+                            main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
+                            useWizard = false;
+                            importAll = false;
+                        }
+                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
+                {new List<string>{"mpinfo", "modpack info"}, new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
+                        main.PrintMessage($@"Name: {modpackInfo["name"]}
 Type: {modpackInfo["type"]}
 Author: {modpackInfo["author"]}
 Version: {modpackInfo["version"]}
 Description: {modpackInfo["description"]}
 Number of mods: {modpackInfo["modAmount"]}"); })},
-            {new List<string>{"mr", "mods reset"}, new Action(() => { main.SetModActiveStates(); })},
-            {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
-            {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
-            {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
-            {new List<string>{"r", "reset"}, new Action(() => { main.ResetMods(); })},
-            {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
-            {new List<string>{"v", "version"}, new Action(() => { if (MainClass._gameDirectory == null)
-                        MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
+                {new List<string>{"mr", "mods reset"}, new Action(() => { main.SetModActiveStates(); })},
+                {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
+                {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
+                {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
+                {new List<string>{"r", "reset"}, new Action(() => { main.ResetMods(); })},
+                {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
+                {new List<string>{"v", "version"}, new Action(() => { if (MainClass._gameDirectory == null)
+                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
                     main.CheckVersions(); })},
-            {new List<string>{"h", "help"}, new Action(() => { SendHelpText(); })}
-        };
+                {new List<string>{"h", "help"}, new Action(() => { SendHelpText(); })}
+            };
+            argumentDict = new Dictionary<List<string>, Action<string>>{
+                {new List<string>{"g", "gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
+                    MainClass._indexDirectory = new DirectoryInfo(Path.Combine(extraArg, "game", "sqpack", "ffxiv")); })},
+                {new List<string>{"c", "configdirectory"}, new Action<string>((extraArg) => { MainClass._configDirectory = new DirectoryInfo(extraArg); })},
+                {new List<string>{"b", "backupdirectory"}, new Action<string>((extraArg) => { MainClass._backupDirectory = new DirectoryInfo(extraArg); })},
+                {new List<string>{"t", "ttmp"}, new Action<string>((extraArg) => { ttmpPath = extraArg; })},
+                {new List<string>{"w", "wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
+                {new List<string>{"a", "all"}, new Action<string>((extraArg) => { importAll = true; })},
+                {new List<string>{"npc", "noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
+                {new List<string>{"v", "version"}, new Action<string>((extraArg) => { if (MainClass._gameDirectory == null)
+                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
+                    main.CheckVersions(); })},
+                {new List<string>{"h", "help"}, new Action<string>((extraArg) => { SendHelpText(); })}
+            };
         }
 
         public void ReadArguments(string[] args)
@@ -76,59 +89,6 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 int i = Array.IndexOf(args, cmdArg);
                 if (args.Length > 1 && i + 1 < args.Length)
                     nextArg = args[i + 1];
-                if (cmdArg.StartsWith("-"))
-                {
-                    string arg = cmdArg.Split('-').Last();
-                    switch (arg)
-                    {
-                        case "h":
-                        case "help":
-                            requestedAction = "h";
-                            continue;
-                        case "v":
-                        case "version":
-                            requestedAction = "v";
-                            continue;
-                        case "g":
-                        case "gamedirectory":
-                            if (!nextArg.StartsWith("-"))
-                            {
-                                MainClass._gameDirectory = new DirectoryInfo(Path.Combine(nextArg, "game"));
-                                MainClass._indexDirectory = new DirectoryInfo(Path.Combine(nextArg, "game", "sqpack", "ffxiv"));
-                            }
-                            continue;
-                        case "c":
-                        case "configdirectory":
-                            if (!nextArg.StartsWith("-"))
-                                MainClass._configDirectory = new DirectoryInfo(nextArg);
-                            continue;
-                        case "b":
-                        case "backupdirectory":
-                            if (!nextArg.StartsWith("-"))
-                                MainClass._backupDirectory = new DirectoryInfo(nextArg);
-                            continue;
-                        case "t":
-                        case "ttmp":
-                            if (!nextArg.StartsWith("-"))
-                                ttmpPath = nextArg;
-                            continue;
-                        case "w":
-                        case "wizard":
-                            useWizard = true;
-                            continue;
-                        case "a":
-                        case "all":
-                            importAll = true;
-                            continue;
-                        case "npc":
-                        case "noproblemcheck":
-                            skipProblemCheck = true;
-                            continue;
-                        default:
-                            main.PrintMessage($"Unknown argument {arg}", 3);
-                            continue;
-                    }
-                }
             }
         }
 
