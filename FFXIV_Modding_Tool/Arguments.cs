@@ -18,7 +18,6 @@ namespace FFXIV_Modding_Tool.Commandline
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
-        string requestedAction = "";
         Dictionary<List<string>, Action> actionDict = new Dictionary<List<string>, Action>();
         Dictionary<List<string>, Action<string>> argumentDict = new Dictionary<List<string>, Action<string>>();
 
