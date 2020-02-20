@@ -19,6 +19,8 @@ namespace FFXIV_Modding_Tool.Commandline
         bool importAll = false;
         bool skipProblemCheck = false;
         string requestedAction = "";
+        Dictionary<List<string>, Action> actionDict = new Dictionary<List<string>, Action>();
+        Dictionary<List<string>, Action> argumentDict = new Dictionary<List<string>, Action>();
 
         public void ArgumentHandler(string[] args)
         {
@@ -29,10 +31,41 @@ namespace FFXIV_Modding_Tool.Commandline
                 SendHelpText();
                 return;
             }
+            SetupDicts();
             ReadArguments(args);
-            ReadAction(args);
             if (ActionRequirementsChecker())
                 ActionHandler();
+        }
+
+        public void SetupDicts()
+        {
+            actionDict = new Dictionary<List<string>, Action>{
+            {new List<string>{"mpi", "modpack import"}, new Action(() => { 
+                if (useWizard && importAll)
+                    {
+                        main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
+                        useWizard = false;
+                        importAll = false;
+                    }
+                    main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
+            {new List<string>{"mpinfo", "modpack info"}, new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
+                    main.PrintMessage($@"Name: {modpackInfo["name"]}
+Type: {modpackInfo["type"]}
+Author: {modpackInfo["author"]}
+Version: {modpackInfo["version"]}
+Description: {modpackInfo["description"]}
+Number of mods: {modpackInfo["modAmount"]}"); })},
+            {new List<string>{"mr", "mods reset"}, new Action(() => { main.SetModActiveStates(); })},
+            {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
+            {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
+            {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
+            {new List<string>{"r", "reset"}, new Action(() => { main.ResetMods(); })},
+            {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
+            {new List<string>{"v", "version"}, new Action(() => { if (MainClass._gameDirectory == null)
+                        MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
+                    main.CheckVersions(); })},
+            {new List<string>{"h", "help"}, new Action(() => { SendHelpText(); })}
+        };
         }
 
         public void ReadArguments(string[] args)
@@ -95,72 +128,6 @@ namespace FFXIV_Modding_Tool.Commandline
                             main.PrintMessage($"Unknown argument {arg}", 3);
                             continue;
                     }
-                }
-            }
-        }
-
-        public void ReadAction(string[] args)
-        { 
-            string secondAction = "";
-            if (args.Count() > 1)
-                secondAction = args[1];
-            if (string.IsNullOrEmpty(requestedAction))
-            {
-                switch (args[0])
-                {
-                    case "mpi":
-                        requestedAction = "mpi";
-                        break;
-                    case "mpinfo":
-                        requestedAction = "mpinfo";
-                        break;
-                    case "modpack":
-                        if (secondAction == "import")
-                            goto case "mpi";
-                        if (secondAction == "info")
-                            goto case "mpinfo";
-                        break;
-                    case "mr":
-                        requestedAction = "mr";
-                        break;
-                    case "me":
-                        requestedAction = "me";
-                        break;
-                    case "md":
-                        requestedAction = "md";
-                        break;
-                    case "mods":
-                        if (secondAction == "refresh")
-                            goto case "mr";
-                        if (secondAction == "enable")
-                            goto case "me";
-                        if (secondAction == "disable")
-                            goto case "md";
-                        break;
-                    case "backup":
-                    case "b":
-                        requestedAction = "b";
-                        break;
-                    case "reset":
-                    case "r":
-                        requestedAction = "r";
-                        break;
-                    case "problemcheck":
-                    case "pc":
-                        requestedAction = "pc";
-                        break;
-                    case "version":
-                    case "v":
-                        requestedAction = "v";
-                        break;
-                    case "help":
-                    case "h":
-                        requestedAction = "h";
-                        break;
-                    default:
-                        main.PrintMessage($"Unknown action: {args[0]}");
-                        requestedAction = "h";
-                        break;
                 }
             }
         }
@@ -260,60 +227,6 @@ namespace FFXIV_Modding_Tool.Commandline
                 return false;
             }
             return true;
-        }
-
-        public void ActionHandler()
-        {
-            switch (requestedAction)
-            {
-                case "h":
-                    SendHelpText();
-                    break;
-                case "v":
-                    if (MainClass._gameDirectory == null)
-                        MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
-                    main.CheckVersions();
-                    break;
-                case "mpi":
-                    if (useWizard && importAll)
-                    {
-                        main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
-                        useWizard = false;
-                        importAll = false;
-                    }
-                    main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck);
-                    break;
-                case "mpinfo":
-                    Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
-                    main.PrintMessage($@"Name: {modpackInfo["name"]}
-Type: {modpackInfo["type"]}
-Author: {modpackInfo["author"]}
-Version: {modpackInfo["version"]}
-Description: {modpackInfo["description"]}
-Number of mods: {modpackInfo["modAmount"]}");
-                    break;
-                case "mr":
-                    main.SetModActiveStates();
-                    break;
-                case "me":
-                    main.ToggleModStates(true);
-                    break;
-                case "md":
-                    main.ToggleModStates(false);
-                    break;
-                case "b":
-                    main.BackupIndexes();
-                    break;
-                case "r":
-                    main.ResetMods();
-                    break;
-                case "pc":
-                    main.ProblemChecker();
-                    break;
-                default:
-                    SendHelpText();
-                    break;
-            }
         }
 
         public void SendHelpText()
