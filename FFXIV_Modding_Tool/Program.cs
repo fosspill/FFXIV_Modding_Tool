@@ -97,11 +97,11 @@ namespace FFXIV_Modding_Tool
 
         public void CheckVersions()
         {
-            string ffxivVersion = "Not detected";
+            string ffxivVersion = "not detected";
             if (_gameDirectory != null)
             {
                 var versionFile = Path.Combine(_gameDirectory.FullName, "ffxivgame.ver");
-                if (File.Exists(versionFile))
+                if (File.Exists(versionFile) && File.ReadAllText(versionFile).Length > 0)
                 {
                     var versionData = File.ReadAllLines(versionFile);
                     ffxivVersion = new Version(versionData[0].Substring(0, versionData[0].LastIndexOf("."))).ToString();
