@@ -149,15 +149,12 @@ namespace FFXIV_Modding_Tool.Validation
               {
                   case "y":
                       return true;
-                      break;
                   case "n":
                       return false;
-                      break;
                   case "\n":
                       return defaultanswer;
                   default:
                       return false;
-                      break;
               }
         }
 
