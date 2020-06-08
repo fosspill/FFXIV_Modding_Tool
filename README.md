@@ -1,7 +1,9 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_Modding_Tool)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/master)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/master)
 
+Usage documentation with examples: https://ffmt.onrender.com/docs
 
 # FFMT - FFXIV Modding Tool
+
 
 
 **FFMT** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI* for Mac, Windows and Linux!
@@ -10,7 +12,7 @@
 
 Depends on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)* by the one and only Liinko. 
 
-# Current Status: Working but missing some features:
+# Current Status: Working but missing some features
 
 # Features!
 List is sorted by priority
