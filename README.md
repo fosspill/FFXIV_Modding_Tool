@@ -35,7 +35,7 @@ https://ffmt.pwd.cat/docs/
 
 ## Notes on building the framework
 
-Ensure that the two non-existant project files are removed the .sln. To build the framework dotnet core version 3.1.100+ is required. Build the framework using `dotnet build -c Release` and place the resulting dll file found in `xivModdingFramework/xivModdingFramework/bin/Release/netstandard2.0` in FFMT's `references` folder.
+Ensure that the two non-existant project files (.xUnit and exChecker) are removed from the .sln. To build the framework dotnet core version 3.1.100+ is required. Build the framework using `dotnet build -c Release` and place the resulting dll file found in `xivModdingFramework/xivModdingFramework/bin/Release/netstandard2.0` in FFMT's `references` folder.
 
 License
 ----
