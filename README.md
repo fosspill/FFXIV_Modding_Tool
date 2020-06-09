@@ -10,7 +10,7 @@ Usage documentation with examples: https://ffmt.onrender.com/docs
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Depends on the *[xivModdingFramework](https://github.com/liinko/xivModdingFramework)* by the one and only Liinko. 
+Depends on the development version of *[xivModdingFramework](https://github.com/esrinzou/xivModdingFramework/)* by the one and only Liinko. 
 
 # Current Status: Working but missing some features
 
@@ -35,7 +35,7 @@ https://ffmt.pwd.cat/docs/
 
 ## Notes on building the framework
 
-Ensure that the two non-existant project files are removed the .sln. To build the framework dotnet core version 3.1.100+ is required. Build the framework using `dotnet build -c Release` and place the resulting dll file found in `xivModdingFramework/xivModdingFramework/bin/Release/netstandard2.0` in FFMT's `references` folder.
+Ensure that the two non-existant project files (.xUnit and exChecker) are removed from the .sln. To build the framework dotnet core version 3.1.100+ is required. Build the framework using `dotnet build -c Release` and place the resulting dll file found in `xivModdingFramework/xivModdingFramework/bin/Release/netstandard2.0` in FFMT's `references` folder.
 
 License
 ----
