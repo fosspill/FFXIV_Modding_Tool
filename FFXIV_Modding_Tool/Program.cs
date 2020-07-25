@@ -484,40 +484,43 @@ namespace FFXIV_Modding_Tool
         List<int> WizardUserInputValidation(string input, int totalChoices)
         {
             List<int> desiredIndexes = new List<int>();
-            string[] answers = input.Split();
-            foreach (string answer in answers)
+            if (!string.IsNullOrEmpty(input))
             {
-                if (answer == "*")
+                string[] answers = input.Split();
+                foreach (string answer in answers)
                 {
-                    desiredIndexes = Enumerable.Range(0, totalChoices).ToList();
-                    break;
-                }
-                if (answer.Contains("-"))
-                {
-                    try
+                    if (answer == "*")
                     {
-                        int[] targets = answer.Split('-').Select(int.Parse).ToArray();
-                        desiredIndexes.AddRange(Enumerable.Range(targets[0], targets[1] - targets[0] + 1));
+                        desiredIndexes = Enumerable.Range(0, totalChoices).ToList();
+                        break;
                     }
-                    catch
+                    if (answer.Contains("-"))
                     {
-                        PrintMessage($"{answer} is not a valid range of choices", 2);
+                        try
+                        {
+                            int[] targets = answer.Split('-').Select(int.Parse).ToArray();
+                            desiredIndexes.AddRange(Enumerable.Range(targets[0], targets[1] - targets[0] + 1));
+                        }
+                        catch
+                        {
+                            PrintMessage($"{answer} is not a valid range of choices", 2);
+                        }
+                        continue;
                     }
-                    continue;
-                }
-                int wantedIndex;
-                if (int.TryParse(answer, out wantedIndex))
-                {
-                    if (wantedIndex < totalChoices)
+                    int wantedIndex;
+                    if (int.TryParse(answer, out wantedIndex))
                     {
-                        if (!desiredIndexes.Contains(wantedIndex))
-                            desiredIndexes.Add(wantedIndex);
+                        if (wantedIndex < totalChoices)
+                        {
+                            if (!desiredIndexes.Contains(wantedIndex))
+                                desiredIndexes.Add(wantedIndex);
+                        }
+                        else
+                            PrintMessage($"There are only {totalChoices} choices, not {wantedIndex + 1}", 2);
                     }
                     else
-                        PrintMessage($"There are only {totalChoices} choices, not {wantedIndex + 1}", 2);
+                        PrintMessage($"{answer} is not a valid choice", 2);
                 }
-                else
-                    PrintMessage($"{answer} is not a valid choice", 2);
             }
             return desiredIndexes;
         }
