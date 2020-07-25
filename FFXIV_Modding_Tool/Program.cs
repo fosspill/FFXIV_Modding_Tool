@@ -413,11 +413,13 @@ namespace FFXIV_Modding_Tool
                         int maxChoices = option.OptionList.Count;
                         if (option.SelectionType == "Multi")
                         {
-                            Console.Write("Choose one or multiple (eg: 1 2 3, 0-3, *): ");
-                            List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices);
+                            Console.Write("Choose none, one or multiple (eg: 1 2 3, 0-3, *): ");
+                            List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices, true);
                             List<string> pickedChoices = new List<string>();
                             foreach (int index in wantedIndexes)
                                 pickedChoices.Add($"{index} - {option.OptionList[index].Name}");
+                            if (!pickedChoices.Any())
+                                pickedChoices.Add("nothing");
                             Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
                             string answer = Console.ReadKey().KeyChar.ToString();
                             if (answer == "y" || answer == "\n")
@@ -430,7 +432,7 @@ namespace FFXIV_Modding_Tool
                         if (option.SelectionType == "Single")
                         {
                             Console.Write("Choose one (eg: 0 1 2 3): ");
-                            int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices)[0];
+                            int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices, false)[0];
                             Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
                             string answer = Console.ReadKey().KeyChar.ToString();
                             if (answer == "y" || answer == "\n")
@@ -463,10 +465,12 @@ namespace FFXIV_Modding_Tool
                         mods.Add($"    {items.IndexOf(item)} - {item.Name}, {item.Map}, {item.Race}");
                     PrintMessage(string.Join("\n", mods));
                     Console.Write("Choose mods you wish to import (eg: 1 2 3, 0-3, *): ");
-                    List<int> wantedMods = WizardUserInputValidation(Console.ReadLine(), items.Count);
+                    List<int> wantedMods = WizardUserInputValidation(Console.ReadLine(), items.Count, true);
                     List<string> pickedMods = new List<string>();
                     foreach (int index in wantedMods)
                         pickedMods.Add(mods[index]);
+                    if (!pickedMods.Any())
+                        pickedMods.Add("nothing");
                     Console.Write($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct? Y/n ");
                     string answer = Console.ReadKey().KeyChar.ToString();
                     if (answer == "y" || answer == "\n")
@@ -481,7 +485,7 @@ namespace FFXIV_Modding_Tool
             return desiredMods;
         }
 
-        List<int> WizardUserInputValidation(string input, int totalChoices)
+        List<int> WizardUserInputValidation(string input, int totalChoices, bool canBeEmpty)
         {
             List<int> desiredIndexes = new List<int>();
             if (!string.IsNullOrEmpty(input))
@@ -521,6 +525,11 @@ namespace FFXIV_Modding_Tool
                     else
                         PrintMessage($"{answer} is not a valid choice", 2);
                 }
+            }
+            else
+            {
+                if (!canBeEmpty)
+                    desiredIndexes.Add(0);
             }
             return desiredIndexes;
         }
