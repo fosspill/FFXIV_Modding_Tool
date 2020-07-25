@@ -960,15 +960,11 @@ namespace FFXIV_Modding_Tool
             if (problemsResolved.Count == 0 && problemsUnresolved.Count == 0)
                 PrintMessage("No problems found", 1);
             if (problemsResolved.Count > 0)
-            {
-                PrintMessage($"\nThe following problems were found and resolved:", 1);
-                PrintMessage(string.Join("\n", problemsResolved.ToArray()));
-            }
+                PrintMessage($"\nThe following problems were found and resolved:\n{string.Join("\n", problemsResolved.ToArray())}", 1);
             if (problemsUnresolved.Count > 0)
             {
                 Console.Write("\n");
-                PrintMessage("The following problems could not be resolved:", 2);
-                PrintMessage(string.Join("\n", problemsUnresolved.ToArray()));
+                PrintMessage($"The following problems could not be resolved:\n{string.Join("\n", problemsUnresolved.ToArray())}", 2);
             }
         }
 
