@@ -998,7 +998,7 @@ namespace FFXIV_Modding_Tool
                 }
                 catch (Exception ex)
                 {
-                    PrintMessage($"There was an issue checking index dat counts\n{ex.Message}", 2);
+                    PrintMessage($"There was an issue checking index dat counts\n{ex.Message}", 3);
                     return new List<XivDataFile>();
                 }
             }
@@ -1030,7 +1030,7 @@ namespace FFXIV_Modding_Tool
                 }
                 catch (Exception ex)
                 {
-                    PrintMessage($"There was an issue checking the backed up index files\n{ex.Message}", 2);
+                    PrintMessage($"There was an issue checking the backed up index files\n{ex.Message}", 3);
                     return new List<string>();
                 }
             }
