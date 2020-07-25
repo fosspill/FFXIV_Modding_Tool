@@ -46,6 +46,13 @@ ConfigDirectory",
             var configFileFromPath = new ConfigParser(configFile);
             string targetDirectory = configFileFromPath.GetValue("Directories", target);
             if (!string.IsNullOrEmpty(targetDirectory))
+                //Workaround for issue #166
+                //If Directory is quoted on both ends: ignore both quotes.
+                List<char> quotelist = new List<char>();
+                quotelist.AddRange("\'\"");
+                if(quotelist.Contains(targetDirectory[0]) && quotelist.Contains(targetDirectory[targetDirectory.Length -1])){
+                    targetDirectory = targetDirectory.Substring(1, targetDirectory.Length -2);
+                }
                 return targetDirectory;
             else
                 return "";
