@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.IO;
 using Salaros.Configuration;
+using System.Collections.Generic;
 
 namespace FFXIV_Modding_Tool.Configuration
 {
@@ -46,6 +47,7 @@ ConfigDirectory",
             var configFileFromPath = new ConfigParser(configFile);
             string targetDirectory = configFileFromPath.GetValue("Directories", target);
             if (!string.IsNullOrEmpty(targetDirectory))
+            {
                 //Workaround for issue #166
                 //If Directory is quoted on both ends: ignore both quotes.
                 List<char> quotelist = new List<char>();
@@ -54,6 +56,7 @@ ConfigDirectory",
                     targetDirectory = targetDirectory.Substring(1, targetDirectory.Length -2);
                 }
                 return targetDirectory;
+            }
             else
                 return "";
         }
