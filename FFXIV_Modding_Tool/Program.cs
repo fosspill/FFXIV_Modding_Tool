@@ -1218,7 +1218,8 @@ namespace FFXIV_Modding_Tool
                 PrintMessage("Toggling mods...");
                 foreach (ModActiveStatus modState in modActiveStates)
                 {
-                    modding.ToggleModStatus(modState.file, modState.enabled);
+                    var toggle = modding.ToggleModStatus(modState.file, modState.enabled);
+                    toggle.Wait();
                     if (modState.enabled)
                         enabled++;
                     else
