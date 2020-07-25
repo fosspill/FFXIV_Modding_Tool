@@ -688,18 +688,38 @@ namespace FFXIV_Modding_Tool
             if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
             {
                 if (modPath.Contains("demihuman"))
-                    type = slotAbr[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
+                    type = slotAbr[modPath.Substring(modPath.LastIndexOf("/") + 16, 3)];
 
                 if (modPath.Contains("/face/"))
                 {
                     if (modPath.Contains(".tex"))
-                        type = FaceTypes[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
+                    {
+                        var fileName = Path.GetFileNameWithoutExtension(modPath);
+                        try
+                        {
+                            type = FaceTypes[fileName.Substring(fileName.IndexOf("_") + 1, 3)];
+                        } 
+                        catch
+                        {
+                            type = "Unknown";
+                        }
+                    }
                 }
 
                 if (modPath.Contains("/hair/"))
                 {
                     if (modPath.Contains(".tex"))
-                        type = HairTypes[modPath.Substring(modPath.LastIndexOf("_") - 3, 3)];
+                    {
+                        var fileName = Path.GetFileNameWithoutExtension(modPath);
+                        try 
+                        {
+                            type = HairTypes[fileName.Substring(fileName.IndexOf("_") + 1, 3)];
+                        } 
+                        catch
+                        {
+                            type = "Unknown";
+                        }
+                    }
                 }
 
                 if (modPath.Contains("/vfx/"))
