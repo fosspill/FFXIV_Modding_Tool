@@ -74,25 +74,27 @@ namespace FFXIV_Modding_Tool
         */
         public void PrintMessage(string message, int importance = 0)
         {
+            Console.ResetColor();
             switch (importance)
             {
                 case 1:
                     Console.ForegroundColor = ConsoleColor.Green;
-                    break;
+                    goto default;
                 case 2:
                     Console.Write("ERROR: ");
                     Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(message);
+                    Environment.Exit(1);
                     break;
                 case 3:
                     Console.Write("WARNING: ");
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
+                    goto default;
                 default:
+                    Console.WriteLine(message);
                     Console.ResetColor();
                     break;
             }
-            Console.WriteLine(message);
-            Console.ResetColor();
         }
 
         public void CheckVersions()
