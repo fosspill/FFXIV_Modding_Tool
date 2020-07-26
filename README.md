@@ -1,23 +1,21 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_Modding_Tool)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/default)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/default)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_Modding_Tool)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/default)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/default) ![GitHub All Releases](https://img.shields.io/github/downloads/fosspill/FFXIV_Modding_Tool/total)
 
-Usage documentation with examples: https://ffmt.onrender.com/docs
+Documentation with examples: https://ffmt.onrender.com/docs 👈
 
 # FFMT - FFXIV Modding Tool
 
 
 
-**FFMT** is a crossplatform CLI alternative to the Windows-Only *FFXIV_TexTools_UI* for Mac, Windows and Linux!
+**FFMT** is a crossplatform CLI alternative to the Windows-Only *Textools* for Mac, Windows and Linux!
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Depends on the development version (2.0.12.9) of *[xivModdingFramework](https://github.com/esrinzou/xivModdingFramework/)* by the one and only Liinko. 
-
-# Current Status: Working but missing some features
+Depends on the development version (2.0.12.9) of *[xivModdingFramework](https://github.com/esrinzou/xivModdingFramework/)*
 
 # Features!
 List is sorted by priority
 - [x] [Full Mac, Linux and Windows support](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/1)
-- [x] [Import modpacks (ttmp files)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/2)
+- [x] [**Import modpacks (ttmp files)**](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/2)
 - [x] [Storable configuration for important directories](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/3)
 - [x] [Backup and restore of important game files](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/4)
 - [x] [Manage mods (enable/disable)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/27)
