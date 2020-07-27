@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using xivModdingFramework.Mods;
 using System.Collections.Generic;
 using FFXIV_Modding_Tool.Configuration;
@@ -209,7 +210,7 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
 
         public void SendHelpText()
         {
-            string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
+            string helpText = $@"Usage: {Assembly.GetEntryAssembly().GetName().Name} [action] {"{arguments}"}
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
