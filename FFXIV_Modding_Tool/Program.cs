@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
@@ -1266,9 +1267,20 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"\nSuccessfully enabled {enabled} and disabled {disabled} out of {modActiveStates.Count} mods!", 1);
         }
 
+        private static DirectoryInfo GetConfigurationPath()
+        {
+            var _ConfigPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            //Workaround for Mac as dotnetcore doesn't seem to return a valid ApplicationData folder.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && string.IsNullOrEmpty(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))){
+                _ConfigPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "/.config";
+            }
+            return new DirectoryInfo(Path.Combine(_ConfigPath, "FFXIV_Modding_Tool"));
+        }
+
         static void Main(string[] args)
         {
-            _projectconfDirectory = new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title));
+            _projectconfDirectory = GetConfigurationPath();
+            PrintMessage($"Attempting to read from {_projectconfDirectory}");
             Config config = new Config();
             Arguments arguments = new Arguments();
             arguments.ArgumentHandler(args);
