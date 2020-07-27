@@ -155,7 +155,7 @@ namespace FFXIV_Modding_Tool
 
         public bool IndexLocked()
         {
-            var index = new Index(_indexDirectory);
+            var index = new xivModdingFramework.SqPack.FileTypes.Index(_indexDirectory);
             bool indexLocked = index.IsIndexLocked(XivDataFile._0A_Exd);
             return indexLocked;
         }
