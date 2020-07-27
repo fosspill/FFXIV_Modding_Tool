@@ -209,7 +209,7 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
 
         public void SendHelpText()
         {
-            string helpText = $@"Usage: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} [action] {"{arguments}"}
+            string helpText = $@"Usage: {Assembly.GetEntryAssembly().GetName().Name} [action] {"{arguments}"}
 
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
