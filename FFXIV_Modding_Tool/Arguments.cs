@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using xivModdingFramework.Mods;
 using System.Collections.Generic;
 using FFXIV_Modding_Tool.Configuration;
