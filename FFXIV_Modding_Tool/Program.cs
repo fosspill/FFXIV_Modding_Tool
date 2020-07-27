@@ -1280,7 +1280,6 @@ namespace FFXIV_Modding_Tool
         static void Main(string[] args)
         {
             _projectconfDirectory = GetConfigurationPath();
-            Console.WriteLine($"Attempting to read from {_projectconfDirectory}");
             Config config = new Config();
             Arguments arguments = new Arguments();
             arguments.ArgumentHandler(args);
