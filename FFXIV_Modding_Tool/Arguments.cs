@@ -226,6 +226,7 @@ Available actions:
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
   version, v               Display current application and game version
   help, h                  Display this text
+  setup, s                 Run First-time Setup Wizard
 
 Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
