@@ -6,7 +6,8 @@ FFXIV_Modding_Tool/obj
 .github
 testing
 FFXIV_Modding_Tool/references/xivModdingFramework.dll
-
+FFXIV_Modding_Tool/references/*
+!FFXIV_Modding_Tool/references/PresentationCore.dll
 
 
 # Created by https://www.gitignore.io/api/csharp,monodevelop,visualstudio
