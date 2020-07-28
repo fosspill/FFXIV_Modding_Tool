@@ -1,0 +1,25 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ dotnet-action-test ]
+  pull_request:
+    branches: [ dotnet-action-test ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with: 
+        submodules: true
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Build Framework
+      run: dotnet build --no-incremental -c Release xivModdingFramework/xivModdingFramework/xivModdingFramework.csproj -o FFXIV_Modding_Tool/references/
+    - name: Build FFMT
+      run: dotnet build --no-incremental -c Release FFXIV_Modding_Tool/FFXIV_Modding_Tool.csproj
