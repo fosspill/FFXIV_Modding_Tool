@@ -18,7 +18,9 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Checkout submodules
-      uses: textbook/git-checkout-submodule-action@master 
+      uses: textbook/git-checkout-submodule-action@master
+    - name: Fix access to submodule
+      run: chmod -R 777 ./xivModdingFramework/
     - name: Build Framework
       run: dotnet build --no-incremental -c Release xivModdingFramework/xivModdingFramework/xivModdingFramework.csproj -o FFXIV_Modding_Tool/references/
     - name: Build FFMT
