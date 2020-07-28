@@ -2,9 +2,9 @@ name: .NET Core
 
 on:
   push:
-    branches: [ dotnet-action-test ]
+    branches: [ default ]
   pull_request:
-    branches: [ dotnet-action-test ]
+    branches: [ default ]
 
 jobs:
   build:
