@@ -60,5 +60,11 @@ ConfigDirectory",
             else
                 return "";
         }
+        public void SaveConfig(string target, string value)
+        {
+            var configFileFromPath = new ConfigParser(configFile);
+            configFileFromPath.SetValue("Directories", target, value);
+            configFileFromPath.Save(configFile);
+        }
     }
 }

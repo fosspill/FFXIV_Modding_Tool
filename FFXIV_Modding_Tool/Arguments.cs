@@ -6,6 +6,7 @@ using xivModdingFramework.Mods;
 using System.Collections.Generic;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Validation;
+using FFXIV_Modding_Tool.FirstTimeSetup;
 
 namespace FFXIV_Modding_Tool.Commandline
 {
@@ -15,6 +16,7 @@ namespace FFXIV_Modding_Tool.Commandline
         MainClass main = new MainClass();
         Config config = new Config();
         Validators validation = new Validators();
+        SetupCommand setup = new SetupCommand();
         string ttmpPath = "";
         bool useWizard = false;
         bool importAll = false;
@@ -62,7 +64,8 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 {new List<string>{"v", "version"}, new Action(() => { if (MainClass._gameDirectory == null)
                     MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
                     main.CheckVersions(); })},
-                {new List<string>{"h", "help"}, new Action(() => { SendHelpText(); })}
+                {new List<string>{"h", "help"}, new Action(() => { SendHelpText(); })},
+                {new List<string>{"s", "setup"}, new Action(() => { setup.ExecuteSetup(); })}
             };
             argumentDict = new Dictionary<List<string>, Action<string>>{
                 {new List<string>{"g", "gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
@@ -223,6 +226,7 @@ Available actions:
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
   version, v               Display current application and game version
   help, h                  Display this text
+  setup, s                 Run First-time Setup Wizard
 
 Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'

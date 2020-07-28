@@ -158,7 +158,7 @@ namespace FFXIV_Modding_Tool.Validation
               }
         }
 
-        bool PromptContinuation(string message = "Would you like to continue?", bool defaultanswer = false)
+        public bool PromptContinuation(string message = "Would you like to continue?", bool defaultanswer = false)
         {
             string choicestring;
             if (!defaultanswer)
@@ -168,8 +168,10 @@ namespace FFXIV_Modding_Tool.Validation
             else
                 choicestring = "y/n";
             
-            main.PrintMessage($"{message} {choicestring}", 1);
-            string answer = Console.ReadKey().KeyChar.ToString().ToLower();
+            main.PrintMessage($"{message} ({choicestring})", 1);
+            var answerKey = Console.ReadKey();
+            string answer = answerKey.KeyChar.ToString().ToLower();
+            if(answerKey.Key == ConsoleKey.Enter){ answer = "\n"; }
             Console.Write("\n");
             return PromptContinuationReply(answer, defaultanswer);
         }
