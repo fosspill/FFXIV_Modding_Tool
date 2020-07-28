@@ -17,6 +17,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@dotnet-action-test  
     - name: Build Framework
       run: dotnet build --no-incremental -c Release xivModdingFramework/xivModdingFramework/xivModdingFramework.csproj -o FFXIV_Modding_Tool/references/
     - name: Build FFMT
