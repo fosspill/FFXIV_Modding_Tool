@@ -28,12 +28,20 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                         Path.Combine(_home, "Games", "final-fantasy-xiv-a-realm-reborn", "drive_c", "users", $"{Environment.UserName}", "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn"),
                         Path.Combine(_home, ".steam", "steam", "steamapps", "compatdata", "39210", "pfx", "drive_c", "users", "steamuser", "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn")};
         //Mac
-        static List<string> _InstallLocations_Mac = new List<string>()  {};
-        static List<string> _UserDataLocations_Mac = new List<string>()  {};
+        static List<string> _InstallLocations_Mac = new List<string>()  {
+            Path.Combine(_home, "Library", "Application Support", "FINAL FANTASY XIV ONLINE", "Bottles", "published_Final_Fantasy", "drive_c", "Program Files (x86)", "SquareEnix", "FINAL FANTASY XIV - A Realm Reborn")
+        };
+        static List<string> _UserDataLocations_Mac = new List<string>()  {
+            Path.Combine(_home, "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn")
+        };
 
         //Windows
-        static List<string> _InstallLocations_Windows = new List<string>()  {};
-        static List<string> _UserDataLocations_Windows = new List<string>()  {};
+        static List<string> _InstallLocations_Windows = new List<string>()  {
+            Path.Combine("C:\\", "Program Files (x86)", "SquareEnix", "FINAL FANTASY XIV - A Realm Reborn")
+        };
+        static List<string> _UserDataLocations_Windows = new List<string>()  {
+            Path.Combine(_home, "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn")
+        };
         
         //Combining all lists to make itteration easy
         Dictionary<string, List<string>> _InstallLocations = new Dictionary<string, List<string>>() {["Linux"] = _InstallLocations_Linux, ["Mac"] = _InstallLocations_Mac, ["Windows"] = _InstallLocations_Windows};
