@@ -171,7 +171,7 @@ namespace FFXIV_Modding_Tool.Validation
             main.PrintMessage($"{message} ({choicestring})", 1);
             var answerKey = Console.ReadKey();
             string answer = answerKey.KeyChar.ToString().ToLower();
-            if(answerKey.Key == ConsoleKey.Enter){ answer = "\n";}
+            if(answerKey.Key == ConsoleKey.Enter){ answer = "\n"; }
             Console.Write("\n");
             return PromptContinuationReply(answer, defaultanswer);
         }

@@ -43,7 +43,6 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
         List<string> _ValidInstallLocations = new List<string>() {};
         List<string> _ValidUserDataLocations = new List<string>() {};
         
-        
         private string _OperatingSystemAsString(){
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)){
                 return "Linux";
@@ -66,7 +65,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
     
         public void ExecuteSetup(){
             main.PrintMessage($"Starting configuration wizard for first-time setup...\nThis will overwrite the configuration file at {Config.configFile}\nYou'll be guided, step-by-step, to ensure that your configuration file is valid.\n\nWe'll start off by scanning common installation directories.", 1);
-            if(!validation.PromptContinuation("Ready?", true)){return;}
+            if(!validation.PromptContinuation("Ready?", true)){ return; }
             if (!string.IsNullOrEmpty(_OperatingSystemAsString())){
                 foreach (string path in _InstallLocations[_OperatingSystemAsString()]){
                     if (_ValidDirectory(Path.Combine(path, "game", "sqpack", "ffxiv"), "GameDirectory")){
@@ -91,7 +90,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                 foreach (string path in _ValidInstallLocations){
                     main.PrintMessage($"{path}");
                 }
-            } else {main.PrintMessage("Found no valid game installs in common locations, you must define the Game Directory path on your own.");}
+            } else {main.PrintMessage("Found no valid game installs in common locations, you must define the Game Directory path on your own."); }
             string _GameDirectoryFromConsole = "";
             while (!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
                 Console.Write("\nEnter your Game Directory: ");
@@ -113,7 +112,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                 foreach (string path in _ValidUserDataLocations){
                     main.PrintMessage($"{path}");
                 }
-            } else {main.PrintMessage("Found no valid Configuration folders in common locations, you must define the Configuration Directory path on your own.");}
+            } else { main.PrintMessage("Found no valid Configuration folders in common locations, you must define the Configuration Directory path on your own."); }
             string _ConfigDirectoryFromConsole = "";
             while (!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
                 Console.Write("\nEnter your Config Directory: ");
@@ -131,7 +130,6 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
         
         This folder can be anywhere but must already exist.
         ");      
-            
             
             string _BackupDirectoryFromConsole = "";
             while (!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
@@ -152,10 +150,8 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             config.SaveConfig("GameDirectory", _GameDirectoryFromConsole);
             config.SaveConfig("ConfigDirectory", _ConfigDirectoryFromConsole);
             config.SaveConfig("BackupDirectory", _BackupDirectoryFromConsole);
-
             main.PrintMessage($"Configuration saved to {Config.configFile}", 1);
             }
-
         }
     }
 }
