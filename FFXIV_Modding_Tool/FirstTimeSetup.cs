@@ -62,23 +62,9 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                 return false;
             }
         }
-    
-        public void ExecuteSetup(){
-            main.PrintMessage($"Starting configuration wizard for first-time setup...\nThis will overwrite the configuration file at {Config.configFile}\nYou'll be guided, step-by-step, to ensure that your configuration file is valid.\n\nWe'll start off by scanning common installation directories.", 1);
-            if(!validation.PromptContinuation("Ready?", true)){ return; }
-            if (!string.IsNullOrEmpty(_OperatingSystemAsString())){
-                foreach (string path in _InstallLocations[_OperatingSystemAsString()]){
-                    if (_ValidDirectory(Path.Combine(path, "game", "sqpack", "ffxiv"), "GameDirectory")){
-                        _ValidInstallLocations.Add(path);
-                    }
-                }
-                foreach (string path in _UserDataLocations[_OperatingSystemAsString()]){
-                    if (_ValidDirectory(Path.Combine(path), "ConfigDirectory")){
-                        _ValidUserDataLocations.Add(path);
-                    }
-                }
-            }
-            main.PrintMessage("----------\nFirst we'll try to define your Game Directory!", 1);
+        
+        private string AskForInstallationDirectory(){
+        main.PrintMessage("----------\nFirst we'll try to define your Game Directory!", 1);
             main.PrintMessage(@"    Example locations:
         MacOS: /Users/<USER_NAME>/Library/Application Support/FINAL FANTASY XIV ONLINE/Bottles/published_Final_Fantasy/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
         Linux: /path/to/WINEBOTTLE/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
@@ -99,8 +85,11 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
                 }
             }
-            
-            main.PrintMessage("----------\nNow we'll have to find your Configuration directory!", 1);
+            return _GameDirectoryFromConsole;
+        }
+        
+        private string AskForConfigurationDirectory(){
+        main.PrintMessage("----------\nNow we'll have to find your Configuration directory!", 1);
             main.PrintMessage(@"    Example locations:
         MacOS: /Users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
         Linux: /path/to/WINEBOTTLE/drive_c/users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
@@ -121,7 +110,10 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
                 }
             }
-
+            return _ConfigDirectoryFromConsole;
+        }
+        
+        private string AskForBackupDirectory(){
             main.PrintMessage("----------\nTime to set up your index backup directory.", 1);
             main.PrintMessage(@"    Example locations:
         MacOS: /Users/<USER_NAME>/My Documents/FFXIV Index Backups
@@ -139,19 +131,41 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
                     main.PrintMessage("Invalid directory. Make sure it exists and is accessable.", 3);
                 }
             }
-        main.PrintMessage("----------\nFinal confirmation.", 1);
-        main.PrintMessage($"Game Directory = {_GameDirectoryFromConsole}", 1);
-        main.PrintMessage($"Config Directory = {_ConfigDirectoryFromConsole}", 1);
-        main.PrintMessage($"Backup Directory = {_BackupDirectoryFromConsole}", 1);
-        if(!validation.PromptContinuation("\nDoes the configuration look correct?", false)){
-            main.PrintMessage("Cancelled.", 3);
-            return;
-        } else {
-            config.SaveConfig("GameDirectory", _GameDirectoryFromConsole);
-            config.SaveConfig("ConfigDirectory", _ConfigDirectoryFromConsole);
-            config.SaveConfig("BackupDirectory", _BackupDirectoryFromConsole);
-            main.PrintMessage($"Configuration saved to {Config.configFile}", 1);
-            }
+            return _BackupDirectoryFromConsole;
         }
+    
+        public void ExecuteSetup(){
+            main.PrintMessage($"Starting configuration wizard for first-time setup...\nThis will overwrite the configuration file at {Config.configFile}\nYou'll be guided, step-by-step, to ensure that your configuration file is valid.\n\nWe'll start off by scanning common installation directories.", 1);
+            if(!validation.PromptContinuation("Ready?", true)){ return; }
+            if (!string.IsNullOrEmpty(_OperatingSystemAsString())){
+                foreach (string path in _InstallLocations[_OperatingSystemAsString()]){
+                    if (_ValidDirectory(Path.Combine(path, "game", "sqpack", "ffxiv"), "GameDirectory")){
+                        _ValidInstallLocations.Add(path);
+                    }
+                }
+                foreach (string path in _UserDataLocations[_OperatingSystemAsString()]){
+                    if (_ValidDirectory(Path.Combine(path), "ConfigDirectory")){
+                        _ValidUserDataLocations.Add(path);
+                    }
+                }
+            }
+            string _GameDirectoryFromConsole = AskForInstallationDirectory();
+            string _ConfigDirectoryFromConsole = AskForConfigurationDirectory();
+            string _BackupDirectoryFromConsole = AskForBackupDirectory();
+            
+            main.PrintMessage("----------\nFinal confirmation.", 1);
+            main.PrintMessage($"Game Directory = {_GameDirectoryFromConsole}", 1);
+            main.PrintMessage($"Config Directory = {_ConfigDirectoryFromConsole}", 1);
+            main.PrintMessage($"Backup Directory = {_BackupDirectoryFromConsole}", 1);
+            if(!validation.PromptContinuation("\nDoes the configuration look correct?", false)){
+                main.PrintMessage("Cancelled.", 3);
+                return;
+            } else {
+                config.SaveConfig("GameDirectory", _GameDirectoryFromConsole);
+                config.SaveConfig("ConfigDirectory", _ConfigDirectoryFromConsole);
+                config.SaveConfig("BackupDirectory", _BackupDirectoryFromConsole);
+                main.PrintMessage($"Configuration saved to {Config.configFile}", 1);
+                }
+            }
     }
 }
