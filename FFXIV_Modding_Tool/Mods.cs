@@ -26,6 +26,7 @@ namespace FFXIV_Modding_Tool.ModControl
             public string modpack { get; set; }
             public string name { get; set; }
             public string map { get; set; }
+            public string part { get; set; }
             public string type { get; set; }
             public string race { get; set; }
             public string file { get; set; }
@@ -38,6 +39,7 @@ namespace FFXIV_Modding_Tool.ModControl
                 modpack = entry.JsonEntry.ModPackEntry.name;
                 name = entry.Name;
                 map = entry.Map;
+                part = entry.Part;
                 type = entry.Type;
                 race = entry.Race;
                 file = entry.JsonEntry.FullPath;
@@ -187,6 +189,7 @@ Number of mods: {modpackInfo["modAmount"]}");;
                 var race = main.GetRace(modsJson.FullPath);
                 var number = main.GetNumber(modsJson.FullPath);
                 var type = main.GetType(modsJson.FullPath);
+                var part = main.GetPart(modsJson.FullPath);
                 var map = main.GetMap(modsJson.FullPath);
 
                 var active = false;
@@ -203,7 +206,8 @@ Number of mods: {modpackInfo["modAmount"]}");;
                     Name = modsJson.Name,
                     Category = modsJson.Category,
                     Race = race.ToString(),
-                    Part = type,
+                    Part = part,
+                    Type = type,
                     Num = number,
                     Map = map,
                     Active = active,
@@ -231,6 +235,7 @@ Number of mods: {modpackInfo["modAmount"]}");;
                 var race = main.GetRace(modsJson.FullPath);
                 var number = main.GetNumber(modsJson.FullPath);
                 var type = main.GetType(modsJson.FullPath);
+                var part = main.GetPart(modsJson.FullPath);
                 var map = main.GetMap(modsJson.FullPath);
 
                 var active = false;
@@ -244,7 +249,8 @@ Number of mods: {modpackInfo["modAmount"]}");;
                     Name = modsJson.Name,
                     Category = modsJson.Category,
                     Race = race.ToString(),
-                    Part = type,
+                    Part = part,
+                    Type = type,
                     Num = number,
                     Map = map,
                     Active = active,

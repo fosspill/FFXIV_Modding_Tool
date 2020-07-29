@@ -238,6 +238,27 @@ namespace FFXIV_Modding_Tool
             return type;
         }
 
+        public string GetPart(string modPath)
+        {
+            string part = "-";
+            string[] parts = new[] { "a", "b", "c", "d", "e", "f" };
+
+            if (modPath.Contains("/equipment/"))
+            {
+                if(modPath.Contains("/texture/"))
+                {
+                    part = modPath.Substring(modPath.LastIndexOf("_") - 1, 1);
+                    foreach(string letter in parts)
+                        if (part == letter) return part;
+                    return "a";
+                }
+
+                if(modPath.Contains("/material/"))
+                    return modPath.Substring(modPath.LastIndexOf("_") + 1, 1);
+            }
+            return part;
+        }
+
         public string GetMap(string modPath)
         {
             var xivTexType = XivTexType.Other;
