@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using xivModdingFramework.Mods;
 using System.Collections.Generic;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Validation;
 using FFXIV_Modding_Tool.FirstTimeSetup;
+using FFXIV_Modding_Tool.ModControl;
 
 namespace FFXIV_Modding_Tool.Commandline
 {
@@ -15,6 +15,7 @@ namespace FFXIV_Modding_Tool.Commandline
         public Arguments(){}
         MainClass main = new MainClass();
         Config config = new Config();
+        Mods mods = new Mods();
         Validators validation = new Validators();
         SetupCommand setup = new SetupCommand();
         string ttmpPath = "";
@@ -47,19 +48,13 @@ namespace FFXIV_Modding_Tool.Commandline
                             useWizard = false;
                             importAll = false;
                         }
-                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
-                {new List<string>{"mpinfo", "modpack info"}, new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
-                        main.PrintMessage($@"Name: {modpackInfo["name"]}
-Type: {modpackInfo["type"]}
-Author: {modpackInfo["author"]}
-Version: {modpackInfo["version"]}
-Description: {modpackInfo["description"]}
-Number of mods: {modpackInfo["modAmount"]}"); })},
-                {new List<string>{"mm", "mods manage"}, new Action(() => { main.SetModActiveStates(); })},
-                {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
-                {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
+                        mods.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
+                {new List<string>{"mpinfo", "modpack info"}, new Action(() => { mods.GetModpackInfo(new DirectoryInfo(ttmpPath)); })},
+                {new List<string>{"mm", "mods manage"}, new Action(() => { mods.SetModActiveStates(); })},
+                {new List<string>{"me", "mods enable"}, new Action(() => { mods.ToggleModStates(true); })},
+                {new List<string>{"md", "mods disable"}, new Action(() => { mods.ToggleModStates(false); })},
                 {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
-                {new List<string>{"r", "reset"}, new Action(() => { main.ResetMods(); })},
+                {new List<string>{"r", "reset"}, new Action(() => { mods.ResetMods(); })},
                 {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
                 {new List<string>{"v", "version"}, new Action(() => { if (MainClass._gameDirectory == null)
                     MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));

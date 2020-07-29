@@ -18,21 +18,18 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using xivModdingFramework.General.Enums;
-using xivModdingFramework.Mods;
-using xivModdingFramework.Mods.DataContainers;
-using xivModdingFramework.Mods.Enums;
 using xivModdingFramework.Helpers;
-using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
+using xivModdingFramework.Mods.DataContainers;
 using xivModdingFramework.Textures.Enums;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
-using ICSharpCode.SharpZipLib.Zip;
+using FFXIV_Modding_Tool.ModControl;
 using Newtonsoft.Json;
+
 
 namespace FFXIV_Modding_Tool
 {
@@ -44,31 +41,6 @@ namespace FFXIV_Modding_Tool
         public static DirectoryInfo _configDirectory;
         public static DirectoryInfo _modpackDirectory;
         public static DirectoryInfo _projectconfDirectory;
-
-        public class ModActiveStatus
-        {
-            public string modpack { get; set; }
-            public string name { get; set; }
-            public string map { get; set; }
-            public string part { get; set; }
-            public string race { get; set; }
-            public string file { get; set; }
-            public bool enabled { get; set; }
-
-            public ModActiveStatus() { }
-
-            public ModActiveStatus(SimpleModPackEntries entry)
-            {
-                modpack = entry.JsonEntry.ModPackEntry.name;
-                name = entry.Name;
-                map = entry.Map;
-                part = entry.Part;
-                race = entry.Race;
-                file = entry.JsonEntry.FullPath;
-                enabled = true;
-            }
-        }
-        public ModActiveStatus modpackActiveStatus;
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
          1 = Success message, 2 = Error message, 3 = Warning message 
@@ -114,46 +86,6 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"{Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title} {version}\nGame version {ffxivVersion}");
         }
 
-        public Dictionary<string, string> GetModpackInfo(DirectoryInfo ttmpPath)
-        {
-            Dictionary<string, string> modpackInfo = new Dictionary<string, string>
-            {
-                ["name"] = Path.GetFileNameWithoutExtension(ttmpPath.FullName),
-                ["type"] = "Simple",
-                ["author"] = "N/A",
-                ["version"] = "N/A",
-                ["description"] = "N/A",
-                ["modAmount"] = "0"
-            };
-            if (ttmpPath.Extension == ".ttmp2")
-            {
-                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-                var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                ttmpData.Wait();
-                var ttmpInfo = ttmpData.Result.ModPackJson;
-                modpackInfo["name"] = ttmpInfo.Name;
-                if (ttmpInfo.TTMPVersion.Contains("w"))
-                {
-                    modpackInfo["type"] = "Wizard";
-                    modpackInfo["description"] = ttmpInfo.Description;
-                    int modCount = 0;
-                    foreach (var page in ttmpInfo.ModPackPages)
-                    {
-                        foreach (var group in page.ModGroups)
-                            modCount += group.OptionList.Count;
-                    }
-                    modpackInfo["modAmount"] = modCount.ToString();
-                }
-                else
-                    modpackInfo["modAmount"] = ttmpInfo.SimpleModsList.Count.ToString();
-                modpackInfo["author"] = ttmpInfo.Author;
-                modpackInfo["version"] = ttmpInfo.Version;
-            }
-            else if (ttmpPath.Extension == ".ttmp")
-                modpackInfo["modAmount"] = GetOldModpackJson(ttmpPath).Count.ToString();
-            return modpackInfo;
-        }
-
         public bool IndexLocked()
         {
             var index = new xivModdingFramework.SqPack.FileTypes.Index(_indexDirectory);
@@ -161,439 +93,13 @@ namespace FFXIV_Modding_Tool
             return indexLocked;
         }
 
-        #region Importing Functions
-        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool useWizard, bool importAll, bool skipProblemCheck)
-        {
-            var importError = false;
-            try
-            {
-                if (IndexLocked())
-                {
-                    PrintMessage("Unable to import while the game is running.", 2);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                PrintMessage($"Problem reading index files:\n{ex.Message}", 2);
-            }
-            PrintMessage("Starting import...");
-            try
-            {
-                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-
-                try
-                {
-                    if (ttmpPath.Extension == ".ttmp2")
-                    {
-                        var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                        ttmpData.Wait();
-                        ModpackDataHandler(ttmpPath, ttmpData.Result.ModPackJson, useWizard, importAll);
-                    }
-                    else
-                        ModpackDataHandler(ttmpPath, null, useWizard, importAll);
-                }
-                catch
-                {
-                    importError = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!importError)
-                {
-                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
-                    ModpackDataHandler(ttmpPath, null, useWizard, importAll);
-                }
-                else
-                {
-                    PrintMessage($"There was an error importing the modpack at {ttmpPath.FullName}\nMessage: {ex.Message}", 2);
-                    return;
-                }
-            }
-            if (!skipProblemCheck)
-                ProblemChecker();
-            return;
-        }
-
-        void ModpackDataHandler(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool useWizard, bool importAll)
-        {
-            var modding = new Modding(_indexDirectory);
-            string ttmpName = null;
-            List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            TTMP _textoolsModpack = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-            PrintMessage($"Extracting data from {ttmpPath.Name}...");
-            if (ttmpData != null)
-            {
-                ttmpName = ttmpData.Name;
-                if (ttmpData.TTMPVersion.Contains("w"))
-                {
-                    PrintMessage("Starting wizard...");
-                    ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData, false, true);
-                }
-                else
-                    ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData, useWizard, importAll);
-            }
-            else
-            {
-                ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-                ttmpDataList = TTMPDataList(ttmpPath, useWizard, importAll);
-            }
-            ttmpDataList.Sort();
-            PrintMessage("Data extraction successful.");
-            int originalModCount = ttmpDataList.Count;
-            string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-            List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList);
-            PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
-            ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
-            File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
-            PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
-        }
-
-        List<SimpleModPackEntries> TTMP2DataList(List<ModsJson> modsJsons, ModPackJson ttmpData, bool useWizard, bool importAll)
-        {
-            List <SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            foreach (var modsJson in modsJsons)
-            {
-                var race = GetRace(modsJson.FullPath);
-                var number = GetNumber(modsJson.FullPath);
-                var type = GetType(modsJson.FullPath);
-                var map = GetMap(modsJson.FullPath);
-
-                var active = false;
-                var isActive = XivModStatus.Disabled;
-
-                if (isActive == XivModStatus.Enabled)
-                    active = true;
-
-                modsJson.ModPackEntry = new ModPack
-                { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version };
-
-                ttmpDataList.Add(new SimpleModPackEntries
-                {
-                    Name = modsJson.Name,
-                    Category = modsJson.Category,
-                    Race = race.ToString(),
-                    Part = type,
-                    Num = number,
-                    Map = map,
-                    Active = active,
-                    JsonEntry = modsJson,
-                });
-            }
-            if (!useWizard && !importAll)
-                useWizard = PromptWizardUsage(ttmpDataList.Count);
-            if (useWizard)
-            {
-                PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
-                return SimpleDataHandler(ttmpDataList);
-            }
-            return ttmpDataList;
-        }
-
-        List<SimpleModPackEntries> TTMPDataList(DirectoryInfo ttmpPath, bool useWizard, bool importAll)
-        {
-            List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            var originalModPackData = GetOldModpackJson(ttmpPath);
-            string ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-
-            foreach (var modsJson in originalModPackData)
-            {
-                var race = GetRace(modsJson.FullPath);
-                var number = GetNumber(modsJson.FullPath);
-                var type = GetType(modsJson.FullPath);
-                var map = GetMap(modsJson.FullPath);
-
-                var active = false;
-                var isActive = XivModStatus.Disabled;
-
-                if (isActive == XivModStatus.Enabled)
-                    active = true;
-
-                ttmpDataList.Add(new SimpleModPackEntries
-                {
-                    Name = modsJson.Name,
-                    Category = modsJson.Category,
-                    Race = race.ToString(),
-                    Part = type,
-                    Num = number,
-                    Map = map,
-                    Active = active,
-                    JsonEntry = new ModsJson
-                    {
-                        Name = modsJson.Name,
-                        Category = modsJson.Category,
-                        FullPath = modsJson.FullPath,
-                        DatFile = modsJson.DatFile,
-                        ModOffset = modsJson.ModOffset,
-                        ModSize = modsJson.ModSize,
-                        ModPackEntry = new ModPack { name = ttmpName, author = "N/A", version = "1.0.0" }
-                    }
-                });
-            }
-            if (!useWizard && !importAll)
-                useWizard = PromptWizardUsage(ttmpDataList.Count);
-            if (useWizard)
-            {
-                PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
-                return SimpleDataHandler(ttmpDataList);
-            }
-            return ttmpDataList;
-        }
-
-        List<OriginalModPackJson> GetOldModpackJson(DirectoryInfo ttmpPath)
-        {
-            List<OriginalModPackJson> originalModPackData = new List<OriginalModPackJson>();
-            var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
-            ZipFile archive = new ZipFile(fs);
-            ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
-            {
-                using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
-                {
-                    string line;
-                    while ((line = streamReader.ReadLine()) != null)
-                    {
-                        if (!line.ToLower().Contains("version"))
-                            originalModPackData.Add(JsonConvert.DeserializeObject<OriginalModPackJson>(line));
-                    }
-                }
-            }
-            return originalModPackData;
-        }
-
-        bool PromptWizardUsage(int modCount)
-        {
-            bool userPicked = false;
-            bool answer = false;
-            
-            if (modCount > 250)
-                PrintMessage($"This modpack contains {modCount} mods, using the wizard could be a tedious process", 3);
-
-            while (!userPicked && modCount > 1)
-            {
-                PrintMessage($"Would you like to use the Wizard for importing?\n(Y)es, let me select the mods\n(N)o, import everything");
-                string reply = Console.ReadKey().KeyChar.ToString().ToLower();
-                if (reply == "y")
-                {
-                    answer = true;
-                    userPicked = true;
-                }
-                else if (reply == "n")
-                {
-                    answer = false;
-                    userPicked = true;
-                }
-                PrintMessage("\n");
-            }
-            return answer;
-        }
-
-        List<ModsJson> WizardDataHandler(ModPackJson ttmpData)
-        {
-            List<ModsJson> modpackData = new List<ModsJson>();
-            PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n{ttmpData.Description}\n");
-            foreach (var page in ttmpData.ModPackPages)
-            {
-                if (ttmpData.ModPackPages.Count > 1)
-                    PrintMessage($"Page {page.PageIndex}");
-                foreach (var option in page.ModGroups)
-                {
-                    bool userDone = false;
-                    while (!userDone)
-                    {
-                        PrintMessage($"{option.GroupName}\nChoices:");
-                        List<string> choices = new List<string>();
-                        foreach (var choice in option.OptionList)
-                        {
-                            string description = "";
-                            if (!string.IsNullOrEmpty(choice.Description))
-                                description = $"\n\t{choice.Description}";
-                            choices.Add($"    {option.OptionList.IndexOf(choice)} - {choice.Name}{description}");
-                        }
-                        PrintMessage(string.Join("\n", choices));
-                        int maxChoices = option.OptionList.Count;
-                        if (option.SelectionType == "Multi")
-                        {
-                            Console.Write("Choose none, one or multiple (eg: 1 2 3, 0-3, *): ");
-                            List<int> wantedIndexes = WizardUserInputValidation(Console.ReadLine(), maxChoices, true);
-                            List<string> pickedChoices = new List<string>();
-                            foreach (int index in wantedIndexes)
-                                pickedChoices.Add($"{index} - {option.OptionList[index].Name}");
-                            if (!pickedChoices.Any())
-                                pickedChoices.Add("nothing");
-                            Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
-                            string answer = Console.ReadKey().KeyChar.ToString();
-                            if (answer == "y" || answer == "\n")
-                            {
-                                foreach (int index in wantedIndexes)
-                                    modpackData.AddRange(option.OptionList[index].ModsJsons);
-                                userDone = true;
-                            }
-                        }
-                        if (option.SelectionType == "Single")
-                        {
-                            Console.Write("Choose one (eg: 0 1 2 3): ");
-                            int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices, false)[0];
-                            Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
-                            string answer = Console.ReadKey().KeyChar.ToString();
-                            if (answer == "y" || answer == "\n")
-                            {
-                                modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
-                                userDone = true;
-                            }
-                        }
-                        Console.Write("\n");
-                    }
-                }
-            }
-            return modpackData;
-        }
-
-        List<SimpleModPackEntries> SimpleDataHandler(List<SimpleModPackEntries> ttmpDataList)
-        {
-            List<SimpleModPackEntries> desiredMods = new List<SimpleModPackEntries>();
-            for (int i = 0; i < ttmpDataList.Count; i = i + 50)
-            {
-                var items = ttmpDataList.Skip(i).Take(50).ToList();
-                if (ttmpDataList.Count > 50)
-                    PrintMessage($"{i}-{i + items.Count} ({ttmpDataList.Count} total)");
-                bool userDone = false;
-                while (!userDone)
-                {
-                    PrintMessage("Mods:");
-                    List<string> mods = new List<string>();
-                    foreach (var item in items)
-                        mods.Add($"    {items.IndexOf(item)} - {item.Name}, {item.Map}, {item.Race}");
-                    PrintMessage(string.Join("\n", mods));
-                    Console.Write("Choose mods you wish to import (eg: 1 2 3, 0-3, *): ");
-                    List<int> wantedMods = WizardUserInputValidation(Console.ReadLine(), items.Count, true);
-                    List<string> pickedMods = new List<string>();
-                    foreach (int index in wantedMods)
-                        pickedMods.Add(mods[index]);
-                    if (!pickedMods.Any())
-                        pickedMods.Add("nothing");
-                    Console.Write($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct? Y/n ");
-                    string answer = Console.ReadKey().KeyChar.ToString();
-                    if (answer == "y" || answer == "\n")
-                    {
-                        foreach (int index in wantedMods)
-                            desiredMods.Add(items[index]);
-                        userDone = true;
-                    }
-                    Console.Write("\n");
-                }
-            }
-            return desiredMods;
-        }
-
-        List<int> WizardUserInputValidation(string input, int totalChoices, bool canBeEmpty)
-        {
-            List<int> desiredIndexes = new List<int>();
-            if (!string.IsNullOrEmpty(input))
-            {
-                string[] answers = input.Split();
-                foreach (string answer in answers)
-                {
-                    if (answer == "*")
-                    {
-                        desiredIndexes = Enumerable.Range(0, totalChoices).ToList();
-                        break;
-                    }
-                    if (answer.Contains("-"))
-                    {
-                        try
-                        {
-                            int[] targets = answer.Split('-').Select(int.Parse).ToArray();
-                            desiredIndexes.AddRange(Enumerable.Range(targets[0], targets[1] - targets[0] + 1));
-                        }
-                        catch
-                        {
-                            PrintMessage($"{answer} is not a valid range of choices", 2);
-                        }
-                        continue;
-                    }
-                    int wantedIndex;
-                    if (int.TryParse(answer, out wantedIndex))
-                    {
-                        if (wantedIndex < totalChoices)
-                        {
-                            if (!desiredIndexes.Contains(wantedIndex))
-                                desiredIndexes.Add(wantedIndex);
-                        }
-                        else
-                            PrintMessage($"There are only {totalChoices} choices, not {wantedIndex + 1}", 2);
-                    }
-                    else
-                        PrintMessage($"{answer} is not a valid choice", 2);
-                }
-            }
-            else
-            {
-                if (!canBeEmpty)
-                    desiredIndexes.Add(0);
-            }
-            return desiredIndexes;
-        }
-
-        public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<SimpleModPackEntries> ttmpDataList)
-        {
-            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
-            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
-            bool alreadyExists = false;
-            int modIndex = 0;
-            foreach (SimpleModPackEntries entry in ttmpDataList)
-            {
-                foreach (ModActiveStatus modState in modActiveStates)
-                {
-                    if (entry.JsonEntry.FullPath == modState.file)
-                    {
-                        modIndex = modActiveStates.IndexOf(modState);
-                        alreadyExists = true;
-                        break;
-                    }
-                }
-                if (!alreadyExists)
-                    modActiveStates.Add(new ModActiveStatus(entry));
-                else
-                    modActiveStates[modIndex] = new ModActiveStatus(entry);
-            }
-            return modActiveStates;
-        }
-
-        void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
-        {
-            var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
-            var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
-            int totalModsImported = 0;
-            var progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
-
-            try
-            {
-                var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, importList,
-                _indexDirectory, modlistPath, progressIndicator);
-                importResults.Wait();
-                if (!string.IsNullOrEmpty(importResults.Result.Errors))
-                    PrintMessage($"There were errors importing some mods:\n{importResults.Result.Errors}", 2);
-                else
-                {
-                    totalModsImported = ttmpDataList.Count();
-                    PrintMessage($"\n{totalModsImported} mod(s) successfully imported.", 1);
-                }
-            }
-            catch (Exception ex)
-            {
-                PrintMessage($"There was an error attempting to import mods:\n{ex.Message}", 2);
-            }
-        }
-
-        void ReportProgress((int current, int total, string message) report)
+        public void ReportProgress((int current, int total, string message) report)
         {
             var progress = ((double)report.current / (double)report.total) * 100;
             Console.Write($"\r{(int)progress}%");
         }
 
-        XivRace GetRace(string modPath)
+        public XivRace GetRace(string modPath)
         {
             var xivRace = XivRace.All_Races;
 
@@ -626,7 +132,7 @@ namespace FFXIV_Modding_Tool
             return xivRace;
         }
 
-        string GetNumber(string modPath)
+        public string GetNumber(string modPath)
         {
             var number = "-";
 
@@ -682,7 +188,7 @@ namespace FFXIV_Modding_Tool
             return number;
         }
 
-        string GetType(string modPath)
+        public string GetType(string modPath)
         {
             var type = "-";
 
@@ -732,7 +238,7 @@ namespace FFXIV_Modding_Tool
             return type;
         }
 
-        string GetMap(string modPath)
+        public string GetMap(string modPath)
         {
             var xivTexType = XivTexType.Other;
 
@@ -794,10 +300,9 @@ namespace FFXIV_Modding_Tool
             {"ril", "Ring Left"},
             {"wrs", "Wrists"},
         };
-        #endregion
 
         #region Index File Handling
-        Dictionary<string, XivDataFile> IndexFiles()
+        public Dictionary<string, XivDataFile> IndexFiles()
         {
             Dictionary<string, XivDataFile> indexFiles = new Dictionary<string, XivDataFile>();
             string indexExtension = ".win32.index";
@@ -828,10 +333,9 @@ namespace FFXIV_Modding_Tool
                 PrintMessage("Can't make backups while the game is running", 2);
                 return;
             }
-            string modFile = Path.Combine(_gameDirectory.FullName, "XivMods.json");
-            if (File.Exists(modFile))
+            if (File.Exists(Mods._modlistPath.FullName))
             {
-                var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modFile));
+                var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(Mods._modlistPath.FullName));
                 if (modData.modCount > 0)
                 {
                     bool allDisabled = true;
@@ -866,89 +370,6 @@ namespace FFXIV_Modding_Tool
                 return;
             }
             PrintMessage("Successfully backed up the index files!", 1);
-        }
-
-        public void ResetMods()
-        {
-            bool allFilesAvailable = true;
-            bool indexesUpToDate = true;
-            var problemChecker = new ProblemChecker(_indexDirectory);
-            if (!_backupDirectory.Exists)
-            {
-                PrintMessage($"{_backupDirectory.FullName} does not exist, please specify an existing directory", 2);
-                return;
-            }
-            foreach (KeyValuePair<string, XivDataFile> indexFile in IndexFiles())
-            {
-                string backupPath = Path.Combine(_backupDirectory.FullName, indexFile.Key);
-                if (!File.Exists(backupPath))
-                {
-                    PrintMessage($"{indexFile.Key} not found, aborting...", 3);
-                    allFilesAvailable = false;
-                    break;
-                }
-                var outdatedBackupsCheck = problemChecker.CheckForOutdatedBackups(indexFile.Value, _backupDirectory);
-                outdatedBackupsCheck.Wait();
-                if (!outdatedBackupsCheck.Result)
-                {
-                    PrintMessage($"{indexFile.Key} is out of date, aborting...", 3);
-                    indexesUpToDate = false;
-                    break;
-                }
-            }
-            if (!allFilesAvailable || !indexesUpToDate)
-            {
-                PrintMessage($"{_backupDirectory.FullName} has missing or outdated index files. You can either\n1. Download them from the TT discord\n2. Run this command again using \"backup\" instead of \"reset\" using a clean install of the game", 2);
-                return;
-            }
-            if (IndexLocked())
-            {
-                PrintMessage("Can't reset the game while the game is running", 2);
-                return;
-            }
-            try
-            {
-                var reset = Task.Run(() =>
-                {
-                    var modding = new Modding(_indexDirectory);
-                    var dat = new Dat(_indexDirectory);
-
-                    var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
-                    string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-
-                    var backupFiles = Directory.GetFiles(_backupDirectory.FullName);
-                    foreach (var backupFile in backupFiles)
-                    {
-                        if (backupFile.Contains(".win32.index"))
-                            File.Copy(backupFile, $"{_indexDirectory}/{Path.GetFileName(backupFile)}", true);
-                    }
-
-                    // Delete modded dat files
-                    foreach (var xivDataFile in (XivDataFile[])Enum.GetValues(typeof(XivDataFile)))
-                    {
-                        var datFiles = dat.GetModdedDatList(xivDataFile);
-                        datFiles.Wait();
-
-                        foreach (var datFile in datFiles.Result)
-                            File.Delete(datFile);
-
-                        if (datFiles.Result.Count > 0)
-                            problemChecker.RepairIndexDatCounts(xivDataFile);
-                    }
-
-                    // Delete mod list
-                    File.Delete(modListDirectory.FullName);
-                    modding.CreateModlist();
-                    if (File.Exists(modActiveConfFile))
-                        File.WriteAllText(modActiveConfFile, string.Empty);
-                });
-                reset.Wait();
-                PrintMessage("Reset complete!", 1);
-            }
-            catch (Exception ex)
-            {
-                PrintMessage($"Something went wrong during the reset process\n{ex.Message}", 2);
-            }
         }
         #endregion
 
@@ -1085,8 +506,7 @@ namespace FFXIV_Modding_Tool
 
         List<string> CheckMods()
         {
-            var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
-            var modlistJson = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath.FullName));
+            var modlistJson = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(Mods._modlistPath.FullName));
             var dat = new Dat(_indexDirectory);
             List<string> problemsFound = new List<string>();
             if (modlistJson.modCount > 0)
@@ -1207,65 +627,6 @@ namespace FFXIV_Modding_Tool
             return problemsFound;
         }
         #endregion
-
-        public void ToggleModStates(bool enable)
-        {
-            string modstate = "";
-            if (enable)
-                modstate = "on";
-            else
-                modstate = "off";
-            var modding = new Modding(_indexDirectory);
-            PrintMessage($"Turning {modstate} all mods...");
-            try
-            {
-                var toggle = modding.ToggleAllMods(enable);
-                toggle.Wait();
-                PrintMessage($"Successfully turned {modstate} all mods", 1);
-            }
-            catch (Exception e)
-            {
-                PrintMessage($"There was an issue turning {modstate} mods:\n{e}", 2);
-            }
-        }
-
-        public void SetModActiveStates()
-        {
-            Modding modding = new Modding(_indexDirectory);
-            string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-            string modlistFile = Path.Combine(_gameDirectory.FullName, "XivMods.json");
-            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
-            if (!File.Exists(modActiveConfFile) || string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-            {
-                PrintMessage("Can't enable/disable mods when no mods are installed", 2);
-                return;
-            }
-            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
-            int enabled = 0;
-            int disabled = 0;
-            try
-            {
-                PrintMessage("Toggling mods...");
-                foreach (ModActiveStatus modState in modActiveStates)
-                {
-                    var toggle = modding.ToggleModStatus(modState.file, modState.enabled);
-                    toggle.Wait();
-                    if (modState.enabled)
-                        enabled++;
-                    else
-                        disabled++;
-                    int atMod = modActiveStates.IndexOf(modState) + 1;
-                    Console.Write($"\r{(int)(0.5f + ((100f * atMod) / modActiveStates.Count))}%...  ");
-                }
-            }
-            catch (Exception ex)
-            {
-                PrintMessage($"Something went wrong during the toggle process\n{ex.Message}", 3);
-                return;
-            }
-            PrintMessage($"\nSuccessfully enabled {enabled} and disabled {disabled} out of {modActiveStates.Count} mods!", 1);
-        }
 
         private static DirectoryInfo GetConfigurationPath()
         {
