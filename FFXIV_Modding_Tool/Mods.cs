@@ -173,12 +173,8 @@ Number of mods: {modpackInfo["modAmount"]}");;
             ttmpDataList.Sort();
             main.PrintMessage("Data extraction successful.");
             int originalModCount = ttmpDataList.Count;
-            string modActiveConfFile = Path.Combine(MainClass._projectconfDirectory.FullName, "modlist.cgf");
-            List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList);
             main.PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
             ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
-            File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
-            main.PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
         }
 
         List<SimpleModPackEntries> TTMP2DataList(List<ModsJson> modsJsons, ModPackJson ttmpData, bool useWizard, bool importAll)
@@ -470,32 +466,6 @@ Number of mods: {modpackInfo["modAmount"]}");;
             return desiredIndexes;
         }
 
-        public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<SimpleModPackEntries> ttmpDataList)
-        {
-            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
-            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
-            bool alreadyExists = false;
-            int modIndex = 0;
-            foreach (SimpleModPackEntries entry in ttmpDataList)
-            {
-                foreach (ModActiveStatus modState in modActiveStates)
-                {
-                    if (entry.JsonEntry.FullPath == modState.file)
-                    {
-                        modIndex = modActiveStates.IndexOf(modState);
-                        alreadyExists = true;
-                        break;
-                    }
-                }
-                if (!alreadyExists)
-                    modActiveStates.Add(new ModActiveStatus(entry));
-                else
-                    modActiveStates[modIndex] = new ModActiveStatus(entry);
-            }
-            return modActiveStates;
-        }
-
         void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
         {
             var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
@@ -624,8 +594,6 @@ Number of mods: {modpackInfo["modAmount"]}");;
                     var modding = new Modding(MainClass._indexDirectory);
                     var dat = new Dat(MainClass._indexDirectory);
 
-                    string modActiveConfFile = Path.Combine(MainClass._projectconfDirectory.FullName, "modlist.cgf");
-
                     var backupFiles = Directory.GetFiles(MainClass._backupDirectory.FullName);
                     foreach (var backupFile in backupFiles)
                     {
@@ -649,8 +617,6 @@ Number of mods: {modpackInfo["modAmount"]}");;
                     // Delete mod list
                     File.Delete(_modlistPath.FullName);
                     modding.CreateModlist();
-                    if (File.Exists(modActiveConfFile))
-                        File.WriteAllText(modActiveConfFile, string.Empty);
                 });
                 reset.Wait();
                 main.PrintMessage("Reset complete!", 1);
