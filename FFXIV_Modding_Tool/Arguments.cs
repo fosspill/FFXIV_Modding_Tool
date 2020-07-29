@@ -220,7 +220,7 @@ Available actions:
   modpack info, mpinfo     Show info about a modpack, requires a .ttmp(2) to be specified
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
-  mods refresh, mr         Enable/disable mods as specified in modlist.cfg
+  mods manage, mm          Enable/disable mods through the mod manager
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
