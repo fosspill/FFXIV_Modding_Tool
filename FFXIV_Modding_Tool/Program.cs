@@ -43,7 +43,7 @@ namespace FFXIV_Modding_Tool
         public static DirectoryInfo _projectconfDirectory;
 
         /* Print slightly nicer messages. Can add logging here as well if needed.
-         1 = Success message, 2 = Error message, 3 = Warning message 
+         1 = Success message, 2 = Error message, 3 = Warning message, 4 = Bad message 
         */
         public void PrintMessage(string message, int importance = 0)
         {
@@ -62,6 +62,9 @@ namespace FFXIV_Modding_Tool
                 case 3:
                     Console.Write("WARNING: ");
                     Console.ForegroundColor = ConsoleColor.Yellow;
+                    goto default;
+                case 4:
+                    Console.ForegroundColor = ConsoleColor.Red;
                     goto default;
                 default:
                     Console.WriteLine(message);
