@@ -102,22 +102,23 @@ namespace FFXIV_Modding_Tool
         public XivRace GetRace(string modPath)
         {
             var xivRace = XivRace.All_Races;
+            List<string> modPathList = modPath.Split('/').ToList();
 
-            if (modPath.Contains("ui/") || modPath.Contains(".avfx"))
+            if (modPath.StartsWith("ui/") || modPath.EndsWith(".avfx"))
                 xivRace = XivRace.All_Races;
-            else if (modPath.Contains("monster"))
+            else if (modPathList.Contains("monster"))
                 xivRace = XivRace.Monster;
-            else if (modPath.Contains("bgcommon"))
+            else if (modPathList.Contains("bgcommon"))
                 xivRace = XivRace.All_Races;
-            else if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
+            else if (modPath.EndsWith(".tex") || modPath.EndsWith(".mdl") || modPath.EndsWith(".atex"))
             {
-                if (modPath.Contains("accessory") || modPath.Contains("weapon") || modPath.Contains("/common/"))
+                if (modPathList.Contains("accessory") || modPathList.Contains("weapon") || modPathList.Contains("common"))
                     xivRace = XivRace.All_Races;
                 else
                 {
-                    if (modPath.Contains("demihuman"))
+                    if (modPathList.Contains("demihuman"))
                         xivRace = XivRace.DemiHuman;
-                    else if (modPath.Contains("/v"))
+                    else if (modPathList.Last().StartsWith("v"))
                     {
                         var raceCode = modPath.Substring(modPath.IndexOf("_c") + 2, 4);
                         xivRace = XivRaces.GetXivRace(raceCode);
@@ -135,20 +136,21 @@ namespace FFXIV_Modding_Tool
         public string GetNumber(string modPath)
         {
             var number = "-";
+            List<string> modPathList = modPath.Split('/').ToList();
 
-            if (modPath.Contains("/human/") && modPath.Contains("/body/"))
+            if (modPathList.Contains("human") && modPathList.Contains("body"))
             {
                 var subString = modPath.Substring(modPath.LastIndexOf("/b") + 2, 4);
                 number = int.Parse(subString).ToString();
             }
 
-            if (modPath.Contains("/face/"))
+            if (modPathList.Contains("face"))
             {
                 var subString = modPath.Substring(modPath.LastIndexOf("/f") + 2, 4);
                 number = int.Parse(subString).ToString();
             }
 
-            if (modPath.Contains("decal_face"))
+            if (modPathList.Contains("decal_face"))
             {
                 var length = modPath.LastIndexOf(".") - (modPath.LastIndexOf("_") + 1);
                 var subString = modPath.Substring(modPath.LastIndexOf("_") + 1, length);
@@ -156,7 +158,7 @@ namespace FFXIV_Modding_Tool
                 number = int.Parse(subString).ToString();
             }
 
-            if (modPath.Contains("decal_equip"))
+            if (modPathList.Contains("decal_equip"))
             {
                 var subString = modPath.Substring(modPath.LastIndexOf("_") + 1, 3);
 
@@ -166,20 +168,20 @@ namespace FFXIV_Modding_Tool
                 }
                 catch
                 {
-                    if (modPath.Contains("stigma"))
+                    if (modPath.EndsWith("_stigma.tex"))
                         number = "stigma";
                     else
                         number = "Error";
                 }
             }
 
-            if (modPath.Contains("/hair/"))
+            if (modPathList.Contains("hair"))
             {
                 var t = modPath.Substring(modPath.LastIndexOf("/h") + 2, 4);
                 number = int.Parse(t).ToString();
             }
 
-            if (modPath.Contains("/tail/"))
+            if (modPathList.Contains("tail"))
             {
                 var t = modPath.Substring(modPath.LastIndexOf("l/t") + 3, 4);
                 number = int.Parse(t).ToString();
@@ -191,15 +193,16 @@ namespace FFXIV_Modding_Tool
         public string GetType(string modPath)
         {
             var type = "-";
+            List<string> modPathList = modPath.Split('/').ToList();
 
-            if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
+            if (modPath.EndsWith(".tex") || modPath.EndsWith(".mdl") || modPath.EndsWith(".atex"))
             {
-                if (modPath.Contains("demihuman"))
+                if (modPathList.Contains("demihuman"))
                     type = slotAbr[modPath.Substring(modPath.LastIndexOf("/") + 16, 3)];
 
-                if (modPath.Contains("/face/"))
+                if (modPathList.Contains("face"))
                 {
-                    if (modPath.Contains(".tex"))
+                    if (modPath.EndsWith(".tex"))
                     {
                         var fileName = Path.GetFileNameWithoutExtension(modPath);
                         try
@@ -213,9 +216,9 @@ namespace FFXIV_Modding_Tool
                     }
                 }
 
-                if (modPath.Contains("/hair/"))
+                if (modPathList.Contains("hair"))
                 {
-                    if (modPath.Contains(".tex"))
+                    if (modPath.EndsWith(".tex"))
                     {
                         var fileName = Path.GetFileNameWithoutExtension(modPath);
                         try 
@@ -229,10 +232,10 @@ namespace FFXIV_Modding_Tool
                     }
                 }
 
-                if (modPath.Contains("/vfx/"))
+                if (modPathList.Contains("vfx"))
                     type = "VFX";
             }
-            else if (modPath.Contains(".avfx"))
+            else if (modPath.EndsWith(".avfx"))
                 type = "AVFX";
             
             return type;
@@ -242,10 +245,11 @@ namespace FFXIV_Modding_Tool
         {
             string part = "-";
             string[] parts = new[] { "a", "b", "c", "d", "e", "f" };
+            List<string> modPathList = modPath.Split('/').ToList();
 
-            if (modPath.Contains("/equipment/"))
+            if (modPathList.Contains("equipment"))
             {
-                if(modPath.Contains("/texture/"))
+                if(modPathList.Contains("texture"))
                 {
                     part = modPath.Substring(modPath.LastIndexOf("_") - 1, 1);
                     foreach(string letter in parts)
@@ -253,7 +257,7 @@ namespace FFXIV_Modding_Tool
                     return "a";
                 }
 
-                if(modPath.Contains("/material/"))
+                if(modPathList.Contains("material"))
                     return modPath.Substring(modPath.LastIndexOf("_") + 1, 1);
             }
             return part;
@@ -263,32 +267,32 @@ namespace FFXIV_Modding_Tool
         {
             var xivTexType = XivTexType.Other;
 
-            if (modPath.Contains(".mdl"))
+            if (modPath.EndsWith(".mdl"))
                 return "3D";
 
-            if (modPath.Contains(".mtrl"))
+            if (modPath.EndsWith(".mtrl"))
                 return "ColorSet";
 
-            if (modPath.Contains("ui/"))
+            if (modPath.StartsWith("ui/"))
             {
                 var subString = modPath.Substring(modPath.IndexOf("/") + 1);
                 return subString.Substring(0, subString.IndexOf("/"));
             }
 
-            if (modPath.Contains("_s.tex") || modPath.Contains("skin_m"))
+            if (modPath.EndsWith("_s.tex") || modPath.Equals("chara/common/texture/skin_m.tex"))
                 xivTexType = XivTexType.Specular;
-            else if (modPath.Contains("_d.tex"))
+            else if (modPath.EndsWith("_d.tex"))
                 xivTexType = XivTexType.Diffuse;
-            else if (modPath.Contains("_n.tex"))
+            else if (modPath.EndsWith("_n.tex"))
                 xivTexType = XivTexType.Normal;
-            else if (modPath.Contains("_m.tex"))
+            else if (modPath.EndsWith("_m.tex"))
                 xivTexType = XivTexType.Multi;
-            else if (modPath.Contains(".atex"))
+            else if (modPath.EndsWith(".atex"))
             {
                 var atex = Path.GetFileNameWithoutExtension(modPath);
                 return atex.Substring(0, 4);
             }
-            else if (modPath.Contains("decal"))
+            else if (modPath.StartsWith("chara/common/texture/decal_") && modPath.EndsWith(".tex"))
                 xivTexType = XivTexType.Mask;
 
             return xivTexType.ToString();
