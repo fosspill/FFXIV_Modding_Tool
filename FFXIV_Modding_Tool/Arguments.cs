@@ -111,10 +111,10 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public bool ActionRequirementsChecker(string requestedAction)
         {
-            List<string> requiresGameDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
-            List<string> requiresBackupDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
+            List<string> requiresGameDirectory = new List<string> { "mpi", "mm", "me", "md", "b", "r", "pc" };
+            List<string> requiresBackupDirectory = new List<string> { "mpi", "mm", "me", "md", "b", "r", "pc" };
             List<string> requiresConfigDirectory = new List<string> { "mpi", "pc" };
-            List<string> requiresUpdatedBackups = new List<string> { "mpi", "mr", "me", "md", "r" };
+            List<string> requiresUpdatedBackups = new List<string> { "mpi", "mm", "me", "md", "r" };
             List<string> requiresValidIndexes = new List<string> { "mpi", "b" };
             List<string> requiresTTMPFile = new List<string> { "mpi", "mpinfo" };
 
