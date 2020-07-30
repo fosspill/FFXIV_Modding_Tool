@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.Enums;
@@ -20,30 +21,6 @@ namespace FFXIV_Modding_Tool.ModControl
         public Mods(){}
         public static DirectoryInfo _modlistPath = new DirectoryInfo(Path.Combine(MainClass._gameDirectory.FullName, "XivMods.json"));
         MainClass main = new MainClass();
-
-        public class ModStatus
-        {
-            public string modpack { get; set; }
-            public string name { get; set; }
-            public string category { get; set; }
-            public string type { get; set; }
-            public string fullpath { get; set; }
-            public bool enabled { get; set; }
-            private Dictionary<int, string> dataTypes = new Dictionary<int, string>{[3] = "Model", [4] = "Texture"};
-
-            public ModStatus() { }
-
-            public ModStatus(Mod mod)
-            {
-                modpack = mod.modPack.name;
-                name = mod.name;
-                category = mod.category;
-                type = dataTypes[mod.data.dataType];
-                fullpath = mod.fullPath;
-                enabled = mod.enabled;
-            }
-        }
-        public ModStatus modStatus;
 
         public void GetModpackInfo(DirectoryInfo ttmpPath)
         {
@@ -512,6 +489,71 @@ Number of mods: {modpackInfo["modAmount"]}");;
         public void SetModActiveStates()
         {
             main.PrintMessage("Being reworked");
+        }
+
+        SqliteConnection GetAllInstalledMods()
+        {
+            List<Mod> modList = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(_modlistPath.FullName)).Mods;
+            var con = new SqliteConnection("Data Source=:memory:");
+            con.Open();
+            var command = new SqliteCommand("create table mods (modpack string, name string, category string, type string, fullpath string, active string)", con);
+            command.ExecuteNonQuery();
+            foreach(Mod mod in modList)
+            {
+                command = new SqliteCommand($"insert into mods (modpack, name, category, type, fullpath, active) values (\"{mod.modPack.name}\", \"{mod.name}\", \"{mod.category}\", \"{main.GetMap(mod.fullPath)}\", \"{mod.fullPath}\", \"{ModStatusBoolToString(mod.enabled)}\")", con);
+                command.ExecuteNonQuery();
+            }
+            return con;
+        }
+
+        public void ListMods(string sortBy)
+        {
+            sortBy = sortBy.ToLower();
+            List<string> validSorts = new List<string>{"category", "type", "modpack", "active"};
+            Dictionary<string, int> tableMapping = new Dictionary<string, int>{["category"] = 2, ["type"] = 3, ["modpack"] = 0, ["active"] = 5};
+            if (!validSorts.Contains(sortBy))
+            {
+                main.PrintMessage($"{sortBy} is not a valid sorting choice, using the default \"category\".", 3);
+                sortBy = "category";
+            }
+            SqliteConnection con = GetAllInstalledMods();
+            var command = new SqliteCommand($"select * from mods order by {sortBy}, name", con);
+            var sortedMods = command.ExecuteReader();
+            string lastHeader = "";
+            while (sortedMods.Read())
+            {
+                string modpack = sortedMods.GetString(0);
+                string name = sortedMods.GetString(1);
+                string category = sortedMods.GetString(2);
+                string type = sortedMods.GetString(3);
+                string fullpath = sortedMods.GetString(4);
+                string active = sortedMods.GetString(5);
+                if (sortedMods.GetString(tableMapping[sortBy]) != lastHeader)
+                {
+                    lastHeader = sortedMods.GetString(tableMapping[sortBy]);
+                    main.PrintMessage($"[{lastHeader}]");
+                }
+                string modInfo = $"{name} ({modpack}) - {category} {type} - {fullpath} - {active}";
+                if (ModStatusStringToBool(active))
+                    main.PrintMessage(modInfo, 1);
+                else 
+                    main.PrintMessage(modInfo, 4);
+            }
+            con.Close();
+        }
+
+        string ModStatusBoolToString(bool modstatus)
+        {
+            if (modstatus)
+                return "Enabled";
+            return "Disabled";
+        }
+
+        bool ModStatusStringToBool(string modstatus)
+        {
+            if (modstatus == "Enabled")
+                return true;
+            return false;
         }
 
         public void ResetMods()
