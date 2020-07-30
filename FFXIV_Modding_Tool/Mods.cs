@@ -21,32 +21,29 @@ namespace FFXIV_Modding_Tool.ModControl
         public static DirectoryInfo _modlistPath = new DirectoryInfo(Path.Combine(MainClass._gameDirectory.FullName, "XivMods.json"));
         MainClass main = new MainClass();
 
-        public class ModActiveStatus
+        public class ModStatus
         {
             public string modpack { get; set; }
             public string name { get; set; }
-            public string map { get; set; }
-            public string part { get; set; }
+            public string category { get; set; }
             public string type { get; set; }
-            public string race { get; set; }
-            public string file { get; set; }
+            public string fullpath { get; set; }
             public bool enabled { get; set; }
+            private Dictionary<int, string> dataTypes = new Dictionary<int, string>{[3] = "Model", [4] = "Texture"};
 
-            public ModActiveStatus() { }
+            public ModStatus() { }
 
-            public ModActiveStatus(SimpleModPackEntries entry)
+            public ModStatus(Mod mod)
             {
-                modpack = entry.JsonEntry.ModPackEntry.name;
-                name = entry.Name;
-                map = entry.Map;
-                part = entry.Part;
-                type = entry.Type;
-                race = entry.Race;
-                file = entry.JsonEntry.FullPath;
-                enabled = true;
+                modpack = mod.modPack.name;
+                name = mod.name;
+                category = mod.category;
+                type = dataTypes[mod.data.dataType];
+                fullpath = mod.fullPath;
+                enabled = mod.enabled;
             }
         }
-        public ModActiveStatus modpackActiveStatus;
+        public ModStatus modStatus;
 
         public void GetModpackInfo(DirectoryInfo ttmpPath)
         {
@@ -514,39 +511,7 @@ Number of mods: {modpackInfo["modAmount"]}");;
 
         public void SetModActiveStates()
         {
-            Modding modding = new Modding(MainClass._indexDirectory);
-            string modActiveConfFile = Path.Combine(MainClass._projectconfDirectory.FullName, "modlist.cgf");
-            List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
-            if (!File.Exists(modActiveConfFile) || string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-            {
-                main.PrintMessage("Can't enable/disable mods when no mods are installed", 2);
-                return;
-            }
-            if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
-                modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
-            int enabled = 0;
-            int disabled = 0;
-            try
-            {
-                main.PrintMessage("Toggling mods...");
-                foreach (ModActiveStatus modState in modActiveStates)
-                {
-                    var toggle = modding.ToggleModStatus(modState.file, modState.enabled);
-                    toggle.Wait();
-                    if (modState.enabled)
-                        enabled++;
-                    else
-                        disabled++;
-                    int atMod = modActiveStates.IndexOf(modState) + 1;
-                    Console.Write($"\r{(int)(0.5f + ((100f * atMod) / modActiveStates.Count))}%...  ");
-                }
-            }
-            catch (Exception ex)
-            {
-                main.PrintMessage($"Something went wrong during the toggle process\n{ex.Message}", 3);
-                return;
-            }
-            main.PrintMessage($"\nSuccessfully enabled {enabled} and disabled {disabled} out of {modActiveStates.Count} mods!", 1);
+            main.PrintMessage("Being reworked");
         }
 
         public void ResetMods()
