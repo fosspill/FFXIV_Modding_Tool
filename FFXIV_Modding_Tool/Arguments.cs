@@ -20,9 +20,10 @@ namespace FFXIV_Modding_Tool.Commandline
         SetupCommand setup = new SetupCommand();
         string ttmpPath = "";
         bool useWizard = false;
-        bool importAll = false;
+        bool doAll = false;
         bool skipProblemCheck = false;
         string sortBy = "category";
+        string searchQuery = null;
         Dictionary<List<string>, Action> actionDict = new Dictionary<List<string>, Action>();
         Dictionary<List<string>, Action<string>> argumentDict = new Dictionary<List<string>, Action<string>>();
 
@@ -43,18 +44,18 @@ namespace FFXIV_Modding_Tool.Commandline
         {
             actionDict = new Dictionary<List<string>, Action>{
                 {new List<string>{"mpi", "modpack import"}, new Action(() => { 
-                    if (useWizard && importAll)
+                    if (useWizard && doAll)
                         {
                             main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
                             useWizard = false;
-                            importAll = false;
+                            doAll = false;
                         }
-                        mods.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
+                        mods.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, doAll, skipProblemCheck); })},
                 {new List<string>{"mpinfo", "modpack info"}, new Action(() => { mods.GetModpackInfo(new DirectoryInfo(ttmpPath)); })},
                 {new List<string>{"mm", "mods manage"}, new Action(() => { mods.SetModActiveStates(); })},
                 {new List<string>{"me", "mods enable"}, new Action(() => { mods.ToggleModStates(true); })},
                 {new List<string>{"md", "mods disable"}, new Action(() => { mods.ToggleModStates(false); })},
-                {new List<string>{"ml", "mods list"}, new Action(() => { mods.ListMods(sortBy); })},
+                {new List<string>{"ml", "mods list"}, new Action(() => { mods.ListModsHandler(sortBy, doAll, searchQuery); })},
                 {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
                 {new List<string>{"r", "reset"}, new Action(() => { mods.ResetMods(); })},
                 {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
@@ -71,8 +72,9 @@ namespace FFXIV_Modding_Tool.Commandline
                 {new List<string>{"b", "backupdirectory"}, new Action<string>((extraArg) => { MainClass._backupDirectory = new DirectoryInfo(extraArg); })},
                 {new List<string>{"t", "ttmp"}, new Action<string>((extraArg) => { ttmpPath = extraArg; })},
                 {new List<string>{"w", "wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
-                {new List<string>{"a", "all"}, new Action<string>((extraArg) => { importAll = true; })},
+                {new List<string>{"a", "all"}, new Action<string>((extraArg) => { doAll = true; })},
                 {new List<string>{"s", "sort"}, new Action<string>((extraArg) => { sortBy = extraArg; })},
+                {new List<string>{"q", "query"}, new Action<string>((extraArg) => { searchQuery = extraArg; })},
                 {new List<string>{"npc", "noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
                 {new List<string>{"v", "version"}, new Action<string>((extraArg) => { if (MainClass._gameDirectory == null)
                     MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
@@ -233,8 +235,9 @@ Available arguments:
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
   -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
-  -a, --all                Import all mods in a modpack immediately (modpack import only)
+  -a, --all                Import all mods in a modpack immediately/show all installed mods (modpack import and mods list only)
   -s, --sort               Sort by 'category', 'modpack', 'type' or 'active' state. Defaults to category (mods list only)
+  -q, --query              Send own sqlite query to get info on installed mods (mods list only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack
   -v, --version            Display current application and game version
   -h, --help               Display this text";

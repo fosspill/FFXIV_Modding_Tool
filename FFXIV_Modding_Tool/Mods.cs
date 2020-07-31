@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.Data.Sqlite;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
@@ -506,19 +507,62 @@ Number of mods: {modpackInfo["modAmount"]}");;
             return con;
         }
 
-        public void ListMods(string sortBy)
+        SqliteDataReader GetModData(string query, SqliteConnection con)
         {
-            sortBy = sortBy.ToLower();
+            SqliteCommand command = new SqliteCommand(query, con);
+            SqliteDataReader reader = command.ExecuteReader();
+            return reader;
+        }
+
+        public void ListModsHandler(string sortBy, bool showAll, string query)
+        {
             List<string> validSorts = new List<string>{"category", "type", "modpack", "active"};
-            Dictionary<string, int> tableMapping = new Dictionary<string, int>{["category"] = 2, ["type"] = 3, ["modpack"] = 0, ["active"] = 5};
+            sortBy = sortBy.ToLower();
             if (!validSorts.Contains(sortBy))
             {
                 main.PrintMessage($"{sortBy} is not a valid sorting choice, using the default \"category\".", 3);
                 sortBy = "category";
             }
-            SqliteConnection con = GetAllInstalledMods();
-            var command = new SqliteCommand($"select * from mods order by {sortBy}, name", con);
-            var sortedMods = command.ExecuteReader();
+            if (showAll)
+                ShowAllInstalledMods(sortBy, GetAllInstalledMods());
+            else if (string.IsNullOrEmpty(query))
+                PrintModListHelpText();
+            else
+                ShowInstalledModData(query, GetAllInstalledMods());
+        }
+
+        void ShowInstalledModData(string query, SqliteConnection con)
+        {
+            List<string> modData = new List<string>();
+            List<int> modStatus = new List<int>();
+            Dictionary<bool, int> colorMapping = new Dictionary<bool, int>{[true] = 1, [false] = 4};
+            SqliteDataReader queryResult = GetModData(query, con);
+            while (queryResult.Read())
+            {
+                List<string> modInfo = new List<string>();
+                for (int i = 0; i < queryResult.FieldCount; i++)
+                    modInfo.Add(queryResult.GetString(i));
+                modData.Add(string.Join(" - ", modInfo.ToArray()));
+                try
+                {
+                    modStatus.Add(colorMapping[ModStatusStringToBool(queryResult.GetString(queryResult.GetOrdinal("active")))]);
+                }
+                catch
+                {
+                    modStatus.Add(0);
+                }
+            }
+            if (!modData.Any())
+                main.PrintMessage($"No mods found using query '{query}'", 2);
+            for (int i = 0; i < modData.Count(); i++)
+                main.PrintMessage(modData[i], modStatus[i]);
+            con.Close();
+        }
+
+        void ShowAllInstalledMods(string sortBy, SqliteConnection con)
+        {
+            Dictionary<string, int> tableMapping = new Dictionary<string, int>{["category"] = 2, ["type"] = 3, ["modpack"] = 0, ["active"] = 5};
+            SqliteDataReader sortedMods = GetModData($"select * from mods order by {sortBy}, name", con);            
             string lastHeader = "";
             while (sortedMods.Read())
             {
@@ -632,6 +676,19 @@ Number of mods: {modpackInfo["modAmount"]}");;
             {
                 main.PrintMessage($"Something went wrong during the reset process\n{ex.Message}", 2);
             }
+        }
+
+        public void PrintModListHelpText()
+        {
+            string helpText = $@"Usage: {Assembly.GetEntryAssembly().GetName().Name} mods list {"{arguments}"}
+            
+Available arguments:
+  -a, --all                Show all installed mods
+  -s, --sort               Sort by 'category'(default), 'modpack', 'type' or 'active' state when using --all
+  -q, --query              Send your own sqlite query to get info on installed mods 
+  
+When sending your own sqlite query, the table to send your query to is called 'mods'. The available colums are 'modpack', 'name', 'category', 'type', 'fullpath' & 'active'";
+            main.PrintMessage(helpText);
         }
     }
 }
