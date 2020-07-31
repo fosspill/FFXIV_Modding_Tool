@@ -474,7 +474,7 @@ Number of mods: {modpackInfo["modAmount"]}");;
             else
                 modstate = "off";
             var modding = new Modding(MainClass._indexDirectory);
-            main.PrintMessage($"Turning {modstate} all mods...");
+            main.PrintMessage($"Turning {modstate} all mods, this may take some time...");
             try
             {
                 var toggle = modding.ToggleAllMods(enable);
