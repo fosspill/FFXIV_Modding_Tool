@@ -497,11 +497,11 @@ Number of mods: {modpackInfo["modAmount"]}");;
             List<Mod> modList = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(_modlistPath.FullName)).Mods;
             var con = new SqliteConnection("Data Source=:memory:");
             con.Open();
-            var command = new SqliteCommand("create table mods (modpack string, name string, category string, type string, fullpath string, active string)", con);
+            var command = new SqliteCommand("create table mods (modpack string, name string, category string, type string, fullpath string, active string, datatype string)", con);
             command.ExecuteNonQuery();
             foreach(Mod mod in modList)
             {
-                command = new SqliteCommand($"insert into mods (modpack, name, category, type, fullpath, active) values (\"{mod.modPack.name}\", \"{mod.name}\", \"{mod.category}\", \"{main.GetMap(mod.fullPath)}\", \"{mod.fullPath}\", \"{ModStatusBoolToString(mod.enabled)}\")", con);
+                command = new SqliteCommand($"insert into mods (modpack, name, category, type, fullpath, active, datatype) values (\"{mod.modPack.name}\", \"{mod.name}\", \"{mod.category}\", \"{main.GetMap(mod.fullPath)}\", \"{mod.fullPath}\", \"{ModStatusBoolToString(mod.enabled)}\", \"{ModDataTypeIntToString(mod.data.dataType)}\")", con);
                 command.ExecuteNonQuery();
             }
             return con;
@@ -514,7 +514,7 @@ Number of mods: {modpackInfo["modAmount"]}");;
             return reader;
         }
 
-        public void ListModsHandler(string sortBy, bool showAll, string query)
+        public void ListModsHandler(string sortBy, bool showAll, string query, List<string> filters)
         {
             List<string> validSorts = new List<string>{"category", "type", "modpack", "active"};
             sortBy = sortBy.ToLower();
@@ -524,14 +524,14 @@ Number of mods: {modpackInfo["modAmount"]}");;
                 sortBy = "category";
             }
             if (showAll)
-                ShowAllInstalledMods(sortBy, GetAllInstalledMods());
+                SimpleShowInstalledMods(sortBy, filters, GetAllInstalledMods());
             else if (string.IsNullOrEmpty(query))
                 PrintModListHelpText();
             else
-                ShowInstalledModData(query, GetAllInstalledMods());
+                AdvancedShowInstalledMods(query, GetAllInstalledMods());
         }
 
-        void ShowInstalledModData(string query, SqliteConnection con)
+        void AdvancedShowInstalledMods(string query, SqliteConnection con)
         {
             List<string> modData = new List<string>();
             List<int> modStatus = new List<int>();
@@ -559,10 +559,17 @@ Number of mods: {modpackInfo["modAmount"]}");;
             con.Close();
         }
 
-        void ShowAllInstalledMods(string sortBy, SqliteConnection con)
+        void SimpleShowInstalledMods(string sortBy, List<string> filters, SqliteConnection con)
         {
             Dictionary<string, int> tableMapping = new Dictionary<string, int>{["category"] = 2, ["type"] = 3, ["modpack"] = 0, ["active"] = 5};
-            SqliteDataReader sortedMods = GetModData($"select * from mods order by {sortBy}, name", con);            
+            string filter = "";
+            if (filters.Any())
+            {
+                List<string> cleanedFilters = new List<string>();
+                filters.ForEach(x => cleanedFilters.Add($"{x.Split("=")[0]} = \"{x.Split("=")[1]}\""));
+                filter = $"where {string.Join(" and ", cleanedFilters.ToArray())} ";
+            }
+            SqliteDataReader sortedMods = GetModData($"select * from mods {filter}order by {sortBy}, name", con);            
             string lastHeader = "";
             while (sortedMods.Read())
             {
@@ -598,6 +605,24 @@ Number of mods: {modpackInfo["modAmount"]}");;
             if (modstatus == "Enabled")
                 return true;
             return false;
+        }
+
+        string ModDataTypeIntToString(int datatype)
+        {
+            if (datatype == 4)
+                return "Texture";
+            else if (datatype == 3)
+                return "Model";
+            return "Unknown";
+        }
+
+        int ModDataTypeStringToInt(string datatype)
+        {
+            if (datatype == "Texture")
+                return 4;
+            else if (datatype == "Model")
+                return 3;
+            return 0;
         }
 
         public void ResetMods()
@@ -684,10 +709,13 @@ Number of mods: {modpackInfo["modAmount"]}");;
             
 Available arguments:
   -a, --all                Show all installed mods
-  -s, --sort               Sort by 'category'(default), 'modpack', 'type' or 'active' state when using --all
-  -q, --query              Send your own sqlite query to get info on installed mods 
-  
-When sending your own sqlite query, the table to send your query to is called 'mods'. The available colums are 'modpack', 'name', 'category', 'type', 'fullpath' & 'active'";
+  -s, --sort               Sort by 'category'(default), 'modpack', 'type' or 'active' state
+  -f, --filter             Filter by 'name=...', 'modpack=...', 'datatype=Model/Texture' and/or 'active=Enabled/Disabled' state
+
+Advanced:
+  -q, --query              Advanced users can instead use this argument to send their own SQL queries. For example: 'select * from mods order by category, name'
+
+When sending your own sqlite query, the table to send your query to is called 'mods'. The available colums are 'modpack', 'name', 'category', 'type', 'fullpath', 'active' & 'datatype'";
             main.PrintMessage(helpText);
         }
     }
