@@ -47,6 +47,7 @@ namespace FFXIV_Modding_Tool
 
         public class ModActiveStatus
         {
+            MainClass main = new MainClass();
             public string modpack { get; set; }
             public string name { get; set; }
             public string map { get; set; }
@@ -57,14 +58,14 @@ namespace FFXIV_Modding_Tool
 
             public ModActiveStatus() { }
 
-            public ModActiveStatus(SimpleModPackEntries entry)
+            public ModActiveStatus(ModsJson entry)
             {
-                modpack = entry.JsonEntry.ModPackEntry.name;
+                modpack = entry.ModPackEntry.name;
                 name = entry.Name;
-                map = entry.Map;
-                part = entry.Part;
-                race = entry.Race;
-                file = entry.JsonEntry.FullPath;
+                file = entry.FullPath;
+                map = main.GetMap(file);
+                part = main.GetType(file);
+                race = main.GetRace(file).ToString();
                 enabled = true;
             }
         }
@@ -220,7 +221,7 @@ namespace FFXIV_Modding_Tool
         {
             var modding = new Modding(_indexDirectory);
             string ttmpName = null;
-            List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
+            List<ModsJson> ttmpDataList = new List<ModsJson>();
             TTMP _textoolsModpack = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
             PrintMessage($"Extracting data from {ttmpPath.Name}...");
             if (ttmpData != null)
@@ -239,7 +240,6 @@ namespace FFXIV_Modding_Tool
                 ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
                 ttmpDataList = TTMPDataList(ttmpPath, useWizard, importAll);
             }
-            ttmpDataList.Sort();
             PrintMessage("Data extraction successful.");
             int originalModCount = ttmpDataList.Count;
             string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
@@ -250,95 +250,46 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
         }
 
-        List<SimpleModPackEntries> TTMP2DataList(List<ModsJson> modsJsons, ModPackJson ttmpData, bool useWizard, bool importAll)
+        List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
-            List <SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
-            foreach (var modsJson in modsJsons)
-            {
-                var race = GetRace(modsJson.FullPath);
-                var number = GetNumber(modsJson.FullPath);
-                var type = GetType(modsJson.FullPath);
-                var map = GetMap(modsJson.FullPath);
-
-                var active = false;
-                var isActive = XivModStatus.Disabled;
-
-                if (isActive == XivModStatus.Enabled)
-                    active = true;
-
-                modsJson.ModPackEntry = new ModPack
-                { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version };
-
-                ttmpDataList.Add(new SimpleModPackEntries
-                {
-                    Name = modsJson.Name,
-                    Category = modsJson.Category,
-                    Race = race.ToString(),
-                    Part = type,
-                    Num = number,
-                    Map = map,
-                    Active = active,
-                    JsonEntry = modsJson,
-                });
-            }
             if (!useWizard && !importAll)
-                useWizard = PromptWizardUsage(ttmpDataList.Count);
+                useWizard = PromptWizardUsage(ttmpJson.Count);
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
-                return SimpleDataHandler(ttmpDataList);
+                return SimpleDataHandler(ttmpJson);
             }
-            return ttmpDataList;
+            return ttmpJson;
         }
 
-        List<SimpleModPackEntries> TTMPDataList(DirectoryInfo ttmpPath, bool useWizard, bool importAll)
+        List<ModsJson> TTMPDataList(DirectoryInfo ttmpPath, bool useWizard, bool importAll)
         {
-            List<SimpleModPackEntries> ttmpDataList = new List<SimpleModPackEntries>();
+            List<ModsJson> ttmpJson = new List<ModsJson>();
             var originalModPackData = GetOldModpackJson(ttmpPath);
             string ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
 
             foreach (var modsJson in originalModPackData)
             {
-                var race = GetRace(modsJson.FullPath);
-                var number = GetNumber(modsJson.FullPath);
-                var type = GetType(modsJson.FullPath);
-                var map = GetMap(modsJson.FullPath);
-
-                var active = false;
-                var isActive = XivModStatus.Disabled;
-
-                if (isActive == XivModStatus.Enabled)
-                    active = true;
-
-                ttmpDataList.Add(new SimpleModPackEntries
+                ttmpJson.Add(new ModsJson
                 {
                     Name = modsJson.Name,
                     Category = modsJson.Category,
-                    Race = race.ToString(),
-                    Part = type,
-                    Num = number,
-                    Map = map,
-                    Active = active,
-                    JsonEntry = new ModsJson
-                    {
-                        Name = modsJson.Name,
-                        Category = modsJson.Category,
-                        FullPath = modsJson.FullPath,
-                        DatFile = modsJson.DatFile,
-                        ModOffset = modsJson.ModOffset,
-                        ModSize = modsJson.ModSize,
-                        ModPackEntry = new ModPack { name = ttmpName, author = "N/A", version = "1.0.0" }
-                    }
+                    FullPath = modsJson.FullPath,
+                    ModOffset = modsJson.ModOffset,
+                    ModSize = modsJson.ModSize,
+                    DatFile = modsJson.DatFile,
+                    IsDefault = false,
+                    ModPackEntry = new ModPack { name = ttmpName, author = "N/A", version = "1.0.0", url = "N/A" }
                 });
             }
             if (!useWizard && !importAll)
-                useWizard = PromptWizardUsage(ttmpDataList.Count);
+                useWizard = PromptWizardUsage(ttmpJson.Count);
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpName}\nVersion: N/A\nAuthor: N/A\n");
-                return SimpleDataHandler(ttmpDataList);
+                return SimpleDataHandler(ttmpJson);
             }
-            return ttmpDataList;
+            return ttmpJson;
         }
 
         List<OriginalModPackJson> GetOldModpackJson(DirectoryInfo ttmpPath)
@@ -449,21 +400,21 @@ namespace FFXIV_Modding_Tool
             return modpackData;
         }
 
-        List<SimpleModPackEntries> SimpleDataHandler(List<SimpleModPackEntries> ttmpDataList)
+        List<ModsJson> SimpleDataHandler(List<ModsJson> ttmpJson)
         {
-            List<SimpleModPackEntries> desiredMods = new List<SimpleModPackEntries>();
-            for (int i = 0; i < ttmpDataList.Count; i = i + 50)
+            List<ModsJson> desiredMods = new List<ModsJson>();
+            for (int i = 0; i < ttmpJson.Count; i = i + 50)
             {
-                var items = ttmpDataList.Skip(i).Take(50).ToList();
-                if (ttmpDataList.Count > 50)
-                    PrintMessage($"{i}-{i + items.Count} ({ttmpDataList.Count} total)");
+                var items = ttmpJson.Skip(i).Take(50).ToList();
+                if (ttmpJson.Count > 50)
+                    PrintMessage($"{i}-{i + items.Count} ({ttmpJson.Count} total)");
                 bool userDone = false;
                 while (!userDone)
                 {
                     PrintMessage("Mods:");
                     List<string> mods = new List<string>();
                     foreach (var item in items)
-                        mods.Add($"    {items.IndexOf(item)} - {item.Name}, {item.Map}, {item.Race}");
+                        mods.Add($"    {items.IndexOf(item)} - {item.Name}, {GetMap(item.FullPath)}, {GetRace(item.FullPath)}");
                     PrintMessage(string.Join("\n", mods));
                     Console.Write("Choose mods you wish to import (eg: 1 2 3, 0-3, *): ");
                     List<int> wantedMods = WizardUserInputValidation(Console.ReadLine(), items.Count, true);
@@ -535,18 +486,18 @@ namespace FFXIV_Modding_Tool
             return desiredIndexes;
         }
 
-        public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<SimpleModPackEntries> ttmpDataList)
+        public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<ModsJson> ttmpJson)
         {
             List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
             if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
                 modActiveStates = JsonConvert.DeserializeObject<List<ModActiveStatus>>(File.ReadAllText(modActiveConfFile));
             bool alreadyExists = false;
             int modIndex = 0;
-            foreach (SimpleModPackEntries entry in ttmpDataList)
+            foreach (ModsJson entry in ttmpJson)
             {
                 foreach (ModActiveStatus modState in modActiveStates)
                 {
-                    if (entry.JsonEntry.FullPath == modState.file)
+                    if (entry.FullPath == modState.file)
                     {
                         modIndex = modActiveStates.IndexOf(modState);
                         alreadyExists = true;
@@ -561,23 +512,22 @@ namespace FFXIV_Modding_Tool
             return modActiveStates;
         }
 
-        void ImportModpack(List<SimpleModPackEntries> ttmpDataList, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
+        void ImportModpack(List<ModsJson> ttmpJson, TTMP _textoolsModpack, DirectoryInfo ttmpPath)
         {
-            var importList = (from SimpleModPackEntries selectedItem in ttmpDataList select selectedItem.JsonEntry).ToList();
             var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
             int totalModsImported = 0;
             var progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
 
             try
             {
-                var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, importList,
+                var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, ttmpJson,
                 _indexDirectory, modlistPath, progressIndicator);
                 importResults.Wait();
                 if (!string.IsNullOrEmpty(importResults.Result.Errors))
                     PrintMessage($"There were errors importing some mods:\n{importResults.Result.Errors}", 2);
                 else
                 {
-                    totalModsImported = ttmpDataList.Count();
+                    totalModsImported = ttmpJson.Count();
                     PrintMessage($"\n{totalModsImported} mod(s) successfully imported.", 1);
                 }
             }

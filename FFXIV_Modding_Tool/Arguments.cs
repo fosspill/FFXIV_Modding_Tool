@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using xivModdingFramework.Mods;
+using xivModdingFramework.Cache;
+using xivModdingFramework.General.Enums;
 using System.Collections.Generic;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Validation;
@@ -169,6 +171,7 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 main.PrintMessage("Invalid game directory", 2);
                 return false;
             }
+            XivCache.SetGameInfo(MainClass._indexDirectory, XivLanguage.English);
             return true;
         }
 

@@ -10,7 +10,7 @@ Documentation with examples: https://ffmt.onrender.com/docs 👈
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Depends on the development version (2.0.12.9) of *[xivModdingFramework](https://github.com/esrinzou/xivModdingFramework/)*
+Depends on the latest version (2.2.0.4) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
 
 # Features!
 List is sorted by priority
