@@ -15,12 +15,16 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.113.1" />
   </ItemGroup>
   <ItemGroup>
-  <Reference Include="xivModdingFramework">
-    <HintPath>references/xivModdingFramework.dll</HintPath>
-  </Reference>
-    <Reference Include="PresentationCore">
-    <HintPath>references/PresentationCore.dll</HintPath>
-  </Reference>
-</ItemGroup>
+    <Reference Include="xivModdingFramework">
+      <HintPath>references/xivModdingFramework.dll</HintPath>
+    </Reference>
+      <Reference Include="PresentationCore">
+      <HintPath>references/PresentationCore.dll</HintPath>
+    </Reference>
+    <MyResourceFiles Include="references\Resources\SQL\*"/>
+  </ItemGroup>
+  <Target Name="CopyFiles" AfterTargets="AfterBuild">
+    <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(OutDir)\Resources\SQL" />
+  </Target>
 
 </Project>
