@@ -1,0 +1,25 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "taylor85345",
+      "name": "taylor85345",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/36456160?v=4",
+      "profile": "https://github.com/taylor85345",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "FFXIV_Modding_Tool",
+  "projectOwner": "fosspill",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
