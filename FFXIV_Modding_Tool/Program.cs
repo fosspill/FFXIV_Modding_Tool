@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,7 +33,6 @@ using xivModdingFramework.Textures.Enums;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
 using FFXIV_Modding_Tool.Validation;
-using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
 namespace FFXIV_Modding_Tool
@@ -275,7 +275,7 @@ namespace FFXIV_Modding_Tool
             List<ModsJson> ttmpJson = new List<ModsJson>();
             var originalModPackData = GetOldModpackJson(ttmpPath);
             string ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-
+            
             foreach (var modsJson in originalModPackData)
             {
                 ttmpJson.Add(new ModsJson
@@ -304,10 +304,10 @@ namespace FFXIV_Modding_Tool
         {
             List<OriginalModPackJson> originalModPackData = new List<OriginalModPackJson>();
             var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
-            ZipFile archive = new ZipFile(fs);
-            ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
+            ZipArchive archive = new ZipArchive(fs);
+            ZipArchiveEntry mplFile = archive.GetEntry("TTMPL.mpl");
             {
-                using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
+                using (var streamReader = new StreamReader(mplFile.Open()))
                 {
                     string line;
                     while ((line = streamReader.ReadLine()) != null)
