@@ -373,8 +373,8 @@ namespace FFXIV_Modding_Tool
                             if (!pickedChoices.Any())
                                 pickedChoices.Add("nothing");
                             Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
-                            string answer = Console.ReadKey().KeyChar.ToString();
-                            if (answer == "y" || answer == "\n")
+                            var answer = Console.ReadKey();
+                            if (answer.KeyChar.ToString() == "y" || answer.Key == ConsoleKey.Enter)
                             {
                                 foreach (int index in wantedIndexes)
                                     modpackData.AddRange(option.OptionList[index].ModsJsons);
@@ -386,8 +386,8 @@ namespace FFXIV_Modding_Tool
                             Console.Write("Choose one (eg: 0 1 2 3): ");
                             int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices, false)[0];
                             Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
-                            string answer = Console.ReadKey().KeyChar.ToString();
-                            if (answer == "y" || answer == "\n")
+                            var answer = Console.ReadKey();
+                            if (answer.KeyChar.ToString() == "y" || answer.Key == ConsoleKey.Enter)
                             {
                                 modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
                                 userDone = true;
@@ -424,8 +424,8 @@ namespace FFXIV_Modding_Tool
                     if (!pickedMods.Any())
                         pickedMods.Add("nothing");
                     Console.Write($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct? Y/n ");
-                    string answer = Console.ReadKey().KeyChar.ToString();
-                    if (answer == "y" || answer == "\n")
+                    var answer = Console.ReadKey();
+                    if (answer.KeyChar.ToString() == "y" || answer.Key == ConsoleKey.Enter)
                     {
                         foreach (int index in wantedMods)
                             desiredMods.Add(items[index]);
