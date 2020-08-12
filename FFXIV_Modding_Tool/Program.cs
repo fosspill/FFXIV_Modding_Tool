@@ -253,14 +253,21 @@ namespace FFXIV_Modding_Tool
 
         List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
+            List<ModsJson> ttmpDataList = new List<ModsJson>();
             if (!useWizard && !importAll)
                 useWizard = PromptWizardUsage(ttmpJson.Count);
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
-                return SimpleDataHandler(ttmpJson);
+                ttmpJson = SimpleDataHandler(ttmpJson);
             }
-            return ttmpJson;
+            foreach (ModsJson mod in ttmpJson)
+            {
+                if (mod.ModPackEntry == null)
+                    mod.ModPackEntry = new ModPack { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version, url = ttmpData.Url };
+                ttmpDataList.Add(mod);
+            }
+            return ttmpDataList;
         }
 
         List<ModsJson> TTMPDataList(DirectoryInfo ttmpPath, bool useWizard, bool importAll)
