@@ -55,6 +55,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
+    <td align="center"><a href="https://github.com/taylor85345"><img src="https://avatars0.githubusercontent.com/u/36456160?v=4" width="100px;" alt=""/><br /><sub><b>taylor85345</b></sub></a><br /><a href="https://github.com/fosspill/FFXIV_Modding_Tool/issues?q=author%3Ataylor85345" title="Bug reports">🐛</a> <a href="#userTesting-taylor85345" title="User Testing">📓</a></td>
     <td align="center"><a href="https://github.com/kainz0r"><img src="https://avatars0.githubusercontent.com/u/6439314?v=4" width="100px;" alt=""/><br /><sub><b>kainz0r</b></sub></a><br /><a href="https://github.com/fosspill/FFXIV_Modding_Tool/issues?q=author%3Akainz0r" title="Bug reports">🐛</a> <a href="#userTesting-kainz0r" title="User Testing">📓</a></td>
   </tr>
 </table>
