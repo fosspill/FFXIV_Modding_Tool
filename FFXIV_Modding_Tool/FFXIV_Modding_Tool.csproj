@@ -25,5 +25,8 @@
   <Target Name="CopyFiles" AfterTargets="AfterBuild">
     <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(OutDir)\Resources\SQL" />
   </Target>
+  <Target Name="CopyFiles" AfterTargets="Publish">
+    <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(PublishDir)\Resources\SQL" />
+  </Target>
 
 </Project>
