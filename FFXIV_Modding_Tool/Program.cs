@@ -31,6 +31,7 @@ using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
+using FFXIV_Modding_Tool.Validation;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
@@ -341,6 +342,7 @@ namespace FFXIV_Modding_Tool
 
         List<ModsJson> WizardDataHandler(ModPackJson ttmpData)
         {
+            Validators validation = new Validators();
             List<ModsJson> modpackData = new List<ModsJson>();
             PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n{ttmpData.Description}\n");
             foreach (var page in ttmpData.ModPackPages)
@@ -372,9 +374,7 @@ namespace FFXIV_Modding_Tool
                                 pickedChoices.Add($"{index} - {option.OptionList[index].Name}");
                             if (!pickedChoices.Any())
                                 pickedChoices.Add("nothing");
-                            Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
-                            var answer = Console.ReadKey();
-                            if (answer.KeyChar.ToString() == "y" || answer.Key == ConsoleKey.Enter)
+                            if (validation.PromptContinuation($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct?", true))
                             {
                                 foreach (int index in wantedIndexes)
                                     modpackData.AddRange(option.OptionList[index].ModsJsons);
@@ -385,9 +385,7 @@ namespace FFXIV_Modding_Tool
                         {
                             Console.Write("Choose one (eg: 0 1 2 3): ");
                             int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices, false)[0];
-                            Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
-                            var answer = Console.ReadKey();
-                            if (answer.KeyChar.ToString() == "y" || answer.Key == ConsoleKey.Enter)
+                            if (validation.PromptContinuation($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct?", true))
                             {
                                 modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
                                 userDone = true;
@@ -402,6 +400,7 @@ namespace FFXIV_Modding_Tool
 
         List<ModsJson> SimpleDataHandler(List<ModsJson> ttmpJson)
         {
+            Validators validation = new Validators();
             List<ModsJson> desiredMods = new List<ModsJson>();
             for (int i = 0; i < ttmpJson.Count; i = i + 50)
             {
@@ -423,9 +422,7 @@ namespace FFXIV_Modding_Tool
                         pickedMods.Add(mods[index]);
                     if (!pickedMods.Any())
                         pickedMods.Add("nothing");
-                    Console.Write($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct? Y/n ");
-                    var answer = Console.ReadKey();
-                    if (answer.KeyChar.ToString() == "y" || answer.Key == ConsoleKey.Enter)
+                    if (validation.PromptContinuation($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct?", true))
                     {
                         foreach (int index in wantedMods)
                             desiredMods.Add(items[index]);
