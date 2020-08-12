@@ -1,4 +1,7 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_Modding_Tool)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/default)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/default) ![GitHub All Releases](https://img.shields.io/github/downloads/fosspill/FFXIV_Modding_Tool/total) ![.NET Core Default](https://github.com/fosspill/FFXIV_Modding_Tool/workflows/.NET%20Core%20Default/badge.svg)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Documentation with examples: https://ffmt.onrender.com/docs 👈
 
@@ -42,3 +45,22 @@ GNU General Public License v3.0
 
 
 **Free Software, Hell Yeah!**
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/taylor85345"><img src="https://avatars0.githubusercontent.com/u/36456160?v=4" width="100px;" alt=""/><br /><sub><b>taylor85345</b></sub></a><br /><a href="https://github.com/fosspill/FFXIV_Modding_Tool/issues?q=author%3Ataylor85345" title="Bug reports">🐛</a> <a href="#userTesting-taylor85345" title="User Testing">📓</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
