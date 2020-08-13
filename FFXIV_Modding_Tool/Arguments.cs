@@ -57,7 +57,7 @@ Author: {modpackInfo["author"]}
 Version: {modpackInfo["version"]}
 Description: {modpackInfo["description"]}
 Number of mods: {modpackInfo["modAmount"]}"); })},
-                {new List<string>{"mr", "mods reset"}, new Action(() => { main.SetModActiveStates(); })},
+                {new List<string>{"mr", "mods refresh"}, new Action(() => { main.SetModActiveStates(); })},
                 {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
                 {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
                 {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},

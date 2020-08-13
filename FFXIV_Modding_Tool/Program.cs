@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ using xivModdingFramework.SqPack.FileTypes;
 using xivModdingFramework.Textures.Enums;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
-using ICSharpCode.SharpZipLib.Zip;
+using FFXIV_Modding_Tool.Validation;
 using Newtonsoft.Json;
 
 namespace FFXIV_Modding_Tool
@@ -252,14 +253,21 @@ namespace FFXIV_Modding_Tool
 
         List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
+            List<ModsJson> ttmpDataList = new List<ModsJson>();
             if (!useWizard && !importAll)
                 useWizard = PromptWizardUsage(ttmpJson.Count);
             if (useWizard)
             {
                 PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n");
-                return SimpleDataHandler(ttmpJson);
+                ttmpJson = SimpleDataHandler(ttmpJson);
             }
-            return ttmpJson;
+            foreach (ModsJson mod in ttmpJson)
+            {
+                if (mod.ModPackEntry == null)
+                    mod.ModPackEntry = new ModPack { name = ttmpData.Name, author = ttmpData.Author, version = ttmpData.Version, url = ttmpData.Url };
+                ttmpDataList.Add(mod);
+            }
+            return ttmpDataList;
         }
 
         List<ModsJson> TTMPDataList(DirectoryInfo ttmpPath, bool useWizard, bool importAll)
@@ -267,7 +275,7 @@ namespace FFXIV_Modding_Tool
             List<ModsJson> ttmpJson = new List<ModsJson>();
             var originalModPackData = GetOldModpackJson(ttmpPath);
             string ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-
+            
             foreach (var modsJson in originalModPackData)
             {
                 ttmpJson.Add(new ModsJson
@@ -296,10 +304,10 @@ namespace FFXIV_Modding_Tool
         {
             List<OriginalModPackJson> originalModPackData = new List<OriginalModPackJson>();
             var fs = new FileStream(ttmpPath.FullName, FileMode.Open, FileAccess.Read);
-            ZipFile archive = new ZipFile(fs);
-            ZipEntry mplFile = archive.GetEntry("TTMPL.mpl");
+            ZipArchive archive = new ZipArchive(fs);
+            ZipArchiveEntry mplFile = archive.GetEntry("TTMPL.mpl");
             {
-                using (var streamReader = new StreamReader(archive.GetInputStream(mplFile)))
+                using (var streamReader = new StreamReader(mplFile.Open()))
                 {
                     string line;
                     while ((line = streamReader.ReadLine()) != null)
@@ -341,6 +349,7 @@ namespace FFXIV_Modding_Tool
 
         List<ModsJson> WizardDataHandler(ModPackJson ttmpData)
         {
+            Validators validation = new Validators();
             List<ModsJson> modpackData = new List<ModsJson>();
             PrintMessage($"\nName: {ttmpData.Name}\nVersion: {ttmpData.Version}\nAuthor: {ttmpData.Author}\n{ttmpData.Description}\n");
             foreach (var page in ttmpData.ModPackPages)
@@ -372,9 +381,7 @@ namespace FFXIV_Modding_Tool
                                 pickedChoices.Add($"{index} - {option.OptionList[index].Name}");
                             if (!pickedChoices.Any())
                                 pickedChoices.Add("nothing");
-                            Console.Write($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct? Y/n ");
-                            string answer = Console.ReadKey().KeyChar.ToString();
-                            if (answer == "y" || answer == "\n")
+                            if (validation.PromptContinuation($"\nYou picked:\n{string.Join("\n", pickedChoices)}\nIs this correct?", true))
                             {
                                 foreach (int index in wantedIndexes)
                                     modpackData.AddRange(option.OptionList[index].ModsJsons);
@@ -385,9 +392,7 @@ namespace FFXIV_Modding_Tool
                         {
                             Console.Write("Choose one (eg: 0 1 2 3): ");
                             int wantedIndex = WizardUserInputValidation(Console.ReadLine(), maxChoices, false)[0];
-                            Console.Write($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct? Y/n ");
-                            string answer = Console.ReadKey().KeyChar.ToString();
-                            if (answer == "y" || answer == "\n")
+                            if (validation.PromptContinuation($"\nYou picked:\n{wantedIndex} - {option.OptionList[wantedIndex].Name}\nIs this correct?", true))
                             {
                                 modpackData.AddRange(option.OptionList[wantedIndex].ModsJsons);
                                 userDone = true;
@@ -402,6 +407,7 @@ namespace FFXIV_Modding_Tool
 
         List<ModsJson> SimpleDataHandler(List<ModsJson> ttmpJson)
         {
+            Validators validation = new Validators();
             List<ModsJson> desiredMods = new List<ModsJson>();
             for (int i = 0; i < ttmpJson.Count; i = i + 50)
             {
@@ -423,9 +429,7 @@ namespace FFXIV_Modding_Tool
                         pickedMods.Add(mods[index]);
                     if (!pickedMods.Any())
                         pickedMods.Add("nothing");
-                    Console.Write($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct? Y/n ");
-                    string answer = Console.ReadKey().KeyChar.ToString();
-                    if (answer == "y" || answer == "\n")
+                    if (validation.PromptContinuation($"\nYou picked:\n{string.Join("\n", pickedMods)}\nIs this correct?", true))
                     {
                         foreach (int index in wantedMods)
                             desiredMods.Add(items[index]);
