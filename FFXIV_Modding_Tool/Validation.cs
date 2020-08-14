@@ -143,6 +143,16 @@ namespace FFXIV_Modding_Tool.Validation
             }
             return keepGoing;
         }
+
+        public bool ValidateCache()
+        {
+            main.PrintMessage("Validating cache...");
+            if (MainClass._gameDirectory.GetFiles("mod_cache.db").Length == 0 || MainClass._gameDirectory.GetFiles("item_sets.db").Length == 0)
+                return false;
+            else if (new FileInfo(Path.Combine(MainClass._gameDirectory.FullName, "mod_cache.db")).Length == 0 || new FileInfo(Path.Combine(MainClass._gameDirectory.FullName, "item_sets.db")).Length == 0)
+                return false;
+            return true;
+        }
         
         bool PromptContinuationReply(string answer, bool defaultanswer = false){
               switch (answer.ToLower())

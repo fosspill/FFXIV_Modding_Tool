@@ -171,7 +171,13 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 main.PrintMessage("Invalid game directory", 2);
                 return false;
             }
+            if (!validation.ValidateCache())
+            {
+                File.Delete(Path.Combine(MainClass._gameDirectory.FullName, "mod_cache.db"));
+                File.Delete(Path.Combine(MainClass._gameDirectory.FullName, "item_sets.db"));
+            }
             XivCache.SetGameInfo(MainClass._indexDirectory, XivLanguage.English);
+            XivCache.CacheWorkerEnabled = false;
             return true;
         }
 
