@@ -22,10 +22,10 @@
     </Reference>
     <MyResourceFiles Include="references\Resources\SQL\*"/>
   </ItemGroup>
-  <Target Name="CopyFiles" AfterTargets="AfterBuild">
+  <Target Name="CopyBuildFiles" AfterTargets="AfterBuild">
     <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(OutDir)\Resources\SQL" />
   </Target>
-  <Target Name="CopyFiles" AfterTargets="Publish">
+  <Target Name="CopyPublishFiles" AfterTargets="Publish">
     <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(PublishDir)\Resources\SQL" />
   </Target>
 
