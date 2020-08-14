@@ -553,7 +553,7 @@ namespace FFXIV_Modding_Tool
             int timeout = 10000;
             int loops = 0;
             bool importStartedOrFinished = false;
-            Console.Write("Waiting for import process to respond...\nIf percentage doesn't display for a few minutes, wipe your mod_cache.db and try again");
+            PrintMessage("Waiting for import process to respond...\nIf percentage doesn't display for a few minutes, wipe your mod_cache.db and try again");
             while (!importStartedOrFinished)
             {
                 if (await Task.WhenAny(task, Task.Delay(timeout)) != task)
@@ -562,7 +562,6 @@ namespace FFXIV_Modding_Tool
                         importStartedOrFinished = true;
                     else
                     {
-                        Console.Write(".");
                         task.Dispose();
                         task.Start();
                     }
