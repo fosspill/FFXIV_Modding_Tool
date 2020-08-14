@@ -45,6 +45,7 @@ namespace FFXIV_Modding_Tool
         public static DirectoryInfo _configDirectory;
         public static DirectoryInfo _modpackDirectory;
         public static DirectoryInfo _projectconfDirectory;
+        private bool importStarted;
 
         public class ModActiveStatus
         {
@@ -520,15 +521,12 @@ namespace FFXIV_Modding_Tool
         {
             var modlistPath = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
             int totalModsImported = 0;
-            var progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
-
+            
             try
             {
-                var importResults = _textoolsModpack.ImportModPackAsync(ttmpPath, ttmpJson,
-                _indexDirectory, modlistPath, progressIndicator);
-                importResults.Wait();
-                if (!string.IsNullOrEmpty(importResults.Result.Errors))
-                    PrintMessage($"There were errors importing some mods:\n{importResults.Result.Errors}", 2);
+                string importErrors = ImportStarter(_textoolsModpack, ttmpPath, ttmpJson, modlistPath).Result;
+                if (!string.IsNullOrEmpty(importErrors))
+                    PrintMessage($"There were errors importing some mods:\n{importErrors}", 2);
                 else
                 {
                     totalModsImported = ttmpJson.Count();
@@ -541,8 +539,53 @@ namespace FFXIV_Modding_Tool
             }
         }
 
+        async Task<string> ImportStarter(TTMP _textoolsModpack, DirectoryInfo ttmpPath, List<ModsJson> ttmpJson, DirectoryInfo modlistPath)
+        {
+            var importer = ImportManager(_textoolsModpack, ttmpPath, ttmpJson, modlistPath);
+            var watchdog = ImportWatcher(importer);
+            await watchdog;
+            await importer;
+            return importer.Result;
+        }
+
+        async Task ImportWatcher(Task<string> task)
+        {
+            int timeout = 10000;
+            int loops = 0;
+            bool importStartedOrFinished = false;
+            Console.Write("Waiting for import process to respond...\nIf this takes more than a few minutes, wipe your mod_cache.db and try again");
+            while (!importStartedOrFinished)
+            {
+                if (await Task.WhenAny(task, Task.Delay(timeout)) != task)
+                {
+                    if (importStarted)
+                        importStartedOrFinished = true;
+                    else
+                    {
+                        Console.Write(".");
+                        task.Dispose();
+                        task.Start();
+                    }
+                }
+                else
+                    importStartedOrFinished = true;
+                if (loops == 5 && !importStartedOrFinished)
+                    PrintMessage($"\nImport failed to start after {loops} retries", 2);
+                loops++;
+            }
+        }
+
+        async Task<string> ImportManager(TTMP _textoolsModpack, DirectoryInfo ttmpPath, List<ModsJson> ttmpJson, DirectoryInfo modlistPath)
+        {
+            var progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
+            var importResults = await _textoolsModpack.ImportModPackAsync(ttmpPath, ttmpJson,
+                _indexDirectory, modlistPath, progressIndicator);
+            return importResults.Errors;
+        }
+
         void ReportProgress((int current, int total, string message) report)
         {
+            importStarted = true;
             var progress = ((double)report.current / (double)report.total) * 100;
             Console.Write($"\r{(int)progress}%");
         }
