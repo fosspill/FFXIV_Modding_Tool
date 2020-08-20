@@ -125,9 +125,15 @@ namespace FFXIV_Modding_Tool.Validation
                     var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath));
                     bool unsupportedSource = false;
                     string unknownSource = "";
+                    
+                    //List of acceptable mod sources
+                    //FFXIV_Modding_Tool is used by this tool
+                    //FilesAddedByTexTools is hardcoded in the framework and is used in certain situations
+                    //BLANK seems to be caused by a framework bug as well, so we allow it
+                    List<string> acceptedSourcesList = new List<string>{ "FFXIV_Modding_Tool", "FilesAddedByTexTools", "" };  
                     foreach (Mod mod in modData.Mods)
                     {
-                        if (mod.source != "FFXIV_Modding_Tool" && mod.source != "FilesAddedByTexTools")
+                        if (!acceptedSourcesList.Contains(mod.source))
                         {
                             unknownSource = mod.source;
                             unsupportedSource = true;
