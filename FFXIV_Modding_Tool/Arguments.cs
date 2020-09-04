@@ -20,6 +20,7 @@ namespace FFXIV_Modding_Tool.Commandline
         Validators validation = new Validators();
         SetupCommand setup = new SetupCommand();
         string ttmpPath = "";
+        string wantedItem = "";
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
@@ -60,6 +61,8 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 {new List<string>{"mr", "mods refresh"}, new Action(() => { main.SetModActiveStates(); })},
                 {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
                 {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
+                {new List<string>{"e", "export"}, new Action(() => { main.ExportRequestHandler(wantedItem); })},
+                {new List<string>{"i", "import"}, new Action(() => { main.ImportRequestHandler(wantedItem); })},
                 {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
                 {new List<string>{"r", "reset"}, new Action(() => { main.ResetMods(); })},
                 {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
@@ -75,6 +78,7 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 {new List<string>{"c", "configdirectory"}, new Action<string>((extraArg) => { MainClass._configDirectory = new DirectoryInfo(extraArg); })},
                 {new List<string>{"b", "backupdirectory"}, new Action<string>((extraArg) => { MainClass._backupDirectory = new DirectoryInfo(extraArg); })},
                 {new List<string>{"t", "ttmp"}, new Action<string>((extraArg) => { ttmpPath = extraArg; })},
+                {new List<string>{"n", "name"}, new Action<string>((extraArg) => { wantedItem = extraArg; })},
                 {new List<string>{"w", "wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
                 {new List<string>{"a", "all"}, new Action<string>((extraArg) => { importAll = true; })},
                 {new List<string>{"npc", "noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
@@ -118,10 +122,10 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
 
         public bool ActionRequirementsChecker(string requestedAction)
         {
-            List<string> requiresGameDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
-            List<string> requiresBackupDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
+            List<string> requiresGameDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc", "e", "i" };
+            List<string> requiresBackupDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc", "i" };
             List<string> requiresConfigDirectory = new List<string> { "mpi", "pc" };
-            List<string> requiresUpdatedBackups = new List<string> { "mpi", "mr", "me", "md", "r" };
+            List<string> requiresUpdatedBackups = new List<string> { "mpi", "mr", "me", "md", "r", "i" };
             List<string> requiresValidIndexes = new List<string> { "mpi", "b" };
             List<string> requiresTTMPFile = new List<string> { "mpi", "mpinfo" };
 
@@ -230,6 +234,8 @@ Available actions:
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
+  import, i                Import the textures and/or model of an item
+  export, e                Export the textures and/or model of an item
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
@@ -242,6 +248,7 @@ Available arguments:
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
   -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
+  -n, --name               Name of item to import/export (import/export only)
   -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
   -a, --all                Import all mods in a modpack immediately (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack
