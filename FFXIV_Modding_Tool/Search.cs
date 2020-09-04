@@ -52,30 +52,29 @@ namespace FFXIV_Modding_Tool.Search
             public ItemInfo(XivGear item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;
                 dataFile = item.DataFile;
                 primaryModelInfo = item.ModelInfo;
-                secondaryModelInfo = item.SecondaryModelInfo;
                 equipSlotCategory = item.EquipSlotCategory;
                 iconNumber = item.IconNumber;
             }
             public ItemInfo(XivCharacter item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;;
                 dataFile = item.DataFile;
                 primaryModelInfo = item.ModelInfo;
             }
             public ItemInfo(XivUi item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;
                 dataFile = item.DataFile;
                 uiIconNumber = item.IconNumber;
                 uiPath = item.UiPath;
@@ -83,36 +82,36 @@ namespace FFXIV_Modding_Tool.Search
             public ItemInfo(XivMount item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;
                 dataFile = item.DataFile;
                 primaryModelInfo = item.ModelInfo;
             }
             public ItemInfo(XivMinion item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;
                 dataFile = item.DataFile;
                 primaryModelInfo = item.ModelInfo;
             }
             public ItemInfo(XivPet item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;
                 dataFile = item.DataFile;
                 primaryModelInfo = item.ModelInfo;
             }
             public ItemInfo(XivFurniture item)
             {
                 name = item.Name;
-                category = item.Category;
-                itemCategory = item.ItemCategory;
-                itemSubCategory = item.ItemSubCategory;
+                category = item.PrimaryCategory;
+                itemCategory = item.SecondaryCategory;
+                itemSubCategory = item.TertiaryCategory;
                 dataFile = item.DataFile;
                 primaryModelInfo = item.ModelInfo;
                 iconNumber = item.IconNumber;
