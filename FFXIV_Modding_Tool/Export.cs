@@ -64,9 +64,9 @@ namespace FFXIV_Modding_Tool.Exporting
                     dataFile = XivDataFile._04_Chara,
                     primaryModelInfo = new XivModelInfo
                     {
-                        ModelID = modelId,
-                        Body = body,
-                        Variant = variant
+                        PrimaryID = modelId,
+                        SecondaryID = body,
+                        ImcSubsetID = variant
                     }
                 };
             }
@@ -80,10 +80,8 @@ namespace FFXIV_Modding_Tool.Exporting
                     dataFile = XivDataFile._04_Chara,
                     primaryModelInfo = new XivModelInfo
                     {
-                        ModelID = modelId,
-                        Body = body,
-                        Variant = variant,
-                        ModelType = XivItemType.monster
+                        PrimaryID = modelId,
+                        SecondaryID = body
                     }
                 };
             }
@@ -97,10 +95,8 @@ namespace FFXIV_Modding_Tool.Exporting
                     dataFile = XivDataFile._04_Chara,
                     primaryModelInfo = new XivModelInfo
                     {
-                        ModelID = modelId,
-                        Body = body,
-                        Variant = variant,
-                        ModelType = XivItemType.demihuman
+                        PrimaryID = modelId,
+                        SecondaryID = body
                     }
                 };
             }
@@ -114,7 +110,7 @@ namespace FFXIV_Modding_Tool.Exporting
                     dataFile = XivDataFile._01_Bgcommon,
                     primaryModelInfo = new XivModelInfo
                     {
-                        ModelID = modelId
+                        PrimaryID = modelId
                     }
                 };
             }
@@ -135,12 +131,11 @@ namespace FFXIV_Modding_Tool.Exporting
                 Gear gear = new Gear(MainClass._indexDirectory, gameLanguage);
                 var gearItem = new XivGear{
                     Name = item.name,
-                    Category = item.category,
-                    ItemCategory = item.itemCategory,
-                    ItemSubCategory = item.itemSubCategory,
+                    PrimaryCategory = item.category,
+                    SecondaryCategory = item.itemCategory,
+                    TertiaryCategory = item.itemSubCategory,
                     DataFile = item.dataFile,
                     ModelInfo = item.primaryModelInfo,
-                    SecondaryModelInfo = item.secondaryModelInfo,
                     IconNumber = item.iconNumber,
                     EquipSlotCategory = item.equipSlotCategory
                 };
@@ -159,9 +154,9 @@ namespace FFXIV_Modding_Tool.Exporting
                     Character character = new Character(MainClass._indexDirectory, gameLanguage);
                     var charaItem = new XivCharacter{
                         Name = item.name,
-                        Category = item.category,
-                        ItemCategory = item.itemCategory,
-                        ItemSubCategory = item.itemSubCategory,
+                        PrimaryCategory = item.category,
+                        SecondaryCategory = item.itemCategory,
+                        TertiaryCategory = item.itemSubCategory,
                         DataFile = item.dataFile,
                         ModelInfo = item.primaryModelInfo
                     };
@@ -191,12 +186,11 @@ namespace FFXIV_Modding_Tool.Exporting
                 Gear gear = new Gear(MainClass._indexDirectory, gameLanguage);
                 var gearItem = new XivGear{
                     Name = item.name,
-                    Category = item.category,
-                    ItemCategory = item.itemCategory,
-                    ItemSubCategory = item.itemSubCategory,
+                    PrimaryCategory = item.category,
+                    SecondaryCategory = item.itemCategory,
+                    TertiaryCategory = item.itemSubCategory,
                     DataFile = item.dataFile,
                     ModelInfo = item.primaryModelInfo,
-                    SecondaryModelInfo = item.secondaryModelInfo,
                     IconNumber = item.iconNumber,
                     EquipSlotCategory = item.equipSlotCategory
                 };
@@ -211,9 +205,9 @@ namespace FFXIV_Modding_Tool.Exporting
                 Character character = new Character(MainClass._indexDirectory, gameLanguage);
                 var charaItem = new XivCharacter{
                     Name = item.name,
-                    Category = item.category,
-                    ItemCategory = item.itemCategory,
-                    ItemSubCategory = item.itemSubCategory,
+                    PrimaryCategory = item.category,
+                    SecondaryCategory = item.itemCategory,
+                    TertiaryCategory = item.itemSubCategory,
                     DataFile = item.dataFile,
                     ModelInfo = item.primaryModelInfo
                     };
@@ -254,9 +248,9 @@ namespace FFXIV_Modding_Tool.Exporting
                     Character character = new Character(MainClass._indexDirectory, gameLanguage);
                     var charaItem = new XivCharacter{
                         Name = item.name,
-                        Category = item.category,
-                        ItemCategory = item.itemCategory,
-                        ItemSubCategory = item.itemSubCategory,
+                        PrimaryCategory = item.category,
+                        SecondaryCategory = item.itemCategory,
+                        TertiaryCategory = item.itemSubCategory,
                         DataFile = item.dataFile,
                         ModelInfo = item.primaryModelInfo
                     };
@@ -280,9 +274,9 @@ namespace FFXIV_Modding_Tool.Exporting
                     Companions companions = new Companions(MainClass._indexDirectory, gameLanguage);
                     var mountItem = new XivMount{
                         Name = item.name,
-                        Category = item.category,
-                        ItemCategory = item.itemCategory,
-                        ItemSubCategory = item.itemSubCategory,
+                        PrimaryCategory = item.category,
+                        SecondaryCategory = item.itemCategory,
+                        TertiaryCategory = item.itemSubCategory,
                         DataFile = item.dataFile,
                         ModelInfo = item.primaryModelInfo
                     };
@@ -302,9 +296,9 @@ namespace FFXIV_Modding_Tool.Exporting
                     Tex tex = new Tex(MainClass._indexDirectory, item.dataFile);
                     var anItem = new XivGenericItemModel{
                         Name = item.name,
-                        Category = item.category,
-                        ItemCategory = item.itemCategory,
-                        ItemSubCategory = item.itemSubCategory,
+                        PrimaryCategory = item.category,
+                        SecondaryCategory = item.itemCategory,
+                        TertiaryCategory = item.itemSubCategory,
                         DataFile = item.dataFile,
                         ModelInfo = item.primaryModelInfo
                     };
