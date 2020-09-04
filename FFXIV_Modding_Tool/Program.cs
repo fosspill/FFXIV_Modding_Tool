@@ -957,6 +957,8 @@ namespace FFXIV_Modding_Tool
         /// <param name="wantedItem">The desired model to export</param>
         public void ExportRequestHandler(string wantedItem)
         {
+            if (string.IsNullOrEmpty(wantedItem))
+                PrintMessage("Not defining an item means you will search for every single item in the game", 3);
             GameSearch gameSearch = new GameSearch();
             List<GameSearch.ItemInfo> potentialItems = gameSearch.SearchForItem(wantedItem);
             int totalChoices = potentialItems.Count;
