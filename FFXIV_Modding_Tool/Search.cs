@@ -34,7 +34,6 @@ namespace FFXIV_Modding_Tool.Search
             public string itemSubCategory { get; set; }
             public XivDataFile dataFile { get; set; }
             public XivModelInfo primaryModelInfo { get; set; }
-            public XivModelInfo secondaryModelInfo { get; set; }
             public int equipSlotCategory { get; set; }
             public uint iconNumber { get; set; }
             public int uiIconNumber { get; set; }
