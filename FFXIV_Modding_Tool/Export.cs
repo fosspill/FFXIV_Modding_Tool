@@ -254,13 +254,18 @@ namespace FFXIV_Modding_Tool.Exporting
                         DataFile = item.dataFile,
                         ModelInfo = item.primaryModelInfo
                     };
-                    if (item.itemCategory.Equals("Face_Paint") || item.itemCategory.Equals("Equip_Decals"))
+                    if (item.itemCategory.Equals("Face_Paint"))
                     {
-                        var getPartList = character.GetDecalNums(charaItem);
+                        var getPartList = character.GetDecalPaths(Character.XivDecalType.FacePaint);
                         getPartList.Wait();
                         partList = getPartList.Result.Select(part => part.ToString()).ToList();
-                        if (item.itemCategory.Equals("Equip_Decals"))
-                            partList.Add("_stigma");
+                    }
+                    else if (item.itemCategory.Equals("Equip_Decals"))
+                    {
+                        var getPartList = character.GetDecalPaths(Character.XivDecalType.Equipment);
+                        getPartList.Wait();
+                        partList = getPartList.Result.Select(part => part.ToString()).ToList();
+                        partList.Add("_stigma");
                     }
                     else
                     {
@@ -269,7 +274,7 @@ namespace FFXIV_Modding_Tool.Exporting
                         partList = getRaces.Result[race].Select(part => part.ToString()).ToList();
                     }
                 }
-                else if ((item.itemCategory.Equals("Mounts") || item.itemCategory.Equals("Monster")) && item.primaryModelInfo.ModelType == XivItemType.demihuman)
+                else if (item.itemCategory.Equals("Mounts") || item.itemCategory.Equals("Monster"))
                 {
                     Companions companions = new Companions(MainClass._indexDirectory, gameLanguage);
                     var mountItem = new XivMount{
@@ -288,8 +293,6 @@ namespace FFXIV_Modding_Tool.Exporting
                 else if (item.category.Equals("Gear"))
                 {
                     partList.Add("Primary");
-                    if (item.secondaryModelInfo != null && item.secondaryModelInfo.ModelID > 0)
-                        partList.Add("Secondary");
                 }
                 else
                 {
