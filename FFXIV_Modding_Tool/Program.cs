@@ -33,6 +33,8 @@ using xivModdingFramework.Textures.Enums;
 using FFXIV_Modding_Tool.Configuration;
 using FFXIV_Modding_Tool.Commandline;
 using FFXIV_Modding_Tool.Validation;
+using FFXIV_Modding_Tool.Search;
+using FFXIV_Modding_Tool.Exporting;
 using Newtonsoft.Json;
 
 namespace FFXIV_Modding_Tool
@@ -945,6 +947,54 @@ namespace FFXIV_Modding_Tool
             {
                 PrintMessage($"Something went wrong during the reset process\n{ex.Message}", 2);
             }
+        }
+        #endregion
+
+        #region Import/Export
+        /// <summary>
+        /// Handles the export request by calling on the appropriate functions that will get the user their desired exports
+        /// </summary>
+        /// <param name="wantedItem">The desired model to export</param>
+        public void ExportRequestHandler(string wantedItem)
+        {
+            GameSearch gameSearch = new GameSearch();
+            List<GameSearch.ItemInfo> potentialItems = gameSearch.SearchForItem(wantedItem);
+            int totalChoices = potentialItems.Count;
+            if (totalChoices == 0)
+            {
+                PrintMessage($"No items were found for {wantedItem}", 2);
+                return;
+            }
+            GameSearch.ItemInfo chosenItem;
+            if (totalChoices > 1)
+            {
+                string previousCategory = "";
+                PrintMessage("Multiple items found:");
+                foreach(GameSearch.ItemInfo item in potentialItems)
+                {
+                    if (item.category != previousCategory)
+                    {
+                        PrintMessage($"[{item.category}]");
+                        previousCategory = item.category;
+                    }
+                    if (item.slot != null)
+                        PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}, {item.slot}, Body: {item.body}, Variant: {item.variant}");
+                    else
+                        PrintMessage($"{potentialItems.IndexOf(item)} - {item.name}");
+                }
+                Console.Write("Choose one (eg: 0 1 2 3): ");
+                int wantedNumber = WizardUserInputValidation(Console.ReadLine(), totalChoices, false)[0];
+                chosenItem = potentialItems[wantedNumber];
+            }
+            else
+                chosenItem = potentialItems[0];
+            Export export = new Export();
+            export.GetExportInfo(chosenItem);
+        }
+
+        public void ImportRequestHandler(string wantedItem)
+        {
+            PrintMessage("WIP");
         }
         #endregion
 
