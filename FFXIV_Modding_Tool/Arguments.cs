@@ -37,6 +37,7 @@ namespace FFXIV_Modding_Tool.Commandline
             }
             SetupDicts();
             ReadArguments(args);
+            print(args);
         }
 
         public void SetupDicts()
