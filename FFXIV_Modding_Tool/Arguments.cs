@@ -89,11 +89,13 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
         public void ReadArguments(string[] args)
         {
             List<string> requiresPair = new List<string> { "-t", "--ttmp"};
+            List<string> loseArguments = new List<string> {};
             foreach (var (cmdArg, cmdIndex) in args.Select((value, i) => (value, i)))
             {
                 if (cmdArg.StartsWith("-"))
                 {
                     string nextArg
+                    //The argument parsed need a pair. Ex: "-t ttmp.ttmp"
                     if (requiresPair.Contains(cmdArg))
                     {
                         if ( cmdIndex < args.Length - 1 )
@@ -102,13 +104,14 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                             nextArg = None
                     }
                     //ToDo: Rewrite this part. Make sure arguments are added to a dict for later consumption
-                    string arg = cmdArg.Split('-').Last();
-                    foreach(List<string> argumentList in argumentDict.Keys)
-                    {
-                        if (argumentList.Contains(arg))
-                            argumentDict[-ttmp](mymodpack.ttmp);
-                    }
-                    args.remove(cmdArg)
+                    //string arg = cmdArg.Split('-').Last();
+                    //foreach(List<string> argumentList in argumentDict.Keys)
+                    //{
+                    //    if (argumentList.Contains(arg))
+                    //        argumentDict[-ttmp](mymodpack.ttmp);
+                    //}
+                    //args.remove(cmdArg)
+                    
                 }
             }
             string fullAction = "";
