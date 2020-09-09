@@ -101,11 +101,13 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                         if (argumentList.Contains(arg))
                             argumentDict[argumentList](nextArg);
                     }
+                    args.remove(cmdArg)
                 }
             }
             string fullAction = "";
             if (args.Count() > 1)
                 fullAction = $"{args[0]} {args[1]}";
+                args.remove(args[1])
             foreach(List<string> actionList in actionDict.Keys)
                 {
                     if (actionList.Contains(args[0]) || actionList.Contains(fullAction))
@@ -114,6 +116,7 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                             actionDict[actionList]();
                     }
                 }
+            args.remove(args[0])
         }
 
         public bool ActionRequirementsChecker(string requestedAction)
