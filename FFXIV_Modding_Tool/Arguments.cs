@@ -23,8 +23,10 @@ namespace FFXIV_Modding_Tool.Commandline
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
-        Dictionary<List<string>, Action> actionDict = new Dictionary<List<string>, Action>();
-        Dictionary<List<string>, Action<string>> argumentDict = new Dictionary<List<string>, Action<string>>();
+        Dictionary<string, List<string>> fullActions = new Dictionary<string, List<string>>();
+        Dictionary<string, string> actionAliases = new Dictionary<string, string>();
+        Dictionary<string, Action> actionExecutions = new Dictionary<string, Action>();
+        Dictionary<List<string>, Action<string>> argumentsDict = new Dictionary<List<string>, Action<string>>();
 
         public void ArgumentHandler(string[] args)
         {
@@ -37,13 +39,35 @@ namespace FFXIV_Modding_Tool.Commandline
             }
             SetupDicts();
             ReadArguments(args);
-            print(args);
         }
 
         public void SetupDicts()
         {
-            actionDict = new Dictionary<List<string>, Action>{
-                {new List<string>{"mpi", "modpack import"}, new Action(() => { 
+            fullActions = new Dictionary<string, List<string>>{
+                {"mods", new List<string>{"refresh", "enable", "disable"}},
+                {"modpack", new List<string>{"import", "info"}},
+                {"backup", new List<string>()},
+                {"reset", new List<string>()},
+                {"problemcheck", new List<string>()},
+                {"version", new List<string>()},
+                {"help", new List<string>()},
+                {"setup", new List<string>()}
+            };
+            actionAliases = new Dictionary<string, string>{
+                {"mpi", "modpack import"},
+                {"mpinfo", "modpack info"},
+                {"mr", "mods refresh"},
+                {"me", "mods enable"},
+                {"md", "mods disable"},
+                {"b", "backup"},
+                {"r", "reset"},
+                {"pc", "problemcheck"},
+                {"v", "version"},
+                {"h", "help"},
+                {"s", "setup"}
+            };
+            actionExecutions = new Dictionary<string, Action>{
+                {"modpack import", new Action(() => { 
                     if (useWizard && importAll)
                         {
                             main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
@@ -51,26 +75,26 @@ namespace FFXIV_Modding_Tool.Commandline
                             importAll = false;
                         }
                         main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
-                {new List<string>{"mpinfo", "modpack info"}, new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
+                {"modpack info", new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
                         main.PrintMessage($@"Name: {modpackInfo["name"]}
 Type: {modpackInfo["type"]}
 Author: {modpackInfo["author"]}
 Version: {modpackInfo["version"]}
 Description: {modpackInfo["description"]}
 Number of mods: {modpackInfo["modAmount"]}"); })},
-                {new List<string>{"mr", "mods refresh"}, new Action(() => { main.SetModActiveStates(); })},
-                {new List<string>{"me", "mods enable"}, new Action(() => { main.ToggleModStates(true); })},
-                {new List<string>{"md", "mods disable"}, new Action(() => { main.ToggleModStates(false); })},
-                {new List<string>{"b", "backup"}, new Action(() => { main.BackupIndexes(); })},
-                {new List<string>{"r", "reset"}, new Action(() => { main.ResetMods(); })},
-                {new List<string>{"pc", "problemcheck"}, new Action(() => { main.ProblemChecker(); })},
-                {new List<string>{"v", "version"}, new Action(() => { if (MainClass._gameDirectory == null)
+                {"mods refresh", new Action(() => { main.SetModActiveStates(); })},
+                {"mods enable", new Action(() => { main.ToggleModStates(true); })},
+                {"mods disable", new Action(() => { main.ToggleModStates(false); })},
+                {"backup", new Action(() => { main.BackupIndexes(); })},
+                {"reset", new Action(() => { main.ResetMods(); })},
+                {"problemcheck", new Action(() => { main.ProblemChecker(); })},
+                {"version", new Action(() => { if (MainClass._gameDirectory == null)
                     MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
                     main.CheckVersions(); })},
-                {new List<string>{"h", "help"}, new Action(() => { SendHelpText(); })},
-                {new List<string>{"s", "setup"}, new Action(() => { setup.ExecuteSetup(); })}
+                {"help", new Action(() => { SendHelpText(); })},
+                {"setup", new Action(() => { setup.ExecuteSetup(); })}
             };
-            argumentDict = new Dictionary<List<string>, Action<string>>{
+            argumentsDict = new Dictionary<List<string>, Action<string>>{
                 {new List<string>{"g", "gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
                     MainClass._indexDirectory = new DirectoryInfo(Path.Combine(extraArg, "game", "sqpack", "ffxiv")); })},
                 {new List<string>{"c", "configdirectory"}, new Action<string>((extraArg) => { MainClass._configDirectory = new DirectoryInfo(extraArg); })},
@@ -88,45 +112,59 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
 
         public void ReadArguments(string[] args)
         {
+            string requestedAction;
             List<string> requiresPair = new List<string> { "-t", "--ttmp"};
-            List<string> loseArguments = new List<string> {};
+            List<string> looseArguments = new List<string> {};
             foreach (var (cmdArg, cmdIndex) in args.Select((value, i) => (value, i)))
             {
                 if (cmdArg.StartsWith("-"))
                 {
-                    string nextArg
+                    string nextArg;
                     //The argument parsed need a pair. Ex: "-t ttmp.ttmp"
                     if (requiresPair.Contains(cmdArg))
                     {
                         if ( cmdIndex < args.Length - 1 )
-                            nextArg = args[cmdIndex+1]
+                            nextArg = args[cmdIndex+1];
                         else
-                            nextArg = None
+                            nextArg = null;
                     }
                     //ToDo: Rewrite this part. Make sure arguments are added to a dict for later consumption
                     //string arg = cmdArg.Split('-').Last();
-                    //foreach(List<string> argumentList in argumentDict.Keys)
+                    //foreach(List<string> argumentList in argumentsDict.Keys)
                     //{
                     //    if (argumentList.Contains(arg))
-                    //        argumentDict[-ttmp](mymodpack.ttmp);
+                    //        argumentsDict[-ttmp](mymodpack.ttmp);
                     //}
                     //args.remove(cmdArg)
                     
                 }
             }
-            string fullAction = "";
-            if (args.Count() > 1)
-                fullAction = $"{args[0]} {args[1]}";
-                args.remove(args[1])
-            foreach(List<string> actionList in actionDict.Keys)
+            if (fullActions.ContainsKey(args[0]))
+            {
+                if (args.Length > 1 && fullActions[args[0]].Contains(args[1]))
                 {
-                    if (actionList.Contains(args[0]) || actionList.Contains(fullAction))
-                    {
-                        if (ActionRequirementsChecker(actionList[0]))
-                            actionDict[actionList]();
-                    }
+                    requestedAction = $"{args[0]} {args[1]}";
+                    args = args.Skip(2).ToArray();
                 }
-            args.remove(args[0])
+                else
+                {
+                    requestedAction = args[0];
+                    args = args.Skip(1).ToArray();
+                }
+            }
+            else if (actionAliases.ContainsKey(args[0]))
+            {
+                requestedAction = actionAliases[args[0]];
+                args = args.Skip(1).ToArray();
+            }
+            else
+                requestedAction = null;
+            if (string.IsNullOrEmpty(requestedAction))
+                main.PrintMessage($"{args[0]} is not a valid action", 2);
+            
+            // Execute this last, after all the arguments are dealt with
+            if (ActionRequirementsChecker(requestedAction))
+                    actionExecutions[requestedAction]();
         }
 
         public bool ActionRequirementsChecker(string requestedAction)
