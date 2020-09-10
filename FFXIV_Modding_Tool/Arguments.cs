@@ -169,12 +169,12 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
 
         public bool ActionRequirementsChecker(string requestedAction)
         {
-            List<string> requiresGameDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
-            List<string> requiresBackupDirectory = new List<string> { "mpi", "mr", "me", "md", "b", "r", "pc" };
-            List<string> requiresConfigDirectory = new List<string> { "mpi", "pc" };
-            List<string> requiresUpdatedBackups = new List<string> { "mpi", "mr", "me", "md", "r" };
-            List<string> requiresValidIndexes = new List<string> { "mpi", "b" };
-            List<string> requiresTTMPFile = new List<string> { "mpi", "mpinfo" };
+            List<string> requiresGameDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
+            List<string> requiresBackupDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
+            List<string> requiresConfigDirectory = new List<string> { "modpack import", "problemcheck" };
+            List<string> requiresUpdatedBackups = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "reset" };
+            List<string> requiresValidIndexes = new List<string> { "modpack import", "backup" };
+            List<string> requiresTTMPFile = new List<string> { "modpack import", "modpack info" };
 
             if (requiresGameDirectory.Contains(requestedAction))
             {
