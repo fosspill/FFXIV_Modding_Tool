@@ -23,10 +23,10 @@ namespace FFXIV_Modding_Tool.Commandline
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
-        Dictionary<string, List<string>> fullActions = new Dictionary<string, List<string>>();
+        Dictionary<string, Dictionary<string, Action>> fullActions = new Dictionary<string, Dictionary<string, Action>>();
         Dictionary<string, string> actionAliases = new Dictionary<string, string>();
-        Dictionary<string, Action> actionExecutions = new Dictionary<string, Action>();
         Dictionary<List<string>, Action<string>> argumentsDict = new Dictionary<List<string>, Action<string>>();
+        string requestedAction;
 
         public void ArgumentHandler(string[] args)
         {
@@ -43,15 +43,47 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public void SetupDicts()
         {
-            fullActions = new Dictionary<string, List<string>>{
-                {"mods", new List<string>{"refresh", "enable", "disable"}},
-                {"modpack", new List<string>{"import", "info"}},
-                {"backup", new List<string>()},
-                {"reset", new List<string>()},
-                {"problemcheck", new List<string>()},
-                {"version", new List<string>()},
-                {"help", new List<string>()},
-                {"setup", new List<string>()}
+            fullActions = new Dictionary<string, Dictionary<string, Action>>{
+                {"mods", new Dictionary<string, Action>{
+                    {"refresh", new Action(() => { main.SetModActiveStates(); })},
+                    {"enable", new Action(() => { main.ToggleModStates(true); })},
+                    {"disable", new Action(() => { main.ToggleModStates(false); })}}},
+                {"modpack", new Dictionary<string, Action>{
+                    {"import", new Action(() => { 
+                    if (useWizard && importAll)
+                        {
+                            main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
+                            useWizard = false;
+                            importAll = false;
+                        }
+                        main.ImportModpackHandler(new DirectoryInfo(ttmpPaths[0]), useWizard, importAll, skipProblemCheck); })},
+                    {"info", new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPaths[0]));
+                        main.PrintMessage($@"Name: {modpackInfo["name"]}
+Type: {modpackInfo["type"]}
+Author: {modpackInfo["author"]}
+Version: {modpackInfo["version"]}
+Description: {modpackInfo["description"]}
+Number of mods: {modpackInfo["modAmount"]}"); })},}},
+                {"backup", new Dictionary<string, Action>{
+                    {"", new Action(() => { main.BackupIndexes(); })}
+                }},
+                {"reset", new Dictionary<string, Action>{
+                    {"", new Action(() => { main.ResetMods(); })}
+                }},
+                {"problemcheck", new Dictionary<string, Action>{
+                    {"", new Action(() => { main.ProblemChecker(); })}
+                }},
+                {"version", new Dictionary<string, Action>{
+                    {"", new Action(() => { if (MainClass._gameDirectory == null)
+                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
+                    main.CheckVersions(); })}
+                }},
+                {"help", new Dictionary<string, Action>{
+                    {"", new Action(() => { SendHelpText(); })}
+                }},
+                {"setup", new Dictionary<string, Action>{
+                    {"", new Action(() => { setup.ExecuteSetup(); })}
+                }},
             };
             actionAliases = new Dictionary<string, string>{
                 {"mpi", "modpack import"},
@@ -66,34 +98,6 @@ namespace FFXIV_Modding_Tool.Commandline
                 {"h", "help"},
                 {"s", "setup"}
             };
-            actionExecutions = new Dictionary<string, Action>{
-                {"modpack import", new Action(() => { 
-                    if (useWizard && importAll)
-                        {
-                            main.PrintMessage("You can't use the import wizard and skip the wizard at the same time", 3);
-                            useWizard = false;
-                            importAll = false;
-                        }
-                        main.ImportModpackHandler(new DirectoryInfo(ttmpPaths[0]), useWizard, importAll, skipProblemCheck); })},
-                {"modpack info", new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPaths[0]));
-                        main.PrintMessage($@"Name: {modpackInfo["name"]}
-Type: {modpackInfo["type"]}
-Author: {modpackInfo["author"]}
-Version: {modpackInfo["version"]}
-Description: {modpackInfo["description"]}
-Number of mods: {modpackInfo["modAmount"]}"); })},
-                {"mods refresh", new Action(() => { main.SetModActiveStates(); })},
-                {"mods enable", new Action(() => { main.ToggleModStates(true); })},
-                {"mods disable", new Action(() => { main.ToggleModStates(false); })},
-                {"backup", new Action(() => { main.BackupIndexes(); })},
-                {"reset", new Action(() => { main.ResetMods(); })},
-                {"problemcheck", new Action(() => { main.ProblemChecker(); })},
-                {"version", new Action(() => { if (MainClass._gameDirectory == null)
-                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
-                    main.CheckVersions(); })},
-                {"help", new Action(() => { SendHelpText(); })},
-                {"setup", new Action(() => { setup.ExecuteSetup(); })}
-            };
             argumentsDict = new Dictionary<List<string>, Action<string>>{
                 {new List<string>{"-g", "--gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
                     MainClass._indexDirectory = new DirectoryInfo(Path.Combine(extraArg, "game", "sqpack", "ffxiv")); })},
@@ -103,19 +107,16 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 {new List<string>{"-w", "--wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
                 {new List<string>{"-a", "--all"}, new Action<string>((extraArg) => { importAll = true; })},
                 {new List<string>{"-npc", "--noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
-                {new List<string>{"-v", "--version"}, new Action<string>((extraArg) => { if (MainClass._gameDirectory == null)
-                    MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
-                    main.CheckVersions(); })},
-                {new List<string>{"-h", "--help"}, new Action<string>((extraArg) => { SendHelpText(); })}
+                {new List<string>{"-v", "--version"}, new Action<string>((extraArg) => { requestedAction = "version"; })},
+                {new List<string>{"-h", "--help"}, new Action<string>((extraArg) => { requestedAction = "help"; })}
             };
         }
 
         public void ReadArguments(string[] args)
         {
-            string requestedAction;
             if (fullActions.ContainsKey(args[0]))
             {
-                if (args.Length > 1 && fullActions[args[0]].Contains(args[1]))
+                if (args.Length > 1 && fullActions[args[0]].Keys.Contains(args[1]))
                 {
                     requestedAction = $"{args[0]} {args[1]}";
                     args = args.Skip(2).ToArray();
@@ -133,9 +134,7 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
             }
             else
                 requestedAction = null;
-            if (string.IsNullOrEmpty(requestedAction))
-                main.PrintMessage($"{args[0]} is not a valid action", 2);
-
+            
             List<string> requiresPair = new List<string>{ "-t", "--ttmp", "-g", "--gamedirectory", "-b", "--backupdirectory", "-c", "--configdirectory" };
             List<int> usedArgumentIndexes = new List<int>();
             List<string> looseArguments = new List<string>();
@@ -178,8 +177,16 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
             }
             
             // Execute this last, after all the arguments are dealt with
+            if (string.IsNullOrEmpty(requestedAction))
+                main.PrintMessage($"{args[0]} is not a valid action", 2);
             if (ActionRequirementsChecker(requestedAction))
-                    actionExecutions[requestedAction]();
+            {
+                string[] requestedActionSplit = requestedAction.Split(' ');
+                if (requestedActionSplit.Length > 1)
+                    fullActions[requestedActionSplit[0]][requestedActionSplit[1]]();
+                else
+                    fullActions[requestedActionSplit[0]][""]();
+            }
         }
 
         public bool ActionRequirementsChecker(string requestedAction)
