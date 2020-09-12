@@ -19,7 +19,7 @@ namespace FFXIV_Modding_Tool.Commandline
         Config config = new Config();
         Validators validation = new Validators();
         SetupCommand setup = new SetupCommand();
-        string ttmpPath = "";
+        List<string> ttmpPaths = new List<string>();
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
@@ -74,8 +74,8 @@ namespace FFXIV_Modding_Tool.Commandline
                             useWizard = false;
                             importAll = false;
                         }
-                        main.ImportModpackHandler(new DirectoryInfo(ttmpPath), useWizard, importAll, skipProblemCheck); })},
-                {"modpack info", new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPath));
+                        main.ImportModpackHandler(new DirectoryInfo(ttmpPaths[0]), useWizard, importAll, skipProblemCheck); })},
+                {"modpack info", new Action(() => { Dictionary<string, string> modpackInfo = main.GetModpackInfo(new DirectoryInfo(ttmpPaths[0]));
                         main.PrintMessage($@"Name: {modpackInfo["name"]}
 Type: {modpackInfo["type"]}
 Author: {modpackInfo["author"]}
@@ -95,50 +95,24 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 {"setup", new Action(() => { setup.ExecuteSetup(); })}
             };
             argumentsDict = new Dictionary<List<string>, Action<string>>{
-                {new List<string>{"g", "gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
+                {new List<string>{"-g", "--gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
                     MainClass._indexDirectory = new DirectoryInfo(Path.Combine(extraArg, "game", "sqpack", "ffxiv")); })},
-                {new List<string>{"c", "configdirectory"}, new Action<string>((extraArg) => { MainClass._configDirectory = new DirectoryInfo(extraArg); })},
-                {new List<string>{"b", "backupdirectory"}, new Action<string>((extraArg) => { MainClass._backupDirectory = new DirectoryInfo(extraArg); })},
-                {new List<string>{"t", "ttmp"}, new Action<string>((extraArg) => { ttmpPath = extraArg; })},
-                {new List<string>{"w", "wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
-                {new List<string>{"a", "all"}, new Action<string>((extraArg) => { importAll = true; })},
-                {new List<string>{"npc", "noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
-                {new List<string>{"v", "version"}, new Action<string>((extraArg) => { if (MainClass._gameDirectory == null)
+                {new List<string>{"-c", "--configdirectory"}, new Action<string>((extraArg) => { MainClass._configDirectory = new DirectoryInfo(extraArg); })},
+                {new List<string>{"-b", "--backupdirectory"}, new Action<string>((extraArg) => { MainClass._backupDirectory = new DirectoryInfo(extraArg); })},
+                {new List<string>{"-t", "--ttmp"}, new Action<string>((extraArg) => { ttmpPaths.Add(extraArg); })},
+                {new List<string>{"-w", "--wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
+                {new List<string>{"-a", "--all"}, new Action<string>((extraArg) => { importAll = true; })},
+                {new List<string>{"-npc", "--noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
+                {new List<string>{"-v", "--version"}, new Action<string>((extraArg) => { if (MainClass._gameDirectory == null)
                     MainClass._gameDirectory = new DirectoryInfo(Path.Combine(config.ReadConfig("GameDirectory"), "game"));
                     main.CheckVersions(); })},
-                {new List<string>{"h", "help"}, new Action<string>((extraArg) => { SendHelpText(); })}
+                {new List<string>{"-h", "--help"}, new Action<string>((extraArg) => { SendHelpText(); })}
             };
         }
 
         public void ReadArguments(string[] args)
         {
             string requestedAction;
-            List<string> requiresPair = new List<string> { "-t", "--ttmp"};
-            List<string> looseArguments = new List<string> {};
-            foreach (var (cmdArg, cmdIndex) in args.Select((value, i) => (value, i)))
-            {
-                if (cmdArg.StartsWith("-"))
-                {
-                    string nextArg;
-                    //The argument parsed need a pair. Ex: "-t ttmp.ttmp"
-                    if (requiresPair.Contains(cmdArg))
-                    {
-                        if ( cmdIndex < args.Length - 1 )
-                            nextArg = args[cmdIndex+1];
-                        else
-                            nextArg = null;
-                    }
-                    //ToDo: Rewrite this part. Make sure arguments are added to a dict for later consumption
-                    //string arg = cmdArg.Split('-').Last();
-                    //foreach(List<string> argumentList in argumentsDict.Keys)
-                    //{
-                    //    if (argumentList.Contains(arg))
-                    //        argumentsDict[-ttmp](mymodpack.ttmp);
-                    //}
-                    //args.remove(cmdArg)
-                    
-                }
-            }
             if (fullActions.ContainsKey(args[0]))
             {
                 if (args.Length > 1 && fullActions[args[0]].Contains(args[1]))
@@ -161,6 +135,47 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
                 requestedAction = null;
             if (string.IsNullOrEmpty(requestedAction))
                 main.PrintMessage($"{args[0]} is not a valid action", 2);
+
+            List<string> requiresPair = new List<string>{ "-t", "--ttmp", "-g", "--gamedirectory", "-b", "--backupdirectory", "-c", "--configdirectory" };
+            List<int> usedArgumentIndexes = new List<int>();
+            List<string> looseArguments = new List<string>();
+            foreach (var (cmdArg, cmdIndex) in args.Select((value, i) => (value, i)))
+            {
+                if (cmdArg.StartsWith("-"))
+                {
+                    string nextArg;
+                    //The argument parsed needs a pair. Ex: "-t ttmp.ttmp"
+                    if (requiresPair.Contains(cmdArg))
+                    {
+                        if (cmdIndex < args.Length - 1)
+                            nextArg = args[cmdIndex+1];
+                        else
+                            nextArg = null;
+                        if (string.IsNullOrEmpty(nextArg) || nextArg.StartsWith("-"))
+                            main.PrintMessage($"{cmdArg} is missing an argument", 2);
+                        else
+                            usedArgumentIndexes.Add(cmdIndex+1);
+                    }
+                    else
+                        nextArg = null;
+                    //ToDo: Rewrite this part. Make sure arguments are added to a dict for later consumption
+                    foreach(List<string> argumentList in argumentsDict.Keys)
+                    {
+                        if (argumentList.Contains(cmdArg))
+                        {
+                            usedArgumentIndexes.Add(cmdIndex);
+                            argumentsDict[argumentList](nextArg);
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (!usedArgumentIndexes.Contains(i))
+                    looseArguments.Add(args[i]);
+            }
             
             // Execute this last, after all the arguments are dealt with
             if (ActionRequirementsChecker(requestedAction))
@@ -258,15 +273,18 @@ Number of mods: {modpackInfo["modAmount"]}"); })},
 
         bool CheckTTMPFile()
         {
-            if (string.IsNullOrEmpty(ttmpPath))
+            if (!ttmpPaths.Any())
             {
                 main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
                 return false;
             }
-            if (!validation.ValidateTTMPFile(ttmpPath))
+            foreach (string ttmp in ttmpPaths)
             {
-                main.PrintMessage("Invalid ttmp file", 2);
-                return false;
+                if (!validation.ValidateTTMPFile(ttmp))
+                {
+                    main.PrintMessage($"{ttmp} is an invalid ttmp file", 2);
+                    return false;
+                }
             }
             return true;
         }
