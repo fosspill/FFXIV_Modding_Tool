@@ -139,6 +139,9 @@ namespace FFXIV_Modding_Tool.Commandline
                     //The argument parsed needs a pair. Ex: "-t ttmp.ttmp"
                     if (requiresPair.Contains(cmdArg))
                     {
+                        //To be removed: Deprecation warning!
+                        if (new List<string>{ "-t", "--ttmp" }.Contains(cmdArg))
+                            main.PrintMessage("-t and --ttmp will be deprecated and replaced with free-standing paths. Ex: ffmt mpi path/to/modpack.ttmp", 3);
                         if (cmdIndex < args.Length - 1)
                             nextArg = args[cmdIndex+1];
                         else
