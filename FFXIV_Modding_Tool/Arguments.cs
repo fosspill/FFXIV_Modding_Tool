@@ -309,12 +309,13 @@ Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
-  -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
+  -t, --ttmp               Will be deprecated - Full path to .ttmp(2) file (modpack import/info only)
   -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
   -a, --all                Import all mods in a modpack immediately (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack
   -v, --version            Display current application and game version
-  -h, --help               Display this text";
+  -h, --help               Display this text
+  path/to/modpack.ttmp     Full path to modpack(s). Imports in the order given.";
             main.PrintMessage(helpText);
         }
     }
