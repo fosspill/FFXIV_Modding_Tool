@@ -274,7 +274,6 @@ Number of mods: {modpackInfo["modAmount"]}
             }
         }
         
-
         List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
             List<ModsJson> ttmpDataList = new List<ModsJson>();
