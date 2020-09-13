@@ -117,44 +117,53 @@ namespace FFXIV_Modding_Tool
             PrintMessage($"{Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>().Title} {version}\nGame version {ffxivVersion}");
         }
 
-        public Dictionary<string, string> GetModpackInfo(DirectoryInfo ttmpPath)
+        public void GetModpackInfo(List<DirectoryInfo> ttmpPaths)
         {
-            Dictionary<string, string> modpackInfo = new Dictionary<string, string>
+            foreach (DirectoryInfo ttmpPath in ttmpPaths)
             {
-                ["name"] = Path.GetFileNameWithoutExtension(ttmpPath.FullName),
-                ["type"] = "Simple",
-                ["author"] = "N/A",
-                ["version"] = "N/A",
-                ["description"] = "N/A",
-                ["modAmount"] = "0"
-            };
-            if (ttmpPath.Extension == ".ttmp2")
-            {
-                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-                var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                ttmpData.Wait();
-                var ttmpInfo = ttmpData.Result.ModPackJson;
-                modpackInfo["name"] = ttmpInfo.Name;
-                if (ttmpInfo.TTMPVersion.Contains("w"))
+                Dictionary<string, string> modpackInfo = new Dictionary<string, string>
                 {
-                    modpackInfo["type"] = "Wizard";
-                    modpackInfo["description"] = ttmpInfo.Description;
-                    int modCount = 0;
-                    foreach (var page in ttmpInfo.ModPackPages)
+                    ["name"] = Path.GetFileNameWithoutExtension(ttmpPath.FullName),
+                    ["type"] = "Simple",
+                    ["author"] = "N/A",
+                    ["version"] = "N/A",
+                    ["description"] = "N/A",
+                    ["modAmount"] = "0"
+                };
+                if (ttmpPath.Extension == ".ttmp2")
+                {
+                    var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
+                    var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                    ttmpData.Wait();
+                    var ttmpInfo = ttmpData.Result.ModPackJson;
+                    modpackInfo["name"] = ttmpInfo.Name;
+                    if (ttmpInfo.TTMPVersion.Contains("w"))
                     {
-                        foreach (var group in page.ModGroups)
-                            modCount += group.OptionList.Count;
+                        modpackInfo["type"] = "Wizard";
+                        modpackInfo["description"] = ttmpInfo.Description;
+                        int modCount = 0;
+                        foreach (var page in ttmpInfo.ModPackPages)
+                        {
+                            foreach (var group in page.ModGroups)
+                                modCount += group.OptionList.Count;
+                        }
+                        modpackInfo["modAmount"] = modCount.ToString();
                     }
-                    modpackInfo["modAmount"] = modCount.ToString();
+                    else
+                        modpackInfo["modAmount"] = ttmpInfo.SimpleModsList.Count.ToString();
+                    modpackInfo["author"] = ttmpInfo.Author;
+                    modpackInfo["version"] = ttmpInfo.Version;
                 }
-                else
-                    modpackInfo["modAmount"] = ttmpInfo.SimpleModsList.Count.ToString();
-                modpackInfo["author"] = ttmpInfo.Author;
-                modpackInfo["version"] = ttmpInfo.Version;
+                else if (ttmpPath.Extension == ".ttmp")
+                    modpackInfo["modAmount"] = GetOldModpackJson(ttmpPath).Count.ToString();
+                PrintMessage($@"Name: {modpackInfo["name"]}
+Type: {modpackInfo["type"]}
+Author: {modpackInfo["author"]}
+Version: {modpackInfo["version"]}
+Description: {modpackInfo["description"]}
+Number of mods: {modpackInfo["modAmount"]}
+");
             }
-            else if (ttmpPath.Extension == ".ttmp")
-                modpackInfo["modAmount"] = GetOldModpackJson(ttmpPath).Count.ToString();
-            return modpackInfo;
         }
 
         public bool IndexLocked()
@@ -165,7 +174,7 @@ namespace FFXIV_Modding_Tool
         }
 
         #region Importing Functions
-        public void ImportModpackHandler(DirectoryInfo ttmpPath, bool useWizard, bool importAll, bool skipProblemCheck)
+        public void ImportModpackHandler(List<DirectoryInfo> ttmpPaths, bool useWizard, bool importAll, bool skipProblemCheck)
         {
             var importError = false;
             try
@@ -183,34 +192,18 @@ namespace FFXIV_Modding_Tool
             PrintMessage("Starting import...");
             try
             {
-                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-
-                try
-                {
-                    if (ttmpPath.Extension == ".ttmp2")
-                    {
-                        var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                        ttmpData.Wait();
-                        ModpackDataHandler(ttmpPath, ttmpData.Result.ModPackJson, useWizard, importAll);
-                    }
-                    else
-                        ModpackDataHandler(ttmpPath, null, useWizard, importAll);
-                }
-                catch
-                {
-                    importError = true;
-                }
+                ModpackDataHandler(ttmpPaths, useWizard, importAll);
             }
             catch (Exception ex)
             {
                 if (!importError)
                 {
                     PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
-                    ModpackDataHandler(ttmpPath, null, useWizard, importAll);
+                    ModpackDataHandler(ttmpPaths, useWizard, importAll);
                 }
                 else
                 {
-                    PrintMessage($"There was an error importing the modpack at {ttmpPath.FullName}\nMessage: {ex.Message}", 2);
+                    PrintMessage($"There was an error importing a modpack.\nMessage: {ex.Message}", 2);
                     return;
                 }
             }
@@ -219,38 +212,68 @@ namespace FFXIV_Modding_Tool
             return;
         }
 
-        void ModpackDataHandler(DirectoryInfo ttmpPath, ModPackJson ttmpData, bool useWizard, bool importAll)
+        void ModpackDataHandler(List<DirectoryInfo> ttmpPaths, bool useWizard, bool importAll)
         {
-            var modding = new Modding(_indexDirectory);
-            string ttmpName = null;
-            List<ModsJson> ttmpDataList = new List<ModsJson>();
-            TTMP _textoolsModpack = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-            PrintMessage($"Extracting data from {ttmpPath.Name}...");
-            if (ttmpData != null)
+            Dictionary<DirectoryInfo, List<ModsJson>> ttmpDataLists = new Dictionary<DirectoryInfo, List<ModsJson>>();
+            var importError = false;
+            foreach(DirectoryInfo ttmpPath in ttmpPaths)
             {
-                ttmpName = ttmpData.Name;
-                if (ttmpData.TTMPVersion.Contains("w"))
+                var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
+                ModPackJson ttmpData = null;
+                string ttmpName = null;
+                List<ModsJson> ttmpDataList = new List<ModsJson>();
+                try
                 {
-                    PrintMessage("Starting wizard...");
-                    ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData, false, true);
+                    if (ttmpPath.Extension == ".ttmp2")
+                    {
+                        var _ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                        _ttmpData.Wait();
+                        ttmpData = _ttmpData.Result.ModPackJson;
+                    }
+                }
+                catch
+                {
+                    importError = true;
+                }
+
+                PrintMessage($"Extracting data from {ttmpPath.Name}...");
+                if (ttmpData != null)
+                {
+                    ttmpName = ttmpData.Name;
+                    if (ttmpData.TTMPVersion.Contains("w"))
+                    {
+                        PrintMessage("Starting wizard...");
+                        ttmpDataList = TTMP2DataList(WizardDataHandler(ttmpData), ttmpData, false, true);
+                    }
+                    else
+                        ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData, useWizard, importAll);
                 }
                 else
-                    ttmpDataList = TTMP2DataList(ttmpData.SimpleModsList, ttmpData, useWizard, importAll);
+                {
+                    ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
+                    ttmpDataList = TTMPDataList(ttmpPath, useWizard, importAll);
+                }
+                ttmpDataLists[ttmpPath] = ttmpDataList;
             }
-            else
+            
+            var _totalMods = ttmpDataLists.Sum(x => x.Value.Count);
+            PrintMessage($"Data extraction successful.");
+            var _currentModpackNum = 1;
+            foreach(var ttmpDataList in ttmpDataLists)
             {
-                ttmpName = Path.GetFileNameWithoutExtension(ttmpPath.FullName);
-                ttmpDataList = TTMPDataList(ttmpPath, useWizard, importAll);
+                PrintMessage($"Importing modpack {_currentModpackNum}/{ttmpDataLists.Count}.");
+                TTMP _textoolsModpack = new TTMP(ttmpDataList.Key, "FFXIV_Modding_Tool");
+                int originalModCount = ttmpDataList.Value.Count;
+                string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
+                List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList.Value);
+                PrintMessage($"Importing {ttmpDataList.Value.Count}/{originalModCount} mods from modpack {_currentModpackNum}/{ttmpDataLists.Count}...");
+                ImportModpack(ttmpDataList.Value, _textoolsModpack, ttmpDataList.Key);
+                File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
+                PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
+                _currentModpackNum++;
             }
-            PrintMessage("Data extraction successful.");
-            int originalModCount = ttmpDataList.Count;
-            string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-            List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(modActiveConfFile, ttmpDataList);
-            PrintMessage($"Importing {ttmpDataList.Count}/{originalModCount} mods from modpack...");
-            ImportModpack(ttmpDataList, _textoolsModpack, ttmpPath);
-            File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
-            PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
         }
+        
 
         List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
