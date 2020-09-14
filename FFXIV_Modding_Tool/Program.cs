@@ -25,7 +25,6 @@ using System.Runtime.InteropServices;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
-using xivModdingFramework.Mods.Enums;
 using xivModdingFramework.Helpers;
 using xivModdingFramework.Mods.FileTypes;
 using xivModdingFramework.SqPack.FileTypes;
@@ -176,7 +175,6 @@ Number of mods: {modpackInfo["modAmount"]}
         #region Importing Functions
         public void ImportModpackHandler(List<DirectoryInfo> ttmpPaths, bool useWizard, bool importAll, bool skipProblemCheck)
         {
-            var importError = false;
             try
             {
                 if (IndexLocked())
@@ -196,16 +194,7 @@ Number of mods: {modpackInfo["modAmount"]}
             }
             catch (Exception ex)
             {
-                if (!importError)
-                {
-                    PrintMessage($"Exception was thrown:\n{ex.Message}\nRetrying import...", 3);
-                    ModpackDataHandler(ttmpPaths, useWizard, importAll);
-                }
-                else
-                {
-                    PrintMessage($"There was an error importing a modpack.\nMessage: {ex.Message}", 2);
-                    return;
-                }
+                PrintMessage($"There was an error importing a modpack.\nMessage: {ex.Message}", 2);
             }
             if (!skipProblemCheck)
                 ProblemChecker();
@@ -215,27 +204,18 @@ Number of mods: {modpackInfo["modAmount"]}
         void ModpackDataHandler(List<DirectoryInfo> ttmpPaths, bool useWizard, bool importAll)
         {
             Dictionary<DirectoryInfo, List<ModsJson>> ttmpDataLists = new Dictionary<DirectoryInfo, List<ModsJson>>();
-            var importError = false;
             foreach(DirectoryInfo ttmpPath in ttmpPaths)
             {
                 var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
                 ModPackJson ttmpData = null;
                 string ttmpName = null;
                 List<ModsJson> ttmpDataList = new List<ModsJson>();
-                try
+                if (ttmpPath.Extension == ".ttmp2")
                 {
-                    if (ttmpPath.Extension == ".ttmp2")
-                    {
-                        var _ttmpData = ttmp.GetModPackJsonData(ttmpPath);
-                        _ttmpData.Wait();
-                        ttmpData = _ttmpData.Result.ModPackJson;
-                    }
+                    var _ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                    _ttmpData.Wait();
+                    ttmpData = _ttmpData.Result.ModPackJson;
                 }
-                catch
-                {
-                    importError = true;
-                }
-
                 PrintMessage($"Extracting data from {ttmpPath.Name}...");
                 if (ttmpData != null)
                 {

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using xivModdingFramework.Mods;
 using xivModdingFramework.Cache;
 using xivModdingFramework.General.Enums;
 using System.Collections.Generic;
@@ -129,7 +128,22 @@ namespace FFXIV_Modding_Tool.Commandline
             }
             else
                 requestedAction = null;
-            
+            ProcessArguments(args);
+            // Execute this last, after all the arguments are dealt with
+            if (string.IsNullOrEmpty(requestedAction))
+                main.PrintMessage($"{args[0]} is not a valid action", 2);
+            if (ActionRequirementsChecker(requestedAction))
+            {
+                string[] requestedActionSplit = requestedAction.Split(' ');
+                if (requestedActionSplit.Length > 1)
+                    fullActions[requestedActionSplit[0]][requestedActionSplit[1]]();
+                else
+                    fullActions[requestedActionSplit[0]][""]();
+            }
+        }
+
+        void ProcessArguments(string[] args)
+        {
             List<string> requiresPair = new List<string>{ "-t", "--ttmp", "-g", "--gamedirectory", "-b", "--backupdirectory", "-c", "--configdirectory" };
             foreach (var (cmdArg, cmdIndex) in args.Select((value, i) => (value, i)))
             {
@@ -151,7 +165,6 @@ namespace FFXIV_Modding_Tool.Commandline
                     }
                     else
                         nextArg = null;
-                    //ToDo: Rewrite this part. Make sure arguments are added to a dict for later consumption
                     foreach(List<string> argumentList in argumentsDict.Keys)
                     {
                         if (argumentList.Contains(cmdArg))
@@ -167,17 +180,6 @@ namespace FFXIV_Modding_Tool.Commandline
                 {
                     ttmpPaths.Add(new DirectoryInfo(cmdArg));
                 }
-            }
-            // Execute this last, after all the arguments are dealt with
-            if (string.IsNullOrEmpty(requestedAction))
-                main.PrintMessage($"{args[0]} is not a valid action", 2);
-            if (ActionRequirementsChecker(requestedAction))
-            {
-                string[] requestedActionSplit = requestedAction.Split(' ');
-                if (requestedActionSplit.Length > 1)
-                    fullActions[requestedActionSplit[0]][requestedActionSplit[1]]();
-                else
-                    fullActions[requestedActionSplit[0]][""]();
             }
         }
 
