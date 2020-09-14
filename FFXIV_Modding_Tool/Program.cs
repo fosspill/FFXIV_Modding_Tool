@@ -44,6 +44,7 @@ namespace FFXIV_Modding_Tool
         public static DirectoryInfo _configDirectory;
         public static DirectoryInfo _modpackDirectory;
         public static DirectoryInfo _projectconfDirectory;
+        public static string modActiveConfFile;
         private bool importStarted;
 
         public class ModActiveStatus
@@ -252,7 +253,6 @@ Number of mods: {modpackInfo["modAmount"]}
                 PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
                 _currentModpackNum++;
             }
-        }
         
         List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
@@ -493,7 +493,7 @@ Number of mods: {modpackInfo["modAmount"]}
             return desiredIndexes;
         }
 
-        public List<ModActiveStatus> UpdateActiveModsConfFile(string modActiveConfFile, List<ModsJson> ttmpJson)
+        public List<ModActiveStatus> UpdateActiveModsConfFile(List<ModsJson> ttmpJson)
         {
             List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
             if (File.Exists(modActiveConfFile) && !string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
@@ -910,10 +910,7 @@ Number of mods: {modpackInfo["modAmount"]}
                 {
                     var modding = new Modding(_indexDirectory);
                     var dat = new Dat(_indexDirectory);
-
                     var modListDirectory = new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "XivMods.json"));
-                    string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
-
                     var backupFiles = Directory.GetFiles(_backupDirectory.FullName);
                     foreach (var backupFile in backupFiles)
                     {
@@ -1230,7 +1227,6 @@ Number of mods: {modpackInfo["modAmount"]}
         public void SetModActiveStates()
         {
             Modding modding = new Modding(_indexDirectory);
-            string modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
             string modlistFile = Path.Combine(_gameDirectory.FullName, "XivMods.json");
             List<ModActiveStatus> modActiveStates = new List<ModActiveStatus>();
             if (!File.Exists(modActiveConfFile) || string.IsNullOrEmpty(File.ReadAllText(modActiveConfFile)))
@@ -1279,6 +1275,12 @@ Number of mods: {modpackInfo["modAmount"]}
         {
             _projectconfDirectory = GetConfigurationPath();
             Config config = new Config();
+            modActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cfg");
+            //Can be removed on 1.0 release. Defined to move old files with typo
+            string _oldmodActiveConfFile = Path.Combine(_projectconfDirectory.FullName, "modlist.cgf");
+            if (File.Exists(_oldmodActiveConfFile) && !File.Exists(modActiveConfFile))
+                File.Move(_oldmodActiveConfFile, modActiveConfFile);
+            //End of temporary file rename section
             Arguments arguments = new Arguments();
             arguments.ArgumentHandler(args);
         }
