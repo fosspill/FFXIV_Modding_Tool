@@ -253,6 +253,7 @@ Number of mods: {modpackInfo["modAmount"]}
                 PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
                 _currentModpackNum++;
             }
+        }
         
         List<ModsJson> TTMP2DataList(List<ModsJson> ttmpJson, ModPackJson ttmpData, bool useWizard, bool importAll)
         {
