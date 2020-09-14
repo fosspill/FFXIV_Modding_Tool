@@ -274,7 +274,7 @@ namespace FFXIV_Modding_Tool.Commandline
         {
             if (!ttmpPaths.Any())
             {
-                main.PrintMessage("Can't import without a modpack to import. Specify one with -t", 2);
+                main.PrintMessage("Can't import without a modpack to import. At least 1 must be specificed. Ex: path/to/modpack.ttmp", 2);
                 return false;
             }
             foreach (DirectoryInfo ttmp in ttmpPaths)
