@@ -242,11 +242,10 @@ Number of mods: {modpackInfo["modAmount"]}
             var _currentModpackNum = 1;
             foreach(var ttmpDataList in ttmpDataLists)
             {
-                PrintMessage($"Importing modpack {_currentModpackNum}/{ttmpDataLists.Count}.");
                 TTMP _textoolsModpack = new TTMP(ttmpDataList.Key, "FFXIV_Modding_Tool");
                 int originalModCount = ttmpDataList.Value.Count;
                 List<ModActiveStatus> modActiveStates = UpdateActiveModsConfFile(ttmpDataList.Value);
-                PrintMessage($"Importing {ttmpDataList.Value.Count}/{originalModCount} mods from modpack {_currentModpackNum}/{ttmpDataLists.Count}...");
+                PrintMessage($"Importing {ttmpDataList.Value.Count}/{originalModCount} mods from {ttmpDataList.Value[0].ModPackEntry.name} (Modpack {_currentModpackNum}/{ttmpDataLists.Count})...");
                 ImportModpack(ttmpDataList.Value, _textoolsModpack, ttmpDataList.Key);
                 File.WriteAllText(modActiveConfFile, JsonConvert.SerializeObject(modActiveStates, Formatting.Indented));
                 PrintMessage($"Updated {modActiveConfFile} to reflect changes.", 1);
