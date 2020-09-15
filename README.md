@@ -3,7 +3,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-Documentation with examples: https://ffmt.pwd.cat/docs/ 👈
+Documentation with examples: https://ffmt.pwd.cat/ 👈
 
 # FFMT - FFXIV Modding Tool
 
