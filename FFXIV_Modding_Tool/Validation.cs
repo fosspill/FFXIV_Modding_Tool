@@ -131,7 +131,7 @@ namespace FFXIV_Modding_Tool.Validation
                     //FFXIV_Modding_Tool is used by this tool
                     //FilesAddedByTexTools is hardcoded in the framework and is used in certain situations
                     //BLANK seems to be caused by a framework bug as well, so we allow it
-                    List<string> acceptedSourcesList = new List<string>{ "FFXIV_Modding_Tool", "FilesAddedByTexTools", "" };  
+                    List<string> acceptedSourcesList = new List<string>{ "FFXIV_Modding_Tool", "FilesAddedByTexTools", "_INTERNAL_", "" };  
                     foreach (Mod mod in modData.Mods)
                     {
                         if (!acceptedSourcesList.Contains(mod.source))
