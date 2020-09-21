@@ -211,13 +211,13 @@ Number of mods: {modpackInfo["modAmount"]}
                 ModPackJson ttmpData = null;
                 string ttmpName = null;
                 List<ModsJson> ttmpDataList = new List<ModsJson>();
+                PrintMessage($"Extracting data from {ttmpPath.Name}...");
                 if (ttmpPath.Extension == ".ttmp2")
                 {
                     var _ttmpData = ttmp.GetModPackJsonData(ttmpPath);
                     _ttmpData.Wait();
                     ttmpData = _ttmpData.Result.ModPackJson;
                 }
-                PrintMessage($"Extracting data from {ttmpPath.Name}...");
                 if (ttmpData != null)
                 {
                     ttmpName = ttmpData.Name;
