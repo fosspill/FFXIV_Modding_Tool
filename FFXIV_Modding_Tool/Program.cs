@@ -829,7 +829,7 @@ Number of mods: {modpackInfo["modAmount"]}
             if (File.Exists(modFile))
             {
                 var modData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modFile));
-                if (modData.modCount > 0)
+                if (modData.Mods.Count > 0)
                 {
                     bool allDisabled = true;
                     foreach (Mod mod in modData.Mods)
@@ -1083,7 +1083,7 @@ Number of mods: {modpackInfo["modAmount"]}
             var modlistJson = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(modlistPath.FullName));
             var dat = new Dat(_indexDirectory);
             List<string> problemsFound = new List<string>();
-            if (modlistJson.modCount > 0)
+            if (modlistJson.Mods.Count > 0)
             {
                 foreach (var mod in modlistJson.Mods)
                 {
