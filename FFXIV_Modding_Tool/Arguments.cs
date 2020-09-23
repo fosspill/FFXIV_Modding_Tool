@@ -19,6 +19,7 @@ namespace FFXIV_Modding_Tool.Commandline
         Validators validation = new Validators();
         SetupCommand setup = new SetupCommand();
         List<DirectoryInfo> ttmpPaths = new List<DirectoryInfo>();
+        string wantedItem = "";
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
@@ -58,6 +59,12 @@ namespace FFXIV_Modding_Tool.Commandline
                         main.ImportModpackHandler(ttmpPaths, useWizard, importAll, skipProblemCheck); })},
                     {"info", new Action(() => { main.GetModpackInfo(ttmpPaths); })},
                     }},
+                {"export", new Dictionary<string, Action>{
+                    {"", new Action(() => { main.ExportRequestHandler(wantedItem); })}
+                }},
+                {"import", new Dictionary<string, Action>{
+                    {"", new Action(() => { main.ImportRequestHandler(wantedItem); })}
+                }},
                 {"backup", new Dictionary<string, Action>{
                     {"", new Action(() => { main.BackupIndexes(); })}
                 }},
@@ -85,6 +92,8 @@ namespace FFXIV_Modding_Tool.Commandline
                 {"mr", "mods refresh"},
                 {"me", "mods enable"},
                 {"md", "mods disable"},
+                {"e", "export"},
+                {"i", "import"},
                 {"b", "backup"},
                 {"r", "reset"},
                 {"pc", "problemcheck"},
@@ -98,6 +107,7 @@ namespace FFXIV_Modding_Tool.Commandline
                 {new List<string>{"-c", "--configdirectory"}, new Action<string>((extraArg) => { MainClass._configDirectory = new DirectoryInfo(extraArg); })},
                 {new List<string>{"-b", "--backupdirectory"}, new Action<string>((extraArg) => { MainClass._backupDirectory = new DirectoryInfo(extraArg); })},
                 {new List<string>{"-t", "--ttmp"}, new Action<string>((extraArg) => { ttmpPaths.Add(new DirectoryInfo(extraArg)); })},
+                {new List<string>{"-n", "--name"}, new Action<string>((extraArg) => { wantedItem = extraArg; })},
                 {new List<string>{"-w", "--wizard"}, new Action<string>((extraArg) => { useWizard = true; })},
                 {new List<string>{"-a", "--all"}, new Action<string>((extraArg) => { importAll = true; })},
                 {new List<string>{"-npc", "--noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
@@ -185,10 +195,10 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public bool ActionRequirementsChecker(string requestedAction)
         {
-            List<string> requiresGameDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
-            List<string> requiresBackupDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
+            List<string> requiresGameDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck", "export", "import" };
+            List<string> requiresBackupDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck", "import" };
             List<string> requiresConfigDirectory = new List<string> { "modpack import", "problemcheck" };
-            List<string> requiresUpdatedBackups = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "reset" };
+            List<string> requiresUpdatedBackups = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "reset", "import" };
             List<string> requiresValidIndexes = new List<string> { "modpack import", "backup" };
             List<string> requiresTTMPFile = new List<string> { "modpack import", "modpack info" };
 
@@ -300,6 +310,8 @@ Available actions:
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
+  import, i                Import the textures and/or model of an item
+  export, e                Export the textures and/or model of an item
   backup, b                Backup clean index files for use in resetting the game
   reset, r                 Reset game to clean state
   problemcheck, pc         Check if there are any problems with the game, mod or backup files
@@ -311,7 +323,12 @@ Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
   -c, --configdirectory    Full path to directory where FFXIV.cfg and character data is saved, including 'FINAL FANTASY XIV - A Realm Reborn'
   -b, --backupdirectory    Full path to directory with your index backups
+<<<<<<< HEAD
   -t, --ttmp               Will be deprecated - Full path to .ttmp(2) file (modpack import/info only)
+=======
+  -t, --ttmp               Full path to .ttmp(2) file (modpack import/info only)
+  -n, --name               Name of item to import/export (import/export only)
+>>>>>>> import-export
   -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
   -a, --all                Import all mods in a modpack immediately (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack
