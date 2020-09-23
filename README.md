@@ -3,7 +3,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-Documentation with examples: https://ffmt.onrender.com/docs 👈
+Documentation with examples: https://ffmt.pwd.cat/ 👈
 
 # FFMT - FFXIV Modding Tool
 
@@ -13,7 +13,7 @@ Documentation with examples: https://ffmt.onrender.com/docs 👈
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Depends on the latest version (2.3.0.1) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
+Depends on the latest version (2.3.2.7) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
 
 # Features!
 List is sorted by priority
@@ -32,11 +32,9 @@ List is sorted by priority
 
 https://ffmt.pwd.cat
 
-https://ffmt.pwd.cat/docs/
+### Building from source
 
-## Notes on building the framework
-
-Ensure that the two non-existant project files (.xUnit and exChecker) are removed from the .sln. To build the framework dotnet core version 3.1.100+ is required. Build the framework using `dotnet build -c Release` and place the resulting dll file found in `xivModdingFramework/xivModdingFramework/bin/Release/netstandard2.0` in FFMT's `references` folder.
+https://ffmt.pwd.cat/#/userguide/technical/building
 
 License
 ----
