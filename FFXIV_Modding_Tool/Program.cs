@@ -586,12 +586,16 @@ Number of mods: {modpackInfo["modAmount"]}
         void ReportProgress((int current, int total, string message) report)
         {
             importStarted = true;
-            var progress = ((double)report.current / (double)report.total) * 100;
+            double progress = new double();
             if (report.message == "Job Done.")
                 report.message = "Done!";
-            else if (report.message == "Unzipping TTMP File...")
-                progress = 99d;
-            Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\r{report.message} {(int)progress}%");
+            if (report.total == 0)
+                Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\r{report.message}");
+            else
+            {
+                progress = ((double)report.current / (double)report.total) * 100;
+                Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\r{report.message} {(int)progress}%");
+            }
         }
 
         XivRace GetRace(string modPath)
