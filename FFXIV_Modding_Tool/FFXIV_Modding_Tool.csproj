@@ -18,9 +18,6 @@
     <Reference Include="xivModdingFramework">
       <HintPath>references/xivModdingFramework.dll</HintPath>
     </Reference>
-      <Reference Include="PresentationCore">
-      <HintPath>references/PresentationCore.dll</HintPath>
-    </Reference>
     <MyResourceFiles Include="references\Resources\SQL\*"/>
   </ItemGroup>
   <Target Name="CopyBuildFiles" AfterTargets="AfterBuild">
