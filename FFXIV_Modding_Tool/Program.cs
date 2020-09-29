@@ -588,8 +588,16 @@ Number of mods: {modpackInfo["modAmount"]}
         void ReportProgress((int current, int total, string message) report)
         {
             importStarted = true;
-            var progress = ((double)report.current / (double)report.total) * 100;
-            Console.Write($"\r{(int)progress}%");
+            double progress = new double();
+            if (report.message == "Job Done.")
+                report.message = "Done!";
+            if (report.total == 0)
+                Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\r{report.message}");
+            else
+            {
+                progress = ((double)report.current / (double)report.total) * 100;
+                Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\r{report.message} {(int)progress}%");
+            }
         }
 
         XivRace GetRace(string modPath)
