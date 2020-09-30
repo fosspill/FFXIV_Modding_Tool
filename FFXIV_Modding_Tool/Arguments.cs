@@ -154,7 +154,7 @@ namespace FFXIV_Modding_Tool.Commandline
 
         void ProcessArguments(string[] args)
         {
-            List<string> requiresPair = new List<string>{ "-t", "--ttmp", "-g", "--gamedirectory", "-b", "--backupdirectory", "-c", "--configdirectory" };
+            List<string> requiresPair = new List<string>{ "-t", "--ttmp", "-g", "--gamedirectory", "-b", "--backupdirectory", "-c", "--configdirectory", "-n", "--name" };
             foreach (var (cmdArg, cmdIndex) in args.Select((value, i) => (value, i)))
             {
                 if (cmdArg.StartsWith("-"))
