@@ -4,10 +4,11 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>ffmt</AssemblyName>
-    <AssemblyVersion>0.9.5</AssemblyVersion>
+    <AssemblyVersion>0.9.6.1</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetZip" Version="1.13.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Salaros.ConfigParser" Version="0.3.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
@@ -16,9 +17,6 @@
   <ItemGroup>
     <Reference Include="xivModdingFramework">
       <HintPath>references/xivModdingFramework.dll</HintPath>
-    </Reference>
-      <Reference Include="PresentationCore">
-      <HintPath>references/PresentationCore.dll</HintPath>
     </Reference>
     <MyResourceFiles Include="references\Resources\SQL\*"/>
   </ItemGroup>
