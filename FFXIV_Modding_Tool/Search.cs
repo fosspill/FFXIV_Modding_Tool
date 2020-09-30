@@ -124,6 +124,7 @@ namespace FFXIV_Modding_Tool.Search
         /// <returns>A list with the search results</returns>
         public List<ItemInfo> SearchForItem(string request)
         {
+            GetAllItems();
             main.PrintMessage($"Searching for {request}...");
             List<ItemInfo> searchResults = new List<ItemInfo>();
             if (int.TryParse(request, out int result))
