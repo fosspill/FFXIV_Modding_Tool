@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.General.DataContainers;
 using xivModdingFramework.Items.Categories;
-using xivModdingFramework.Items.Enums;
 using xivModdingFramework.Items.DataContainers;
 using FFXIV_Modding_Tool.Configuration;
 
@@ -21,7 +20,6 @@ namespace FFXIV_Modding_Tool.Search
         List<XivMinion> minionList { get; set; }
         List<XivPet> summonList { get; set; }
         List<XivFurniture> furnitureList { get; set; }
-        Dictionary<string, List<SearchResults>> modelIdList { get; set; }
         
         public class ItemInfo
         {
@@ -129,52 +127,43 @@ namespace FFXIV_Modding_Tool.Search
             main.PrintMessage($"Searching for {request}...");
             List<ItemInfo> searchResults = new List<ItemInfo>();
             if (int.TryParse(request, out int result))
-            {
                 SearchById(result);
-                foreach (var itemList in modelIdList)
-                {
-                    foreach (var item in itemList.Value)
-                        searchResults.Add(new ItemInfo(item, request, itemList.Key));
-                }
-            }
             else
-            {
                 SearchByFullOrPartialName(request);
-                foreach (var item in gearList)
-                    searchResults.Add(new ItemInfo(item));
-                foreach (var item in characterList)
-                    searchResults.Add(new ItemInfo(item));
-                foreach (var item in uiList)
-                    searchResults.Add(new ItemInfo(item));
-                foreach (var item in minionList)
-                    searchResults.Add(new ItemInfo(item));
-                foreach (var item in mountList)
-                    searchResults.Add(new ItemInfo(item));
-                foreach (var item in summonList)
-                    searchResults.Add(new ItemInfo(item));
-                foreach (var item in furnitureList)
-                    searchResults.Add(new ItemInfo(item));
-        }
-        return searchResults;
+            foreach (var item in gearList)
+                searchResults.Add(new ItemInfo(item));
+            foreach (var item in characterList)
+                searchResults.Add(new ItemInfo(item));
+            foreach (var item in uiList)
+                searchResults.Add(new ItemInfo(item));
+            foreach (var item in minionList)
+                searchResults.Add(new ItemInfo(item));
+            foreach (var item in mountList)
+                searchResults.Add(new ItemInfo(item));
+            foreach (var item in summonList)
+                searchResults.Add(new ItemInfo(item));
+            foreach (var item in furnitureList)
+                searchResults.Add(new ItemInfo(item));
+            return searchResults;
         }
 
         /// <summary>
-        /// Gets all the in game items and searches for the requested item
+        /// Gets all the in game items
         /// </summary>
-        /// <param name="request">The (partial) name of the item being searched for</param>
-        void SearchByFullOrPartialName(string request)
+        void GetAllItems()
         {
+            main.PrintMessage("Fetching all items...");
             Console.Write("\r0%");
             XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
             var gear = new Gear(MainClass._indexDirectory, gameLanguage);
             var getGear = gear.GetUnCachedGearList();
             getGear.Wait();
-            gearList = getGear.Result.Where(gearPiece => gearPiece.Name.Contains(request)).ToList();
+            gearList = getGear.Result;
             Console.Write("\r7%");
             var character = new Character(MainClass._indexDirectory, gameLanguage);
             var getCharacter = character.GetUnCachedCharacterList();
             getCharacter.Wait();
-            characterList = getCharacter.Result.Where(characterPiece => characterPiece.Name.Contains(request)).ToList();
+            characterList = getCharacter.Result;
             var ui = new UI(MainClass._indexDirectory, gameLanguage);
             var getMaps = ui.GetMapList();
             getMaps.Wait();
@@ -199,65 +188,57 @@ namespace FFXIV_Modding_Tool.Search
             Console.Write("\r64%");
             var getHud = ui.GetUldList();
             getHud.Wait();
-            List<XivUi> tmpuiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
-            uiList = tmpuiList.Where(uiElement => uiElement.Name.Contains(request)).ToList();
+            uiList = getMaps.Result.Concat(getMapSymbols.Result).Concat(getStatusEffects.Result).Concat(getOnlineStatus.Result).Concat(getWeather.Result).Concat(getLoadingScreen.Result).Concat(getActions.Result).Concat(getHud.Result).ToList();
             Console.Write("\r72%");
             var companion = new Companions(MainClass._indexDirectory, gameLanguage);
             var getMounts = companion.GetUncachedMountList();
             getMounts.Wait();
-            mountList = getMounts.Result.Where(mount => mount.Name.Contains(request)).ToList();
+            mountList = getMounts.Result;
             Console.Write("\r80%");
             var getMinions = companion.GetUncachedMinionList();
             getMinions.Wait();
-            minionList = getMinions.Result.Where(minion => minion.Name.Contains(request)).ToList();
+            minionList = getMinions.Result;
             Console.Write("\r87%");
             var getSummons = companion.GetUncachedPetList();
             getSummons.Wait();
-            summonList = getSummons.Result.Where(summon => summon.Name.Contains(request)).ToList();
+            summonList = getSummons.Result;
             Console.Write("\r95%");
             var furniture = new Housing(MainClass._indexDirectory, gameLanguage);
             var getFurniture = furniture.GetUncachedFurnitureList();
             getFurniture.Wait();
-            furnitureList = getFurniture.Result.Where(furniturePiece => furniturePiece.Name.Contains(request)).ToList();
+            furnitureList = getFurniture.Result;
             Console.Write("\r100%\n");
         }
 
         /// <summary>
-        /// Searches the game files for the model being requested
+        /// Searches for the item that was requested by name
+        /// </summary>
+        /// <param name="request">The (partial) name of the item being searched for</param>
+        void SearchByFullOrPartialName(string request)
+        {
+            gearList = gearList.Where(gearPiece => gearPiece.Name.Contains(request)).ToList();
+            characterList = characterList.Where(characterPiece => characterPiece.Name.Contains(request)).ToList();
+            uiList = uiList.Where(uiElement => uiElement.Name.Contains(request)).ToList();
+            mountList = mountList.Where(mount => mount.Name.Contains(request)).ToList();
+            minionList = minionList.Where(minion => minion.Name.Contains(request)).ToList();
+            summonList = summonList.Where(summon => summon.Name.Contains(request)).ToList();
+            furnitureList = furnitureList.Where(furniturePiece => furniturePiece.Name.Contains(request)).ToList();
+            
+        }
+
+        /// <summary>
+        /// Searches for the item that was requested by model id
         /// </summary>
         /// <param name="request">The model id being searched for</param>
         void SearchById(int request)
         {
-            modelIdList = new Dictionary<string, List<SearchResults>>();
-            Console.Write("\r0%");
-            XivLanguage gameLanguage = XivLanguages.GetXivLanguage(config.ReadConfig("Language"));
-            var gear = new Gear(MainClass._indexDirectory, gameLanguage);
-            var getEquipment = gear.SearchGearByModelID(request, "Equipment");
-            getEquipment.Wait();
-            modelIdList["Equipment"] = getEquipment.Result;
-            Console.Write("\r15%");
-            var getWeapons = gear.SearchGearByModelID(request, "Weapon");
-            getWeapons.Wait();
-            modelIdList["Weapon"] = getWeapons.Result;
-            Console.Write("\r33%");
-            var getAccesories = gear.SearchGearByModelID(request, "Accessory");
-            getAccesories.Wait();
-            modelIdList["Accesory"] = getAccesories.Result;
-            Console.Write("\r50%");
-            var companion = new Companions(MainClass._indexDirectory, gameLanguage);
-            var getMonsters = companion.SearchMonstersByModelID(request, XivItemType.monster);
-            getMonsters.Wait();
-            modelIdList["Monster"] = getMonsters.Result;
-            Console.Write("\r67%");
-            var getDemiHumans = companion.SearchMonstersByModelID(request, XivItemType.demihuman);
-            getDemiHumans.Wait();
-            modelIdList["DemiHuman"] = getDemiHumans.Result;
-            Console.Write("\r85%");
-            var housing = new Housing(MainClass._indexDirectory, gameLanguage);
-            var getFurniture = housing.SearchHousingByModelID(request, XivItemType.furniture);
-            getFurniture.Wait();
-            modelIdList["Furniture"] = getFurniture.Result;
-            Console.Write("\r100%\n");
+            gearList = gearList.Where(gearPiece => gearPiece.ModelInfo.PrimaryID.Equals(request)).ToList();
+            characterList = characterList.Where(characterPiece => characterPiece.ModelInfo.PrimaryID.Equals(request)).ToList();
+            uiList = uiList.Where(uiElement => uiElement.IconNumber.Equals(request)).ToList();
+            mountList = mountList.Where(mount => mount.ModelInfo.PrimaryID.Equals(request)).ToList();
+            minionList = minionList.Where(minion => minion.ModelInfo.PrimaryID.Equals(request)).ToList();
+            summonList = summonList.Where(summon => summon.ModelInfo.PrimaryID.Equals(request)).ToList();
+            furnitureList = furnitureList.Where(furniturePiece => furniturePiece.ModelInfo.PrimaryID.Equals(request)).ToList();
         }
     }
 }
