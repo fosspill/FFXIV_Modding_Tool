@@ -22,6 +22,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using xivModdingFramework.General.Enums;
 using xivModdingFramework.Mods;
 using xivModdingFramework.Mods.DataContainers;
@@ -689,52 +690,20 @@ Number of mods: {modpackInfo["modAmount"]}
 
         string GetType(string modPath)
         {
-            var type = "-";
-
-            if (modPath.Contains(".tex") || modPath.Contains(".mdl") || modPath.Contains(".atex"))
-            {
-                if (modPath.Contains("demihuman"))
-                    type = slotAbr[modPath.Substring(modPath.LastIndexOf("/") + 16, 3)];
-
-                if (modPath.Contains("/face/"))
-                {
-                    if (modPath.Contains(".tex"))
-                    {
-                        var fileName = Path.GetFileNameWithoutExtension(modPath);
-                        try
-                        {
-                            type = FaceTypes[fileName.Substring(fileName.IndexOf("_") + 1, 3)];
-                        } 
-                        catch
-                        {
-                            type = "Unknown";
-                        }
-                    }
-                }
-
-                if (modPath.Contains("/hair/"))
-                {
-                    if (modPath.Contains(".tex"))
-                    {
-                        var fileName = Path.GetFileNameWithoutExtension(modPath);
-                        try 
-                        {
-                            type = HairTypes[fileName.Substring(fileName.IndexOf("_") + 1, 3)];
-                        } 
-                        catch
-                        {
-                            type = "Unknown";
-                        }
-                    }
-                }
-
-                if (modPath.Contains("/vfx/"))
-                    type = "VFX";
-            }
-            else if (modPath.Contains(".avfx"))
-                type = "AVFX";
-            
-            return type;
+            var exRaw = Path.GetExtension(modPath);
+            if(string.IsNullOrEmpty(exRaw))
+                return "Unknown";
+            var ext = exRaw.Substring(1);
+            if(ext == "mdl")
+                return "Model";
+            else if ( ext == "meta")
+                return "Metadata";
+            else if (ext == "mtrl")
+                return "Material";
+            else if(ext == "tex")
+                return "Texture - " + GuessTextureUsage(modPath).ToString();
+            else
+                return ext.ToUpper();
         }
 
         string GetMap(string modPath)
@@ -770,6 +739,40 @@ Number of mods: {modpackInfo["modAmount"]}
                 xivTexType = XivTexType.Mask;
 
             return xivTexType.ToString();
+        }
+
+        public static XivTexType GuessTextureUsage(string path) {
+            Regex _normRegex = new Regex("(_n(\\.|_))|(norm)");
+            Regex _diffuseRegex = new Regex("(_d(\\.|_))|(diff)");
+            Regex _specRegex = new Regex("(_s(\\.|_))|(spec)");
+            Regex _multiRegex = new Regex("(_m(\\.|_))|(mul)|(mask)");
+            Regex _reflectionRegex = new Regex("(catchlight|refl)");
+            Regex _iconRegex = new Regex("^ui/icon/");
+            Regex _mapRegex = new Regex("^ui/map/");
+            Regex _loadingImageRegex = new Regex("^ui/loadingimage/");
+            Regex _uldRegex = new Regex("^ui/uld/");
+
+            if(_normRegex.IsMatch(path))
+                return XivTexType.Normal;
+            else if(_diffuseRegex.IsMatch(path))
+                return XivTexType.Diffuse;
+            else if (_specRegex.IsMatch(path))
+                return XivTexType.Specular;
+            else if (_multiRegex.IsMatch(path))
+                return XivTexType.Multi;
+            else if (_reflectionRegex.IsMatch(path))
+                return XivTexType.Reflection;
+            else if(_iconRegex.IsMatch(path))
+                return XivTexType.Icon;
+            else if (_mapRegex.IsMatch(path))
+                return XivTexType.Map;
+            else if (_loadingImageRegex.IsMatch(path))
+                return XivTexType.UI;
+            else if (_uldRegex.IsMatch(path))
+                return XivTexType.UI;
+            else
+                return XivTexType.Other;
+
         }
 
         static readonly Dictionary<string, string> FaceTypes = new Dictionary<string, string>
