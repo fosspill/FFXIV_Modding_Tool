@@ -89,6 +89,7 @@ namespace FFXIV_Modding_Tool
                     Console.Write("ERROR: ");
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(message);
+                    Console.ResetColor();
                     Environment.Exit(1);
                     break;
                 case 3:
