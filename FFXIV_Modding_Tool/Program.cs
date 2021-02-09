@@ -772,7 +772,6 @@ Number of mods: {modpackInfo["modAmount"]}
                 return XivTexType.UI;
             else
                 return XivTexType.Other;
-
         }
 
         static readonly Dictionary<string, string> FaceTypes = new Dictionary<string, string>
