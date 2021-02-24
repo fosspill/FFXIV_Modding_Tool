@@ -1,6 +1,6 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity) [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=fosspill/FFXIV_Modding_Tool)](https://dependabot.com) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/default)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/default) ![GitHub All Releases](https://img.shields.io/github/downloads/fosspill/FFXIV_Modding_Tool/total) ![.NET Core Default](https://github.com/fosspill/FFXIV_Modding_Tool/workflows/.NET%20Core%20Default/badge.svg)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Documentation with examples: https://ffmt.pwd.cat/ 👈
@@ -57,11 +57,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><img src="https://avatars0.githubusercontent.com/u/36456160?v=4?s=100" width="100px;" alt=""/><br /><sub><b>taylor85345</b></sub><br /><a href="https://github.com/fosspill/FFXIV_Modding_Tool/issues?q=author%3Ataylor85345" title="Bug reports">🐛</a> <a href="#userTesting-taylor85345" title="User Testing">📓</a></td>
     <td align="center"><a href="https://github.com/shinnova"><img src="https://avatars0.githubusercontent.com/u/12647312?v=4?s=100" width="100px;" alt=""/><br /><sub><b>shinnova</b></sub></a><br /><a href="https://github.com/fosspill/FFXIV_Modding_Tool/commits?author=shinnova" title="Code">💻</a> <a href="#example-shinnova" title="Examples">💡</a> <a href="#maintenance-shinnova" title="Maintenance">🚧</a> <a href="https://github.com/fosspill/FFXIV_Modding_Tool/pulls?q=is%3Apr+reviewed-by%3Ashinnova" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/fosspill"><img src="https://avatars3.githubusercontent.com/u/1491401?v=4?s=100" width="100px;" alt=""/><br /><sub><b>fosspill</b></sub></a><br /><a href="https://github.com/fosspill/FFXIV_Modding_Tool/commits?author=fosspill" title="Code">💻</a> <a href="#example-fosspill" title="Examples">💡</a> <a href="https://github.com/fosspill/FFXIV_Modding_Tool/commits?author=fosspill" title="Documentation">📖</a> <a href="#ideas-fosspill" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/hybridindie"><img src="https://avatars.githubusercontent.com/u/20465?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Johnny D</b></sub></a><br /><a href="#userTesting-hybridindie" title="User Testing">📓</a> <a href="https://github.com/fosspill/FFXIV_Modding_Tool/issues?q=author%3Ahybridindie" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
