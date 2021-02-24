@@ -47,6 +47,16 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "hybridindie",
+      "name": "Johnny D",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20465?v=4",
+      "profile": "https://github.com/hybridindie",
+      "contributions": [
+        "userTesting",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
