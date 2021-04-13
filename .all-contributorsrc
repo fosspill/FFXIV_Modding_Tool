@@ -1,0 +1,69 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "kainz0r",
+      "name": "kainz0r",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/6439314?v=4",
+      "profile": "https://github.com/kainz0r",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "taylor85345",
+      "name": "taylor85345",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/36456160?v=4",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "shinnova",
+      "name": "shinnova",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/12647312?v=4",
+      "profile": "https://github.com/shinnova",
+      "contributions": [
+        "code",
+        "example",
+        "maintenance",
+        "review"
+      ]
+    },
+    {
+      "login": "fosspill",
+      "name": "fosspill",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1491401?v=4",
+      "profile": "https://github.com/fosspill",
+      "contributions": [
+        "code",
+        "example",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "hybridindie",
+      "name": "Johnny D",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20465?v=4",
+      "profile": "https://github.com/hybridindie",
+      "contributions": [
+        "userTesting",
+        "bug"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "FFXIV_Modding_Tool",
+  "projectOwner": "fosspill",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true,
+  "commitConvention": "none"
+}

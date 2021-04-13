@@ -4,22 +4,28 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>ffmt</AssemblyName>
-    <AssemblyVersion>0.9.2</AssemblyVersion>
+    <AssemblyVersion>0.9.9</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ICSharpCode.SharpZipLib.dll" Version="0.85.4.369" />
+
+    <PackageReference Include="DotNetZip" Version="1.13.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Salaros.ConfigParser" Version="0.3.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.113.1" />
   </ItemGroup>
   <ItemGroup>
-  <Reference Include="xivModdingFramework">
-    <HintPath>references/xivModdingFramework.dll</HintPath>
-  </Reference>
-    <Reference Include="PresentationCore">
-    <HintPath>references/PresentationCore.dll</HintPath>
-  </Reference>
-</ItemGroup>
+    <Reference Include="xivModdingFramework">
+      <HintPath>references/xivModdingFramework.dll</HintPath>
+    </Reference>
+    <MyResourceFiles Include="references\Resources\SQL\*"/>
+  </ItemGroup>
+  <Target Name="CopyBuildFiles" AfterTargets="AfterBuild">
+    <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(OutDir)\Resources\SQL" />
+  </Target>
+  <Target Name="CopyPublishFiles" AfterTargets="Publish">
+    <Copy SourceFiles="@(MyResourceFiles)" DestinationFolder="$(PublishDir)\Resources\SQL" />
+  </Target>
 
 </Project>
