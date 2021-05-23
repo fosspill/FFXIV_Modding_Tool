@@ -824,7 +824,7 @@ Number of mods: {modpackInfo["modAmount"]}
                 Version = version,
                 SimpleModDataList = new List<SimpleModData>()
             };
-            var dat = new Dat(_gameDirectory);
+            var dat = new Dat(new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "sqpack", "ffxiv")));
             var localModData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(Path.Combine(_gameDirectory.FullName, "XivMods.json")));
             foreach (Mod mod in localModData.Mods)
             {
