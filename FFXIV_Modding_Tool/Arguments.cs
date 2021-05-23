@@ -57,6 +57,7 @@ namespace FFXIV_Modding_Tool.Commandline
                         }
                         main.ImportModpackHandler(ttmpPaths, useWizard, importAll, skipProblemCheck); })},
                     {"info", new Action(() => { main.GetModpackInfo(ttmpPaths); })},
+                    {"create", new Action(() => { main.CreateModpack() })},
                     }},
                 {"backup", new Dictionary<string, Action>{
                     {"", new Action(() => { main.BackupIndexes(); })}
@@ -82,6 +83,7 @@ namespace FFXIV_Modding_Tool.Commandline
             actionAliases = new Dictionary<string, string>{
                 {"mpi", "modpack import"},
                 {"mpinfo", "modpack info"},
+                {"mpc", "modpack create"},
                 {"mr", "mods refresh"},
                 {"me", "mods enable"},
                 {"md", "mods disable"},
@@ -185,7 +187,7 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public bool ActionRequirementsChecker(string requestedAction)
         {
-            List<string> requiresGameDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
+            List<string> requiresGameDirectory = new List<string> { "modpack import", "modpack create", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
             List<string> requiresBackupDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
             List<string> requiresConfigDirectory = new List<string> { "modpack import", "problemcheck" };
             List<string> requiresUpdatedBackups = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "reset" };
