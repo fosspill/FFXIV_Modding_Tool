@@ -804,6 +804,64 @@ Number of mods: {modpackInfo["modAmount"]}
         };
         #endregion
 
+        public void CreateModpack()
+        {
+            PrintMessage("Name of the modpack?");
+            string name = Console.ReadLine();
+            PrintMessage("Version of the modpack (in x.x.x format)?");
+            Version version = Version.Parse(Console.ReadLine());
+            PrintMessage("Author of the modpack?");
+            string author = Console.ReadLine();
+            PrintMessage("Full path to where you want to save the modpack");
+            DirectoryInfo modpackDir = new DirectoryInfo(Console.ReadLine());
+            if (!modpackDir.Exists)
+                PrintMessage($"Can't find {modpackDir}. Does it exist?", 2);
+            var ttmp = new TTMP(modpackDir, "FFXIV_Modding_Tool");
+            SimpleModPackData modpackData = new SimpleModPackData
+            {
+                Name = name,
+                Author = author,
+                Version = version,
+                SimpleModDataList = new List<SimpleModData>()
+            };
+            var dat = new Dat(_gameDirectory);
+            var localModData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(Path.Combine(_gameDirectory.FullName, "XivMods.json")));
+            foreach (Mod mod in localModData.Mods)
+            {
+                if (mod.source == "_INTERNAL_" || !mod.enabled)
+                    continue;
+                var compressedSize = mod.data.modSize;
+                try
+                {
+                    var getCompressedFileSize = dat.GetCompressedFileSize(mod.data.modOffset, IOUtil.GetDataFileFromPath(mod.fullPath));
+                    getCompressedFileSize.Wait();
+                    compressedSize = getCompressedFileSize.Result;
+                } catch
+                {
+                    // If the calculation fails, the TexTools people just use the original size
+                }
+                SimpleModData modData = new SimpleModData
+                {
+                    Name = mod.name,
+                    Category = mod.category,
+                    FullPath = mod.fullPath,
+                    ModOffset = mod.data.modOffset,
+                    ModSize = compressedSize,
+                    DatFile = mod.datFile
+                };
+                modpackData.SimpleModDataList.Add(modData);
+            }
+            Progress<(int current, int total, string message)> progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
+            string modpackPath = Path.Combine(modpackDir.FullName, $"{name}.ttmp2");
+            bool overwriteModpack = false;
+            Validators validation = new Validators();
+            if (File.Exists(modpackPath))
+                overwriteModpack = validation.PromptContinuation($"{modpackPath} already exists, do you want to overwrite it? y/N");
+            PrintMessage("Creating modpack...");
+            var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _gameDirectory, progressIndicator, overwriteModpack);
+            modpackCreation.Wait();
+        }
+
         #region Index File Handling
         Dictionary<string, XivDataFile> IndexFiles()
         {

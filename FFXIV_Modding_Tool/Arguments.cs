@@ -57,7 +57,7 @@ namespace FFXIV_Modding_Tool.Commandline
                         }
                         main.ImportModpackHandler(ttmpPaths, useWizard, importAll, skipProblemCheck); })},
                     {"info", new Action(() => { main.GetModpackInfo(ttmpPaths); })},
-                    {"create", new Action(() => { main.CreateModpack() })},
+                    {"create", new Action(() => { main.CreateModpack(); })},
                     }},
                 {"backup", new Dictionary<string, Action>{
                     {"", new Action(() => { main.BackupIndexes(); })}
