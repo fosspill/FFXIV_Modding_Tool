@@ -593,6 +593,8 @@ Number of mods: {modpackInfo["modAmount"]}
                 report.message = "Done!";
             if (report.total == 0)
                 Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\r{report.message}");
+            else if (report.message == "Creating TTMP File...")
+                Console.Write("\r" + new string(' ', Console.WindowWidth) + $"\rFinalizing TTMP file...");
             else
             {
                 progress = ((double)report.current / (double)report.total) * 100;
