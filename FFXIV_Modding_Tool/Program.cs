@@ -876,8 +876,16 @@ Number of mods: {modpackInfo["modAmount"]}
             if (File.Exists(modpackPath))
                 overwriteModpack = validation.PromptContinuation($"{modpackPath} already exists, do you want to overwrite it?");
             PrintMessage("Creating modpack...");
-            var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _indexDirectory, progressIndicator, overwriteModpack);
-            modpackCreation.Wait();
+            try
+            {
+                var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _indexDirectory, progressIndicator, overwriteModpack);
+                modpackCreation.Wait();
+                PrintMessage($"{modpackPath} successfully created!", 1);
+            }
+            catch (Exception ex)
+            {
+                PrintMessage($"Something went wrong during modpack creation:\n{ex.Message}", 2);
+            }
         }
 
         #region Index File Handling
