@@ -807,7 +807,7 @@ Number of mods: {modpackInfo["modAmount"]}
         public void CreateModpack(DirectoryInfo outputFile)
         {
             string name = "";
-            if (!outputFile.Exists)
+            if (outputFile.FullName == "/tmp/placeholder.ttmp")
             {
                 PrintMessage("Name of the modpack?");
                 name = Console.ReadLine();
@@ -820,7 +820,7 @@ Number of mods: {modpackInfo["modAmount"]}
             string author = Console.ReadLine();
             PrintMessage("Full path to where you want to save the modpack");
             DirectoryInfo modpackDir = new DirectoryInfo("/tmp/placeholder.ttmp");
-            if (!outputFile.Exists)
+            if (outputFile.FullName == "/tmp/placeholder.ttmp")
                 modpackDir = new DirectoryInfo(Console.ReadLine());
             else
                 modpackDir = new DirectoryInfo(Path.GetDirectoryName(outputFile.FullName));
@@ -863,7 +863,7 @@ Number of mods: {modpackInfo["modAmount"]}
             }
             Progress<(int current, int total, string message)> progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
             string modpackPath = "";
-            if (!outputFile.Exists)
+            if (outputFile.FullName == "/tmp/placeholder.ttmp")
                 modpackPath = Path.Combine(modpackDir.FullName, $"{name}.ttmp2");
             else
                 modpackPath = outputFile.FullName;
