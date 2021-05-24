@@ -880,7 +880,7 @@ Number of mods: {modpackInfo["modAmount"]}
             {
                 var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _indexDirectory, progressIndicator, overwriteModpack);
                 modpackCreation.Wait();
-                PrintMessage($"{modpackPath} successfully created!", 1);
+                PrintMessage($"\n{modpackPath} successfully created!", 1);
             }
             catch (Exception ex)
             {
