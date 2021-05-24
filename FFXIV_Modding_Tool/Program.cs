@@ -818,10 +818,12 @@ Number of mods: {modpackInfo["modAmount"]}
             Version version = Version.Parse(Console.ReadLine());
             PrintMessage("Author of the modpack?");
             string author = Console.ReadLine();
-            PrintMessage("Full path to where you want to save the modpack");
             DirectoryInfo modpackDir = new DirectoryInfo("/tmp/placeholder.ttmp");
             if (outputFile.FullName == "/tmp/placeholder.ttmp")
+            {
+                PrintMessage("Full path to where you want to save the modpack");
                 modpackDir = new DirectoryInfo(Console.ReadLine());
+            }
             else
                 modpackDir = new DirectoryInfo(Path.GetDirectoryName(outputFile.FullName));
             if (!modpackDir.Exists)
