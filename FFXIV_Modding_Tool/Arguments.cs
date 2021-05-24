@@ -19,6 +19,7 @@ namespace FFXIV_Modding_Tool.Commandline
         Validators validation = new Validators();
         SetupCommand setup = new SetupCommand();
         List<DirectoryInfo> ttmpPaths = new List<DirectoryInfo>();
+        DirectoryInfo outputFile = new DirectoryInfo("/tmp/placeholder.ttmp");
         bool useWizard = false;
         bool importAll = false;
         bool skipProblemCheck = false;
@@ -57,7 +58,7 @@ namespace FFXIV_Modding_Tool.Commandline
                         }
                         main.ImportModpackHandler(ttmpPaths, useWizard, importAll, skipProblemCheck); })},
                     {"info", new Action(() => { main.GetModpackInfo(ttmpPaths); })},
-                    {"create", new Action(() => { main.CreateModpack(); })},
+                    {"create", new Action(() => { main.CreateModpack(outputFile); })},
                     }},
                 {"backup", new Dictionary<string, Action>{
                     {"", new Action(() => { main.BackupIndexes(); })}
@@ -104,6 +105,7 @@ namespace FFXIV_Modding_Tool.Commandline
                 {new List<string>{"-a", "--all"}, new Action<string>((extraArg) => { importAll = true; })},
                 {new List<string>{"-npc", "--noproblemcheck"}, new Action<string>((extraArg) => { skipProblemCheck = true; })},
                 {new List<string>{"-v", "--version"}, new Action<string>((extraArg) => { requestedAction = "version"; })},
+                {new List<string>{"-o", "--output"}, new Action<string>((extraArg) => { outputFile = new DirectoryInfo(extraArg); })},
                 {new List<string>{"-h", "--help"}, new Action<string>((extraArg) => { requestedAction = "help"; })}
             };
         }
@@ -299,6 +301,7 @@ namespace FFXIV_Modding_Tool.Commandline
 Available actions:
   modpack import, mpi      Import a modpack, requires a .ttmp(2) to be specified
   modpack info, mpinfo     Show info about a modpack, requires a .ttmp(2) to be specified
+  modpack create, mpc      Create a modpack out of your currently active mods
   mods enable, me          Enable all installed mods
   mods disable, md         Disable all installed mods
   mods refresh, mr         Enable/disable mods as specified in modlist.cfg
@@ -317,6 +320,7 @@ Available arguments:
   -w, --wizard             Use the modpack wizard to select what mods to import (modpack import only)
   -a, --all                Import all mods in a modpack immediately (modpack import only)
   -npc, --noproblemcheck   Skip the problem check after importing a modpack
+  -o, --output             Path and filename to save .ttmp2 during Modpack Creation
   -v, --version            Display current application and game version
   -h, --help               Display this text
   path/to/modpack.ttmp     Full path to modpack(s). Imports in the order given.";

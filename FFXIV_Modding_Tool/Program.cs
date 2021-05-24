@@ -804,16 +804,26 @@ Number of mods: {modpackInfo["modAmount"]}
         };
         #endregion
 
-        public void CreateModpack()
+        public void CreateModpack(DirectoryInfo outputFile)
         {
-            PrintMessage("Name of the modpack?");
-            string name = Console.ReadLine();
+            string name = "";
+            if (!outputFile.Exists)
+            {
+                PrintMessage("Name of the modpack?");
+                name = Console.ReadLine();
+            }
+            else
+                name = Path.GetFileNameWithoutExtension(outputFile.FullName);
             PrintMessage("Version of the modpack (in x.x.x format)?");
             Version version = Version.Parse(Console.ReadLine());
             PrintMessage("Author of the modpack?");
             string author = Console.ReadLine();
             PrintMessage("Full path to where you want to save the modpack");
-            DirectoryInfo modpackDir = new DirectoryInfo(Console.ReadLine());
+            DirectoryInfo modpackDir = new DirectoryInfo("/tmp/placeholder.ttmp");
+            if (!outputFile.Exists)
+                modpackDir = new DirectoryInfo(Console.ReadLine());
+            else
+                modpackDir = new DirectoryInfo(Path.GetDirectoryName(outputFile.FullName));
             if (!modpackDir.Exists)
                 PrintMessage($"Can't find {modpackDir}. Does it exist?", 2);
             var ttmp = new TTMP(modpackDir, "FFXIV_Modding_Tool");
@@ -852,7 +862,11 @@ Number of mods: {modpackInfo["modAmount"]}
                 modpackData.SimpleModDataList.Add(modData);
             }
             Progress<(int current, int total, string message)> progressIndicator = new Progress<(int current, int total, string message)>(ReportProgress);
-            string modpackPath = Path.Combine(modpackDir.FullName, $"{name}.ttmp2");
+            string modpackPath = "";
+            if (!outputFile.Exists)
+                modpackPath = Path.Combine(modpackDir.FullName, $"{name}.ttmp2");
+            else
+                modpackPath = outputFile.FullName;
             bool overwriteModpack = false;
             Validators validation = new Validators();
             if (File.Exists(modpackPath))
