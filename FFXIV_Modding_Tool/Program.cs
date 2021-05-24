@@ -874,7 +874,7 @@ Number of mods: {modpackInfo["modAmount"]}
             bool overwriteModpack = false;
             Validators validation = new Validators();
             if (File.Exists(modpackPath))
-                overwriteModpack = validation.PromptContinuation($"{modpackPath} already exists, do you want to overwrite it? y/N");
+                overwriteModpack = validation.PromptContinuation($"{modpackPath} already exists, do you want to overwrite it?");
             PrintMessage("Creating modpack...");
             var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _indexDirectory, progressIndicator, overwriteModpack);
             modpackCreation.Wait();
