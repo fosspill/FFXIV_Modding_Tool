@@ -836,7 +836,7 @@ Number of mods: {modpackInfo["modAmount"]}
                 Version = version,
                 SimpleModDataList = new List<SimpleModData>()
             };
-            var dat = new Dat(new DirectoryInfo(Path.Combine(_gameDirectory.FullName, "sqpack", "ffxiv")));
+            var dat = new Dat(new DirectoryInfo(_indexDirectory.FullName));
             var localModData = JsonConvert.DeserializeObject<ModList>(File.ReadAllText(Path.Combine(_gameDirectory.FullName, "XivMods.json")));
             foreach (Mod mod in localModData.Mods)
             {
@@ -874,7 +874,7 @@ Number of mods: {modpackInfo["modAmount"]}
             if (File.Exists(modpackPath))
                 overwriteModpack = validation.PromptContinuation($"{modpackPath} already exists, do you want to overwrite it? y/N");
             PrintMessage("Creating modpack...");
-            var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _gameDirectory, progressIndicator, overwriteModpack);
+            var modpackCreation = ttmp.CreateSimpleModPack(modpackData, _indexDirectory, progressIndicator, overwriteModpack);
             modpackCreation.Wait();
         }
 
