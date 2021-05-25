@@ -25,7 +25,7 @@ List is sorted by priority
 - [ ] [Import specific textures / models (including advanced import options)](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/5)
 - [ ] [Export specific textures / models](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/6)
 - [x] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
-- [ ] [ModPack creation](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/8)
+- [x] [ModPack creation v1](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/8)
 - [ ] [TexTools interchangeability](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/67)
 
 ## How to Install, Build and Use:
