@@ -1206,10 +1206,42 @@ Number of mods: {modpackInfo["modAmount"]}
                         problemsFound.Add($"{fileName} has an unknown file type ({fileType}), offset is most likely corrupt");
                 }
                 Console.Write("\n");
+                Validators validation = new Validators();
+                if (validation.PromptContinuation("Would you like to defragment your DAT files in an attempt to reclaim some space?", true))
+                {
+                    try
+                    {
+                        long savedBytes = 0;
+                        Progress<(int Count, int Total, string Message)> reporter = new Progress<(int Count, int Total, string Message)>(ReportProgress);
+                        var modding = new Modding(_gameDirectory);
+                        var defragmentation = modding.DefragmentModdedDats(reporter);
+                        defragmentation.Wait();
+                        savedBytes = defragmentation.Result;
+                        var savedSpace = FormatBytes(savedBytes);
+                        PrintMessage($"DAT file defragmentation completed successfully. {savedSpace} of unused space has been recovered.", 1);
+                    }
+                    catch (Exception ex)
+                    {
+                        problemsFound.Add($"An error occurred during the defragmentation process: {ex.Message}");
+                    }
+                }
             }
             else
                 PrintMessage("No entries found in the modlist, skipping", 3);
             return problemsFound;
+        }
+
+        static string FormatBytes(long bytes)
+        {
+            string[] Suffix = { "B", "KB", "MB", "GB", "TB" };
+            int i;
+            double dblSByte = bytes;
+            for (i = 0; i < Suffix.Length && bytes >= 1024; i++, bytes /= 1024)
+            {
+                dblSByte = bytes / 1024.0;
+            }
+
+            return String.Format("{0:0.##} {1}", dblSByte, Suffix[i]);
         }
 
         Dictionary<string, bool> CheckLoD()
