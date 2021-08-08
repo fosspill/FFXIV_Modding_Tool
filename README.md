@@ -13,7 +13,7 @@ Documentation with examples: https://ffmt.pwd.cat/ 👈
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Depends on the latest stable version (2.3.5.10) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
+Depends on the latest stable version (2.3.6.1) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
 
 # Features!
 List is sorted by priority
