@@ -1209,6 +1209,7 @@ Number of mods: {modpackInfo["modAmount"]}
                 Validators validation = new Validators();
                 if (validation.PromptContinuation("Would you like to defragment your DAT files in an attempt to reclaim some space?", true))
                 {
+                    PrintMessage("Defragmenting...");
                     try
                     {
                         long savedBytes = 0;
@@ -1218,7 +1219,7 @@ Number of mods: {modpackInfo["modAmount"]}
                         defragmentation.Wait();
                         savedBytes = defragmentation.Result;
                         var savedSpace = FormatBytes(savedBytes);
-                        PrintMessage($"DAT file defragmentation completed successfully. {savedSpace} of unused space has been recovered.", 1);
+                        PrintMessage($"\nDAT file defragmentation completed successfully. {savedSpace} of unused space has been recovered.", 1);
                     }
                     catch (Exception ex)
                     {
