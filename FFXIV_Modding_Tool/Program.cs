@@ -1304,7 +1304,7 @@ Number of mods: {modpackInfo["modAmount"]}
             {
                 long savedBytes = 0;
                 Progress<(int Count, int Total, string Message)> reporter = new Progress<(int Count, int Total, string Message)>(ReportProgress);
-                var modding = new Modding(_gameDirectory);
+                var modding = new Modding(_indexDirectory);
                 var defragmentation = modding.DefragmentModdedDats(reporter);
                 defragmentation.Wait();
                 savedBytes = defragmentation.Result;
