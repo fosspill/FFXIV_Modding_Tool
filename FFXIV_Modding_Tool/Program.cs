@@ -16,7 +16,7 @@
 //
 // Credit to the TexTools UI contributors for inspiring and 
 // influencing a lot of the code.
-// They can be found here: >https://github.com/TexTools/FFXIV_TexTools_UI>
+// They can be found here: <https://github.com/TexTools/FFXIV_TexTools_UI>
 
 using System;
 using System.IO;
