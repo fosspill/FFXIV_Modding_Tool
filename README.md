@@ -1,12 +1,13 @@
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/fosspill/FFXIV_Modding_Tool/graphs/commit-activity)  [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/default)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/default) ![GitHub All Releases](https://img.shields.io/github/downloads/fosspill/FFXIV_Modding_Tool/total) ![.NET Core Default](https://github.com/fosspill/FFXIV_Modding_Tool/workflows/.NET%20Core%20Default/badge.svg)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/fosspill/FFXIV_Modding_Tool?label=version) [![CodeFactor](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/badge/default)](https://www.codefactor.io/repository/github/fosspill/ffxiv_modding_tool/overview/default) ![GitHub All Releases](https://img.shields.io/github/downloads/fosspill/FFXIV_Modding_Tool/total) ![.NET Core Default](https://github.com/fosspill/FFXIV_Modding_Tool/workflows/.NET%20Core%20Default/badge.svg) [![Documentation](https://img.shields.io/badge/-Documentation%20-important)](https://ffmt.pwd.cat) 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-Documentation with examples: https://ffmt.pwd.cat/ 👈
+Using XIVLauncher? Test [Penumbra](https://raw.githubusercontent.com/xivdev/Penumbra/master/repo.json "Penumbra") instead of `FFMT`
+
+
 
 # FFMT - FFXIV Modding Tool
-
 
 
 **FFMT** is a crossplatform CLI alternative to the Windows-Only *Textools* for Mac, Windows and Linux!
@@ -14,6 +15,10 @@ Documentation with examples: https://ffmt.pwd.cat/ 👈
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
 Depends on the latest stable version (2.3.6.1) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
+
+[![](https://asciinema.org/a/hfp5oOSjhGGz55mX9g9TVRS3l.svg)](https://asciinema.org/a/hfp5oOSjhGGz55mX9g9TVRS3l)
+
+Documentation with examples: https://ffmt.pwd.cat/ 👈
 
 # Features!
 List is sorted by priority
@@ -27,6 +32,13 @@ List is sorted by priority
 - [x] [Check for problems](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/7)
 - [x] [ModPack creation v1](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/8)
 - [ ] [TexTools interchangeability](https://github.com/fosspill/FFXIV_TexTools_CLI/issues/67)
+
+## Current Development Status
+
+Maintenance and bug fixes only, so don't expect any huge new features.
+PRs are, however, very welcome.
+
+We'll keep updating FFMT when the need arises.
 
 ## How to Install, Build and Use:
 
