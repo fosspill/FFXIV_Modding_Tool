@@ -14,7 +14,7 @@ Using XIVLauncher? Test [Penumbra](https://raw.githubusercontent.com/xivdev/Penu
 
 **This project is NOT affiliated with FFXIV_TexTools_UI**
 
-Depends on the latest stable version (2.3.6.1) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
+Depends on the latest stable version (2.3.7.1) of *[xivModdingFramework](https://github.com/TexTools/xivModdingFramework)*
 
 [![](https://asciinema.org/a/hfp5oOSjhGGz55mX9g9TVRS3l.svg)](https://asciinema.org/a/hfp5oOSjhGGz55mX9g9TVRS3l)
 
