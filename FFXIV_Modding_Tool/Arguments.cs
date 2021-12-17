@@ -80,9 +80,10 @@ namespace FFXIV_Modding_Tool.Commandline
                 {"setup", new Dictionary<string, Action>{
                     {"", new Action(() => { setup.ExecuteSetup(); })}
                 }},
-                {"defragment", new Dictionary<string, Action>{
-                    {"", new Action(() => { main.ReclaimSpace(); })}
-                }},
+                // Defragmentation is broken in its current state, removing ability to use it
+                // {"defragment", new Dictionary<string, Action>{
+                //     {"", new Action(() => { main.ReclaimSpace(); })}
+                // }},
             };
             actionAliases = new Dictionary<string, string>{
                 {"mpi", "modpack import"},
@@ -97,7 +98,7 @@ namespace FFXIV_Modding_Tool.Commandline
                 {"v", "version"},
                 {"h", "help"},
                 {"s", "setup"},
-                {"d", "defragment"}
+                // {"d", "defragment"}
             };
             argumentsDict = new Dictionary<List<string>, Action<string>>{
                 {new List<string>{"-g", "--gamedirectory"}, new Action<string>((extraArg) => { MainClass._gameDirectory = new DirectoryInfo(Path.Combine(extraArg, "game"));
@@ -193,7 +194,7 @@ namespace FFXIV_Modding_Tool.Commandline
 
         public bool ActionRequirementsChecker(string requestedAction)
         {
-            List<string> requiresGameDirectory = new List<string> { "modpack import", "modpack create", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck", "defragment" };
+            List<string> requiresGameDirectory = new List<string> { "modpack import", "modpack create", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck"/*, "defragment"*/ };
             List<string> requiresBackupDirectory = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "backup", "reset", "problemcheck" };
             List<string> requiresConfigDirectory = new List<string> { "modpack import", "problemcheck" };
             List<string> requiresUpdatedBackups = new List<string> { "modpack import", "mods refresh", "mods enable", "mods disable", "reset" };
@@ -315,7 +316,6 @@ Available actions:
   version, v               Display current application and game version
   help, h                  Display this text
   setup, s                 Run First-time Setup Wizard
-  defragment, d            Defragments DAT files, attempting to reclaim unused file space
 
 Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
