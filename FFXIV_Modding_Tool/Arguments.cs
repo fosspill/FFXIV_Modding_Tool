@@ -80,6 +80,7 @@ namespace FFXIV_Modding_Tool.Commandline
                 {"setup", new Dictionary<string, Action>{
                     {"", new Action(() => { setup.ExecuteSetup(); })}
                 }},
+                // Defragmentation is broken in its current state, removing ability to use it
                 // {"defragment", new Dictionary<string, Action>{
                 //     {"", new Action(() => { main.ReclaimSpace(); })}
                 // }},
@@ -315,7 +316,6 @@ Available actions:
   version, v               Display current application and game version
   help, h                  Display this text
   setup, s                 Run First-time Setup Wizard
-  defragment, d            Defragments DAT files, attempting to reclaim unused file space (temporarily disabled)
 
 Available arguments:
   -g, --gamedirectory      Full path to game install, including 'FINAL FANTASY XIV - A Realm Reborn'
