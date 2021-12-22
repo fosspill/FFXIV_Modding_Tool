@@ -77,7 +77,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
         main.PrintMessage("----------\nFirst we'll try to define your Game Directory!", 1);
             main.PrintMessage(@"    Example locations:
         MacOS: /Users/<USER_NAME>/Library/Application Support/FINAL FANTASY XIV ONLINE/Bottles/published_Final_Fantasy/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
-        Linux: /path/to/WINEBOTTLE/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
+        Linux: /full/path/to/WINEBOTTLE/drive_c/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn
         Windows: C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn
         ");
 
@@ -89,7 +89,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             } else {main.PrintMessage("Found no valid game installs in common locations, you must define the Game Directory path on your own."); }
             string _GameDirectoryFromConsole = "";
             while (!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
-                Console.Write("\nEnter your Game Directory: ");
+                Console.Write("\nEnter the full path to your Game Directory (without Escaping): ");
                 _GameDirectoryFromConsole=Console.ReadLine();
                 if(!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
@@ -102,7 +102,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
         main.PrintMessage("----------\nNow we'll have to find your Configuration directory!", 1);
             main.PrintMessage(@"    Example locations:
         MacOS: /Users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
-        Linux: /path/to/WINEBOTTLE/drive_c/users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
+        Linux: /full/path/to/WINEBOTTLE/drive_c/users/<USER_NAME>/My Documents/My Games/FINAL FANTASY XIV - A Realm Reborn
         Windows: C:\users\<USER_NAME>\My Documents\My Games\FINAL FANTASY XIV - A Realm Reborn
         ");      
             
@@ -114,7 +114,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             } else { main.PrintMessage("Found no valid Configuration folders in common locations, you must define the Configuration Directory path on your own."); }
             string _ConfigDirectoryFromConsole = "";
             while (!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
-                Console.Write("\nEnter your Config Directory: ");
+                Console.Write("\nEnter the full path to your Config Directory (without Escaping): ");
                 _ConfigDirectoryFromConsole=Console.ReadLine();
                 if(!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
@@ -135,7 +135,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             
             string _BackupDirectoryFromConsole = "";
             while (!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
-                Console.Write("\nEnter your desired Backup Directory: ");
+                Console.Write("\nEnter the full path to your desired Backup Directory (without Escaping): ");
                 _BackupDirectoryFromConsole=Console.ReadLine();
                 if(!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
                     main.PrintMessage("Invalid directory. Make sure it exists and is accessable.", 3);
