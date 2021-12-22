@@ -89,7 +89,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             } else {main.PrintMessage("Found no valid game installs in common locations, you must define the Game Directory path on your own."); }
             string _GameDirectoryFromConsole = "";
             while (!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
-                Console.Write("\nEnter the full path to your Game Directory (without Escaping): ");
+                Console.Write("\nEnter the full path to your Game Directory (without quotation marks and escaping): ");
                 _GameDirectoryFromConsole=Console.ReadLine();
                 if(!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
@@ -114,7 +114,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             } else { main.PrintMessage("Found no valid Configuration folders in common locations, you must define the Configuration Directory path on your own."); }
             string _ConfigDirectoryFromConsole = "";
             while (!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
-                Console.Write("\nEnter the full path to your Config Directory (without Escaping): ");
+                Console.Write("\nEnter the full path to your Config Directory (without quotation marks and escaping): ");
                 _ConfigDirectoryFromConsole=Console.ReadLine();
                 if(!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
@@ -135,7 +135,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             
             string _BackupDirectoryFromConsole = "";
             while (!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
-                Console.Write("\nEnter the full path to your desired Backup Directory (without Escaping): ");
+                Console.Write("\nEnter the full path to your desired Backup Directory (without quotation marks and escaping): ");
                 _BackupDirectoryFromConsole=Console.ReadLine();
                 if(!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
                     main.PrintMessage("Invalid directory. Make sure it exists and is accessable.", 3);
