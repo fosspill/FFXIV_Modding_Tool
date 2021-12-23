@@ -88,7 +88,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             string _GameDirectoryFromConsole = "";
             while (!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
                 Console.Write("\nEnter your Game Directory: ");
-                _GameDirectoryFromConsole=@"" + Console.ReadLine().Replace("\"", "");
+                _GameDirectoryFromConsole=@"" + Console.ReadLine().Replace("\"", "").Replace("~", _home);
                 if(!_ValidDirectory(Path.Combine(_GameDirectoryFromConsole, "game", "sqpack", "ffxiv"), "GameDirectory")){
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
                 }
@@ -113,7 +113,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             string _ConfigDirectoryFromConsole = "";
             while (!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
                 Console.Write("\nEnter your Config Directory: ");
-                _ConfigDirectoryFromConsole=@"" + Console.ReadLine().Replace("\"", "");
+                _ConfigDirectoryFromConsole=@"" + Console.ReadLine().Replace("\"", "").Replace("~", _home);
                 if(!_ValidDirectory(_ConfigDirectoryFromConsole, "ConfigDirectory")){
                     main.PrintMessage("Invalid directory, please confirm that it matches the examples provided.", 3);
                 }
@@ -134,7 +134,7 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
             string _BackupDirectoryFromConsole = "";
             while (!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
                 Console.Write("\nEnter your desired Backup Directory: ");
-                _BackupDirectoryFromConsole=@"" + Console.ReadLine().Replace("\"", "");
+                _BackupDirectoryFromConsole=@"" + Console.ReadLine().Replace("\"", "").Replace("~", _home);
                 if(!_ValidDirectory(_BackupDirectoryFromConsole, "BackupDirectory")){
                     main.PrintMessage("Invalid directory. Make sure it exists and is accessable.", 3);
                 }
