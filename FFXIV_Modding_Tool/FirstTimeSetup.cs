@@ -28,6 +28,8 @@ namespace FFXIV_Modding_Tool.FirstTimeSetup
         static List<string> _UserDataLocations_Linux = new List<string>()  {
                         Path.Combine(_home, "Games", "final-fantasy-xiv-a-realm-reborn", "drive_c", "users", $"{Environment.UserName}", "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn"),
                         Path.Combine(_home, "Games", "final-fantasy-xiv-online", "drive_c", "users", $"{Environment.UserName}", "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn"),
+                        Path.Combine(_home, "Games", "final-fantasy-xiv-a-realm-reborn", "drive_c", "users", $"{Environment.UserName}", "Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn"),
+                        Path.Combine(_home, "Games", "final-fantasy-xiv-online", "drive_c", "users", $"{Environment.UserName}", "Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn"),
                         Path.Combine(_home, ".steam", "steam", "steamapps", "compatdata", "39210", "pfx", "drive_c", "users", "steamuser", "My Documents", "My Games", "FINAL FANTASY XIV - A Realm Reborn")};
         //Mac
         static List<string> _InstallLocations_Mac = new List<string>()  {
