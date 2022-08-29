@@ -1,6 +1,6 @@
 ****FFMT****
 
-For all intents and purposes FFMT is on an extended hiatus.
+FFMT is on an extended hiatus.
 
 Important bug fixes and framework updates will, however, still be released.
 
