@@ -139,7 +139,8 @@ namespace FFXIV_Modding_Tool
                 if (ttmpPath.Extension == ".ttmp2")
                 {
                     var ttmp = new TTMP(ttmpPath, "FFXIV_Modding_Tool");
-                    var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                    //var ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                    var ttmpData = TTMP.GetModPackJsonData(ttmpPath);
                     ttmpData.Wait();
                     var ttmpInfo = ttmpData.Result.ModPackJson;
                     modpackInfo["name"] = ttmpInfo.Name;
@@ -220,7 +221,8 @@ Number of mods: {modpackInfo["modAmount"]}
                 PrintMessage($"Extracting data from {ttmpPath.Name}...");
                 if (ttmpPath.Extension == ".ttmp2")
                 {
-                    var _ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                    //var _ttmpData = ttmp.GetModPackJsonData(ttmpPath);
+                    var _ttmpData = TTMP.GetModPackJsonData(ttmpPath);
                     _ttmpData.Wait();
                     ttmpData = _ttmpData.Result.ModPackJson;
                 }
