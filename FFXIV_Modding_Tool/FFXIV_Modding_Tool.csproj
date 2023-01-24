@@ -9,11 +9,11 @@
 
   <ItemGroup>
 
-    <PackageReference Include="DotNetZip" Version="1.15.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="DotNetZip" Version="1.16.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Salaros.ConfigParser" Version="0.3.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.114.4" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.117.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="xivModdingFramework">
