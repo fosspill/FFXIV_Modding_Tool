@@ -2,7 +2,8 @@
 
 FFMT is on an extended hiatus.
 
-Important bug fixes and framework updates will, however, still be released.
+Important bug fixes and framework updates may still be released on a best effort basis.
+No packages will be provided. 
 
 ---
 **Please consider using penumbra instead of FFMT:**
